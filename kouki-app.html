@@ -189,6 +189,11 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 .empty { text-align:center; padding:32px 16px; color:var(--muted); font-size:0.85rem; }
 .empty-icon { font-size:2rem; display:block; margin-bottom:8px; opacity:0.5; }
 
+/* WORK TAB */
+.wtab{flex:1;min-width:68px;padding:11px 6px;text-align:center;font-size:0.72rem;color:var(--muted2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;font-family:'Noto Sans JP',sans-serif;transition:all 0.2s;white-space:nowrap;}
+.wtab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.wtab:hover:not(.active){color:var(--text);}
+
 /* MUSUKO/家計 CSS */
 .mtab{flex:1;padding:12px 4px;text-align:center;font-family:'Zen Maru Gothic',sans-serif;font-size:0.78rem;color:#9A8070;cursor:pointer;border:none;background:none;border-bottom:3px solid transparent;transition:all 0.2s;}
 .mtab.active{color:#4A2C1A;background:#FDF6EC;font-weight:700;border-bottom-color:#D4956A;margin-bottom:-3px;}
@@ -294,6 +299,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab active" onclick="switchTab('today')" id="tab-today">🌤 今日</button>
     <button class="tab" onclick="switchTab('todo')" id="tab-todo">✅ ToDo</button>
     <button class="tab" onclick="switchTab('calendar')" id="tab-calendar">📅 予定</button>
+    <button class="tab" onclick="switchTab('love')" id="tab-love">💕 恋愛</button>
+    <button class="tab" onclick="switchTab('work')" id="tab-work">💼 仕事</button>
     <button class="tab" onclick="switchTab('drive')" id="tab-drive">🚗 運転</button>
     <button class="tab" onclick="switchTab('kakeibo')" id="tab-kakeibo">💰 家計</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
@@ -367,6 +374,280 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
 </div>
 
+<!-- 恋愛パネル -->
+<div class="panel" id="love-panel" style="padding:20px 16px;">
+  <div class="sec-title">💕 恋愛</div>
+
+  <!-- PDF表示エリア -->
+  <div id="love-pdf-area" style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;"></div>
+
+  <!-- 管理者モード -->
+  <div id="love-admin" style="display:none;margin-bottom:12px;">
+    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:8px;">PDFを最大3枚までアップロードできます（差し替え式）</div>
+    <button onclick="document.getElementById('love-pdf-input').click()"
+      class="add-ev-btn" style="border-color:var(--accent);color:var(--accent);">
+      📄 PDFをアップロード（最大3枚）
+    </button>
+    <input type="file" id="love-pdf-input" accept="application/pdf" multiple style="display:none" onchange="uploadLovePdfs(this)">
+    <div id="love-upload-status" style="font-size:0.78rem;text-align:center;margin-top:6px;min-height:18px;"></div>
+  </div>
+  <button onclick="toggleLoveAdmin()" id="love-admin-btn"
+    style="background:none;border:none;color:var(--muted);font-size:0.72rem;cursor:pointer;">
+    ⚙️ 管理者モード
+  </button>
+</div>
+
+<!-- 仕事パネル -->
+<div class="panel" id="work-panel" style="padding:0;">
+  <!-- サブタブ -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
+    <button class="wtab active" id="wtab-shift" onclick="switchWorkTab('shift')">📅 シフト</button>
+    <button class="wtab" id="wtab-union" onclick="switchWorkTab('union')">🤝 労組</button>
+    <button class="wtab" id="wtab-adjust" onclick="switchWorkTab('adjust')">🔄 調整</button>
+    <button class="wtab" id="wtab-calc" onclick="switchWorkTab('calc')">🧮 油脂計算</button>
+  </div>
+
+  <!-- シフトスケジュール -->
+  <div id="wsec-shift" style="padding:16px;display:block;">
+    <div class="sec-title">📅 シフトスケジュール</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button onclick="changeShiftMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">‹</button>
+      <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);"></span>
+      <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
+    </div>
+    <!-- Googleカレンダー同期ボタン -->
+    <button id="shift-sync-btn" onclick="syncShiftFromGcal()"
+      style="width:100%;padding:11px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.4);border-radius:10px;color:#5B8DD9;font-size:0.88rem;cursor:pointer;margin-bottom:12px;font-family:'Noto Sans JP',sans-serif;transition:all 0.2s;">
+      🔄 Googleカレンダーと同期（フジパン(株)）
+    </button>
+    <!-- Googleカレンダー同期ボタン -->
+    <button onclick="syncShiftFromGCal()" id="gcal-sync-btn"
+      style="width:100%;padding:10px;background:var(--surface2);border:1px solid #4285F4;border-radius:10px;color:#4285F4;font-size:0.88rem;cursor:pointer;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Noto Sans JP',sans-serif;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="#4285F4"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      フジパン(株) カレンダーを同期
+    </button>
+    <div id="gcal-sync-status" style="font-size:0.78rem;text-align:center;margin-bottom:8px;min-height:16px;color:var(--muted2);"></div>
+    <!-- シフト表 -->
+    <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:12px;"></div>
+    <!-- シフト追加 -->
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:0.85rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">シフトを追加</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <input type="date" id="shift-date-input" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
+        <select id="shift-type-input" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;cursor:pointer;">
+          <option value="early">早番 (6:00〜)</option>
+          <option value="day">日勤 (9:00〜)</option>
+          <option value="late">遅番 (〜22:00)</option>
+          <option value="off">公休</option>
+          <option value="paid">有給</option>
+          <option value="custom">カスタム</option>
+        </select>
+        <input type="text" id="shift-note-input" placeholder="メモ（任意）" maxlength="20"
+          style="flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
+        <button onclick="addShift()" class="btn-icon">＋</button>
+      </div>
+    </div>
+    <!-- 月間サマリー -->
+    <div class="card" id="shift-summary"></div>
+  </div>
+
+  <!-- 労組カレンダー -->
+  <div id="wsec-union" style="padding:16px;display:none;">
+    <div class="sec-title">🤝 労働組合</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button onclick="changeUnionMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">‹</button>
+      <span id="union-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);"></span>
+      <button onclick="changeUnionMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
+    </div>
+    <div class="cal-grid" id="union-cal-grid" style="margin-bottom:16px;"></div>
+    <div class="sec-title">組合イベント</div>
+    <div id="union-event-list"></div>
+    <button class="add-ev-btn" onclick="toggleUnionEventForm()">＋ イベントを追加</button>
+    <div class="add-event-form" id="union-event-form">
+      <input type="date" id="union-ev-date">
+      <input type="text" id="union-ev-title" placeholder="イベント内容" maxlength="30">
+      <select id="union-ev-type" style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 12px;color:var(--text);outline:none;font-size:0.88rem;">
+        <option value="meeting">会議</option>
+        <option value="event">行事</option>
+        <option value="deadline">締切</option>
+        <option value="other">その他</option>
+      </select>
+      <div class="form-btns">
+        <button class="save-btn" onclick="addUnionEvent()">保存</button>
+        <button class="cancel-btn" onclick="toggleUnionEventForm()">キャンセル</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- シフト調整ツール -->
+  <div id="wsec-adjust" style="padding:16px;display:none;">
+    <div class="sec-title">🔄 シフト調整ツール</div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:0.85rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">希望シフト入力</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:0.78rem;color:var(--muted2);min-width:60px;">希望休</span>
+          <input type="date" id="adjust-off-date" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
+          <button onclick="addAdjustOff()" class="btn-icon" style="background:var(--red);">＋</button>
+        </div>
+        <div id="adjust-off-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:20px;"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div style="font-size:0.85rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">勤務条件</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">月間希望勤務日数</div>
+          <input type="number" id="adjust-days" min="1" max="31" placeholder="例：20"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">優先シフト</div>
+          <select id="adjust-pref" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
+            <option value="early">早番優先</option>
+            <option value="day">日勤優先</option>
+            <option value="late">遅番優先</option>
+            <option value="any">指定なし</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <button onclick="generateAdjustPlan()"
+      style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:var(--radius);color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;cursor:pointer;margin-bottom:12px;">
+      🔄 シフト案を生成
+    </button>
+    <div id="adjust-result" style="display:none;" class="card"></div>
+  </div>
+
+  <!-- 油脂計算システム -->
+  <div id="wsec-calc" style="padding:16px;display:none;">
+    <div class="sec-title">🧮 油脂計算システム</div>
+    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:14px;">各油脂の必要個数を計算します。数値を入力すると自動計算されます。</div>
+
+    <!-- ① セベリアーノGZマーガリン -->
+    <div class="card" style="margin-bottom:10px;border-left:3px solid #5B8DD9;">
+      <div style="font-size:0.85rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">① セベリアーノGZマーガリン <span style="font-size:0.72rem;color:var(--muted2);">（1個＝10kg）</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">明日の本数</div>
+          <input type="number" id="oil1-tomorrow" min="0" placeholder="本" oninput="calcOil1()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">在庫残量 (kg)</div>
+          <input type="number" id="oil1-stock" min="0" step="0.1" placeholder="kg（任意）" oninput="calcOil1()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+      </div>
+      <div id="oil1-result" style="display:none;background:rgba(91,141,217,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <span style="font-size:0.75rem;color:var(--muted2);">必要個数：</span>
+        <span id="oil1-units" style="font-family:'DM Mono',monospace;font-size:1.5rem;color:#5B8DD9;font-weight:700;"></span>
+        <span style="font-size:0.75rem;color:var(--muted2);"> 個</span>
+        <div id="oil1-detail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- ② カネカマーガリンSD -->
+    <div class="card" style="margin-bottom:10px;border-left:3px solid #E8B84B;">
+      <div style="font-size:0.85rem;color:#E8B84B;font-weight:700;margin-bottom:8px;">② カネカマーガリンSD <span style="font-size:0.72rem;color:var(--muted2);">（1個＝15kg）</span></div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:8px;">※ 自動計算なし。在庫と必要個数を手動で確認してください。</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">現在の在庫 (個)</div>
+          <input type="number" id="oil2-stock-units" min="0" placeholder="個" oninput="calcOil2()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">必要個数（手入力）</div>
+          <input type="number" id="oil2-need-units" min="0" placeholder="個" oninput="calcOil2()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+      </div>
+      <div id="oil2-result" style="display:none;background:rgba(232,184,75,0.1);border-radius:8px;padding:10px;text-align:center;margin-top:8px;">
+        <span style="font-size:0.75rem;color:var(--muted2);">発注が必要：</span>
+        <span id="oil2-order" style="font-family:'DM Mono',monospace;font-size:1.5rem;color:#E8B84B;font-weight:700;"></span>
+        <span style="font-size:0.75rem;color:var(--muted2);"> 個</span>
+        <div id="oil2-detail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- ③ FHマーガリン -->
+    <div class="card" style="margin-bottom:10px;border-left:3px solid #7A9E7E;">
+      <div style="font-size:0.85rem;color:#7A9E7E;font-weight:700;margin-bottom:8px;">③ FHマーガリン <span style="font-size:0.72rem;color:var(--muted2);">（1個＝10kg）</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">余りの個数</div>
+          <input type="number" id="oil3-leftover" min="0" step="0.1" placeholder="個" oninput="calcOil3()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">明後日の本数</div>
+          <input type="number" id="oil3-day2" min="0" placeholder="本" oninput="calcOil3()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+      </div>
+      <div id="oil3-result" style="display:none;background:rgba(122,158,126,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <span style="font-size:0.75rem;color:var(--muted2);">必要個数：</span>
+        <span id="oil3-units" style="font-family:'DM Mono',monospace;font-size:1.5rem;color:#7A9E7E;font-weight:700;"></span>
+        <span style="font-size:0.75rem;color:var(--muted2);"> 個</span>
+        <div id="oil3-detail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- ④ カネカマーガリンCF -->
+    <div class="card" style="margin-bottom:10px;border-left:3px solid #A07BE0;">
+      <div style="font-size:0.85rem;color:#A07BE0;font-weight:700;margin-bottom:8px;">④ カネカマーガリンCF <span style="font-size:0.72rem;color:var(--muted2);">（1個＝15kg・1本10kg使用）</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">余りの個数</div>
+          <input type="number" id="oil4-leftover" min="0" step="0.1" placeholder="個" oninput="calcOil4()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">明後日の本数</div>
+          <input type="number" id="oil4-day2" min="0" placeholder="本" oninput="calcOil4()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+      </div>
+      <div id="oil4-result" style="display:none;background:rgba(160,123,224,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <span style="font-size:0.75rem;color:var(--muted2);">必要個数：</span>
+        <span id="oil4-units" style="font-family:'DM Mono',monospace;font-size:1.5rem;color:#A07BE0;font-weight:700;"></span>
+        <span style="font-size:0.75rem;color:var(--muted2);"> 個</span>
+        <div id="oil4-detail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- ⑤ FFソフトマーガリン -->
+    <div class="card" style="margin-bottom:16px;border-left:3px solid #c8a96e;">
+      <div style="font-size:0.85rem;color:var(--accent);font-weight:700;margin-bottom:8px;">⑤ FFソフトマーガリン <span style="font-size:0.72rem;color:var(--muted2);">（1個＝10kg・1本10kg使用）</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">余りの個数</div>
+          <input type="number" id="oil5-leftover" min="0" step="0.1" placeholder="個" oninput="calcOil5()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+        <div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">明後日の本数</div>
+          <input type="number" id="oil5-day2" min="0" placeholder="本" oninput="calcOil5()"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
+        </div>
+      </div>
+      <div id="oil5-result" style="display:none;background:rgba(200,169,110,0.1);border-radius:8px;padding:10px;text-align:center;">
+        <span style="font-size:0.75rem;color:var(--muted2);">必要個数：</span>
+        <span id="oil5-units" style="font-family:'DM Mono',monospace;font-size:1.5rem;color:var(--accent);font-weight:700;"></span>
+        <span style="font-size:0.75rem;color:var(--muted2);"> 個</span>
+        <div id="oil5-detail" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+      </div>
+    </div>
+
+    <!-- 一括クリア -->
+    <button onclick="clearAllOilCalc()"
+      style="width:100%;padding:10px;background:none;border:1px dashed var(--border2);border-radius:10px;color:var(--muted2);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+      🗑️ すべてクリア
+    </button>
+  </div>
+</div>
+
 <!-- 運転モードパネル -->
 <div class="panel" id="drive-panel" style="padding:20px 16px;">
 
@@ -407,10 +688,6 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button onclick="openPassengerTab()"
       style="padding:12px;background:var(--surface2);border:1px solid var(--blue);border-radius:var(--radius);color:var(--blue);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">
       🪑 乗客画面を開く（後部座席タブレット用）
-    </button>
-    <button onclick="togglePassengerLock()" id="drive-lock-btn"
-      style="padding:12px;background:var(--surface2);border:1px solid var(--muted);border-radius:var(--radius);color:var(--muted2);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">
-      🔓 乗客画面ロック
     </button>
     <button id="drive-stop-btn" onclick="driveStop()"
       style="display:none;padding:14px;background:var(--surface2);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;transition:all 0.2s;">
@@ -465,14 +742,11 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div>
 
 <!-- 乗客パネル（横画面最適化・画面ロック対応） -->
-<div class="panel" id="passenger-panel" style="padding:0;background:#080808;position:relative;overflow:hidden;">
+<div class="panel" id="passenger-panel" style="padding:0;position:relative;overflow:hidden;">
+  <div style="background:#080808;min-height:100%;position:relative;">
 
-  <!-- 画面ロックオーバーレイ -->
-  <div id="pass-lock-overlay" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:16px;">
-    <div style="font-size:3rem;">🔒</div>
-    <div style="font-family:'Shippori Mincho',serif;font-size:1.2rem;color:#c8a96e;letter-spacing:0.1em;">画面がロックされています</div>
-    <div style="font-size:0.8rem;color:#6a6058;">運転者の操作で解除できます</div>
-  </div>
+  <!-- 画面ロックオーバーレイ（無効化） -->
+  <div id="pass-lock-overlay" style="display:none;">
 
   <!-- 言語選択（右上固定・小さく） -->
   <div style="position:absolute;bottom:10px;right:10px;z-index:50;display:flex;gap:4px;" id="pass-lang-area">
@@ -549,7 +823,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div id="pass-arrived-sub" style="font-size:clamp(0.75rem,2vw,0.95rem);color:#6a6058;letter-spacing:0.05em;text-align:center;line-height:1.6;"></div>
     </div>
   </div>
-</div>
+  </div><!-- /passenger inner -->
+</div><!-- /passenger-panel -->
 
 <!-- 設定パネル -->
 <div class="panel" id="settings-panel" style="padding:20px 16px;">
@@ -644,7 +919,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div>
 
 <!-- 家計パネル -->
-<div class="panel" id="kakeibo-panel" style="padding:0; overflow-y:auto; max-height:calc(100vh - 110px); background:#FDF6EC; font-family:'Zen Maru Gothic',sans-serif;">
+<div class="panel" id="kakeibo-panel" style="padding:0; overflow-y:auto; max-height:calc(100vh - 110px);">
+  <div style="background:#FDF6EC;font-family:'Zen Maru Gothic',sans-serif;min-height:100%;">
   <!-- musuko サブタブ -->
   <div style="display:flex;background:#F5E6D0;border-bottom:3px solid #D4956A;position:sticky;top:0;z-index:40">
     <button class="mtab active" id="mtab-spending" onclick="switchMusukoTab('spending')">💰 支出</button>
@@ -856,7 +1132,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div id="sim-table"></div>
     </div>
   </div>
-</div>
+  </div><!-- /kakeibo inner -->
+</div><!-- /kakeibo-panel -->
 
 <!-- 支出編集モーダル -->
 <div id="spend-edit-modal" style="display:none;position:fixed;inset:0;background:rgba(74,44,26,0.6);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
@@ -890,7 +1167,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 <!-- Firebase モジュール -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -909,17 +1186,13 @@ const auth = getAuth(fbApp);
 const db = getFirestore(fbApp);
 const provider = new GoogleAuthProvider();
 
-// リダイレクトログイン後の結果を処理
-getRedirectResult(auth).catch(() => {});
-
 // ─── Auth状態監視 ───
-// 許可するUID（功稀のGoogleアカウントのみ）
 const ALLOWED_UID = 'BrDyd83L3HZbQom14auP7pma7sy2';
+let _redirectChecked = false;
 
 onAuthStateChanged(auth, (user) => {
   document.getElementById('loading-screen').style.display = 'none';
   if (user) {
-    // UID制限チェック
     if (user.uid !== ALLOWED_UID) {
       signOut(auth);
       document.getElementById('login-screen').style.display = 'flex';
@@ -1011,16 +1284,15 @@ window.fsDelShared = async (col, id) => {
 
 // ─── Googleログイン ───
 window.doGoogleLogin = async () => {
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = '';
   try {
-    // スマホはredirect、PCはpopup
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      await signInWithRedirect(auth, provider);
-    } else {
-      await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider);
+  } catch(e) {
+    if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') {
+      errEl.textContent = 'Googleログインに失敗しました (' + (e.code || e.message) + ')';
     }
   }
-  catch(e) { document.getElementById('login-error').textContent = 'Googleログインに失敗しました'; }
 };
 
 // ─── ログアウト ───
@@ -1102,13 +1374,46 @@ window.showMainScreen = function() {
   initSettingsPage();
   // 料金トグル初期化
   initFareToggle();
+  // 恋愛PDF読み込み
+  setTimeout(loadLovePdfs, 2000);
+  // シフト初期化
+  renderShiftTable();
+  // 労組カレンダー初期化
+  renderUnionCal();
+  renderUnionEvents();
 };
 
+// ════ 統合switchTab（全ての処理を1箇所に集約） ════
 window.switchTab = function(n) {
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  document.getElementById(n+'-panel').classList.add('active');
-  document.getElementById('tab-'+n).classList.add('active');
+  const panel = document.getElementById(n+'-panel');
+  const tabBtn = document.getElementById('tab-'+n);
+  if(panel) panel.classList.add('active');
+  if(tabBtn) tabBtn.classList.add('active');
+
+  // 乗客タブ：タブバー・ヘッダー非表示
+  if (n === 'passenger') {
+    document.querySelector('.tabs').style.display = 'none';
+    document.querySelector('header').style.display = 'none';
+    if(panel) panel.style.height = '100vh';
+    initPassengerClock();
+  } else {
+    document.querySelector('.tabs').style.display = 'flex';
+    document.querySelector('header').style.display = 'flex';
+  }
+
+  // 運転タブ：マップ初期化
+  if (n === 'drive') { setTimeout(initDriveMap, 200); }
+
+  // 家計タブ：再描画
+  if (n === 'kakeibo' && window.mdb) {
+    renderSpendCal();
+    renderSpendList();
+  }
+
+  // 仕事タブ：シフト表示
+  if (n === 'work') { renderShiftTable(); }
 };
 
 function updateHeaderDate() {
@@ -1357,26 +1662,6 @@ function initDriveMap() {
   });
 }
 
-// 運転タブが開かれたときにマップを初期化
-const _origSwitchTabForMap = window.switchTab;
-window.switchTab = function(n) {
-  _origSwitchTabForMap(n);
-  if (n === 'drive') { setTimeout(initDriveMap, 200); }
-  if (n === 'passenger') {
-    // タブバーとヘッダーを非表示
-    document.querySelector('.tabs').style.display = 'none';
-    document.querySelector('header').style.display = 'none';
-    // パネルを全画面に
-    const panel = document.getElementById('passenger-panel');
-    if (panel) panel.style.height = '100vh';
-    initPassengerClock();
-  } else {
-    // 他のタブに戻ったらタブバー・ヘッダー復元
-    document.querySelector('.tabs').style.display = 'flex';
-    document.querySelector('header').style.display = 'flex';
-  }
-};
-
 // ════ 乗客画面 ════
 const PASS_LANG_KEY = 'kouki_pass_lang';
 const FARE_TOGGLE_KEY = 'kouki_fare_toggle';
@@ -1567,6 +1852,615 @@ function pushDriveState(state) {
   if (!window.mdb) return;
   window.mdb.ref('kouki-app/drive_state').set(state);
 }
+
+// ════ 恋愛タブ ════
+const LOVE_DB_KEY = 'kouki-app/love_pdfs';
+const LOVE_STORAGE_DIR = 'love/';
+let _loveAdminMode = false;
+
+window.toggleLoveAdmin = function() {
+  _loveAdminMode = !_loveAdminMode;
+  document.getElementById('love-admin').style.display = _loveAdminMode ? 'block' : 'none';
+  document.getElementById('love-admin-btn').textContent = _loveAdminMode ? '⚙️ 管理者モード終了' : '⚙️ 管理者モード';
+};
+
+function loadLovePdfs() {
+  if (!window.mdb) { setTimeout(loadLovePdfs, 1000); return; }
+  window.mdb.ref(LOVE_DB_KEY).on('value', snap => {
+    const data = snap.val();
+    const area = document.getElementById('love-pdf-area');
+    if (!area) return;
+    if (!data) { area.innerHTML = '<div class="empty"><span class="empty-icon">💕</span>PDFがありません</div>'; return; }
+    const items = Object.entries(data).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+    area.innerHTML = '';
+    items.forEach(([id, item]) => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.style.cssText = 'padding:12px;position:relative;';
+      div.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+          <span style="font-size:1.5rem;">📄</span>
+          <span style="font-size:0.9rem;color:var(--text);flex:1;">${esc(item.name||'PDF')}</span>
+          <button class="love-del-btn" onclick="deleteLovePdf('${id}','${item.path}')"
+            style="display:none;background:none;border:none;color:var(--red);cursor:pointer;font-size:0.85rem;">✕</button>
+        </div>
+        <iframe src="${item.url}" style="width:100%;height:480px;border:none;border-radius:8px;background:#1a1a1a;"></iframe>
+      `;
+      area.appendChild(div);
+    });
+    if (_loveAdminMode) document.querySelectorAll('.love-del-btn').forEach(b=>b.style.display='inline');
+  });
+}
+
+window.uploadLovePdfs = async function(input) {
+  const files = Array.from(input.files).slice(0, 3);
+  if (!files.length) return;
+  const status = document.getElementById('love-upload-status');
+  let retries = 0;
+  while ((!_mstorage || !window.mdb) && retries < 20) { await new Promise(r=>setTimeout(r,300)); retries++; }
+  if (!_mstorage || !window.mdb) { status.textContent = '⚠️ Firebase未初期化'; return; }
+  status.style.color = 'var(--muted2)';
+  status.textContent = '古いPDFを削除中...';
+  try {
+    // 既存削除
+    const snap = await window.mdb.ref(LOVE_DB_KEY).once('value');
+    const existing = snap.val();
+    if (existing) {
+      await Promise.all(Object.entries(existing).map(async ([id, item]) => {
+        try { if (_mstorage && item.path) await _mstorage.ref(item.path).delete(); } catch {}
+        await window.mdb.ref(`${LOVE_DB_KEY}/${id}`).remove();
+      }));
+    }
+    // 新規アップロード
+    for (let i = 0; i < files.length; i++) {
+      status.textContent = `${i+1}/${files.length}枚目アップロード中...`;
+      const file = files[i];
+      const id = String(i).padStart(2,'0') + '_' + Date.now();
+      const path = `${LOVE_STORAGE_DIR}${id}.pdf`;
+      const ref = _mstorage.ref(path);
+      await ref.put(file, { contentType: 'application/pdf' });
+      const url = await ref.getDownloadURL();
+      await window.mdb.ref(`${LOVE_DB_KEY}/${id}`).set({ url, path, name: file.name, order: i, ts: Date.now() });
+    }
+    status.style.color = 'var(--green)';
+    status.textContent = `✅ ${files.length}枚アップロード完了`;
+    input.value = '';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+  } catch(e) { status.style.color='var(--red)'; status.textContent='エラー: '+e.message; }
+};
+
+window.deleteLovePdf = async function(id, path) {
+  if (!confirm('このPDFを削除しますか？')) return;
+  try { if (_mstorage) await _mstorage.ref(path).delete().catch(()=>{}); await window.mdb.ref(`${LOVE_DB_KEY}/${id}`).remove(); } catch(e) { alert('削除エラー: '+e.message); }
+};
+
+// ════ 仕事タブ ════
+window.switchWorkTab = function(tab) {
+  ['shift','union','adjust','calc'].forEach(t => {
+    const sec = document.getElementById('wsec-'+t);
+    const btn = document.getElementById('wtab-'+t);
+    if (sec) sec.style.display = t===tab?'block':'none';
+    if (btn) btn.classList.toggle('active', t===tab);
+  });
+  if (tab==='shift') renderShiftTable();
+  if (tab==='union') { renderUnionCal(); renderUnionEvents(); }
+  if (tab==='calc') renderCalcHistory();
+};
+
+// ── Googleカレンダー同期（フジパン） ──
+const GCAL_CALENDAR_NAME = 'フジパン(株)';
+const SHIFT_KEYWORDS = {
+  early: ['早番', '早', '6:00', '06:00', '6時'],
+  day:   ['日勤', '9:00', '09:00', '9時'],
+  late:  ['遅番', '遅', '22:00', '21:00'],
+  off:   ['公休', '休み', '休日', 'OFF', 'off', '有休'],
+  paid:  ['有給', '有休', '特休']
+};
+
+window.syncShiftFromGCal = async function() {
+  const status = document.getElementById('gcal-sync-status');
+  const btn = document.getElementById('gcal-sync-btn');
+  status.style.color = 'var(--muted2)';
+  status.textContent = '🔄 Googleカレンダーに接続中...';
+  if (btn) btn.disabled = true;
+
+  try {
+    // Google Calendar APIのアクセストークンを取得（既にGoogleログイン済み）
+    const { GoogleAuthProvider, getAuth } = await import('https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js');
+    const currentAuth = getAuth();
+    const user = currentAuth.currentUser;
+
+    if (!user) { status.style.color='var(--red)'; status.textContent='❌ Googleログインが必要です'; if(btn)btn.disabled=false; return; }
+
+    // Firebase AuthのIDトークンでGoogle Calendar APIを呼ぶ（OAuth2スコープが必要なため別途取得）
+    // ここではGCal API v3を使用
+    const year = shiftYear, month = shiftMonth;
+    const timeMin = new Date(year, month, 1).toISOString();
+    const timeMax = new Date(year, month+1, 0, 23, 59, 59).toISOString();
+
+    // Google Identity Servicesでカレンダースコープのトークン取得
+    if (!window._gcalAccessToken) {
+      status.textContent = '🔑 Googleカレンダーの権限を取得中...';
+      await requestGCalToken();
+    }
+
+    if (!window._gcalAccessToken) {
+      status.style.color='var(--red)'; status.textContent='❌ カレンダーの権限取得に失敗しました';
+      if(btn)btn.disabled=false; return;
+    }
+
+    status.textContent = '📅 カレンダーを取得中...';
+
+    // カレンダー一覧を取得してフジパンのカレンダーIDを探す
+    const calListRes = await fetch(
+      `https://www.googleapis.com/calendar/v3/users/me/calendarList?access_token=${window._gcalAccessToken}`
+    );
+    const calList = await calListRes.json();
+
+    if (calList.error) {
+      window._gcalAccessToken = null;
+      status.style.color='var(--red)'; status.textContent='❌ ' + (calList.error.message || 'カレンダー取得失敗');
+      if(btn)btn.disabled=false; return;
+    }
+
+    // フジパンのカレンダーを検索
+    const fujipanCal = calList.items?.find(c =>
+      c.summary?.includes('フジパン') || c.summary?.includes('fujipan') || c.summary?.includes('Fujipan')
+    );
+
+    const calendarId = fujipanCal ? encodeURIComponent(fujipanCal.id) : 'primary';
+    const calName = fujipanCal ? fujipanCal.summary : 'プライマリ';
+
+    // イベント取得
+    const evRes = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&access_token=${window._gcalAccessToken}`
+    );
+    const evData = await evRes.json();
+
+    if (evData.error) {
+      status.style.color='var(--red)'; status.textContent='❌ ' + evData.error.message;
+      if(btn)btn.disabled=false; return;
+    }
+
+    const items = evData.items || [];
+    const shifts = getShifts();
+    let imported = 0;
+
+    items.forEach(ev => {
+      const title = ev.summary || '';
+      const date = ev.start?.date || ev.start?.dateTime?.slice(0, 10);
+      if (!date) return;
+
+      // タイトルからシフト種別を判定
+      let shiftType = null;
+      for (const [type, keywords] of Object.entries(SHIFT_KEYWORDS)) {
+        if (keywords.some(k => title.includes(k))) { shiftType = type; break; }
+      }
+      if (!shiftType && title) shiftType = 'custom'; // キーワード外はカスタム
+      if (!shiftType) return;
+
+      shifts[date] = { type: shiftType, note: title, fromGCal: true };
+      imported++;
+    });
+
+    saveShifts(shifts);
+    renderShiftTable();
+    status.style.color = 'var(--green)';
+    status.textContent = `✅ ${calName} から ${imported}件のシフトを取得しました`;
+
+  } catch(e) {
+    status.style.color = 'var(--red)';
+    status.textContent = 'エラー: ' + e.message;
+  }
+  if (btn) btn.disabled = false;
+};
+
+// Google Identity Services でカレンダースコープのトークンを取得
+function requestGCalToken() {
+  return new Promise((resolve) => {
+    if (!window.google?.accounts?.oauth2) {
+      // GISスクリプトを動的ロード
+      const s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = () => initGCalToken(resolve);
+      document.head.appendChild(s);
+    } else {
+      initGCalToken(resolve);
+    }
+  });
+}
+
+function initGCalToken(resolve) {
+  try {
+    const client = window.google.accounts.oauth2.initTokenClient({
+      client_id: '69333134175-ejt8v0r2epqjqn4g3m5v0k1d8c7s6f9a.apps.googleusercontent.com',
+      scope: 'https://www.googleapis.com/auth/calendar.readonly',
+      callback: (response) => {
+        if (response.access_token) { window._gcalAccessToken = response.access_token; }
+        resolve();
+      },
+      error_callback: (err) => { console.error('GIS error:', err); resolve(); }
+    });
+    client.requestAccessToken({ prompt: 'consent' });
+  } catch(e) { console.error('initGCalToken error:', e); resolve(); }
+}
+// ── シフトスケジュール ──
+const FUJIPAN_CAL_ID = 'a531b4940fa67c2b341cd0c62cdf765f7a2c10c844b00289b6fde019bcae32af@group.calendar.google.com';
+
+// Googleカレンダーからシフトを同期
+window.syncShiftFromGcal = async function() {
+  const btn = document.getElementById('shift-sync-btn');
+  if (btn) { btn.textContent = '⏳ 同期中...'; btn.disabled = true; }
+  try {
+    const year = shiftYear, month = shiftMonth;
+    const timeMin = `${year}-${String(month+1).padStart(2,'0')}-01T00:00:00`;
+    const lastDay = new Date(year, month+1, 0).getDate();
+    const timeMax = `${year}-${String(month+1).padStart(2,'0')}-${lastDay}T23:59:59`;
+
+    // Anthropic API経由でGoogleカレンダーを取得（MCPサーバー使用）
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: 'You are a calendar assistant. Return ONLY a JSON array of shift events. Each object: {"date":"YYYY-MM-DD","summary":"イベント名","start":"HH:MM","end":"HH:MM","allDay":boolean}. No other text.',
+        messages: [{ role: 'user', content: `Get events from Google Calendar ID: ${FUJIPAN_CAL_ID} from ${timeMin} to ${timeMax} timezone Asia/Tokyo and return as JSON array.` }],
+        mcp_servers: [{ type: 'url', url: 'https://gcal.mcp.claude.com/mcp', name: 'gcal' }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.find(b => b.type === 'text')?.text || '[]';
+    let events = [];
+    try { events = JSON.parse(text.replace(/```json?|```/g, '').trim()); } catch {}
+
+    // シフトデータに変換
+    const shifts = getShifts();
+    let count = 0;
+    events.forEach(ev => {
+      if (!ev.date) return;
+      const summary = ev.summary || '';
+      let type = 'custom';
+      if (summary.includes('休日') || summary.includes('公休')) type = 'off';
+      else if (summary.includes('有給')) type = 'paid';
+      else if (summary.includes('朝番') || summary.includes('早番') || (ev.start && ev.start <= '07:00')) type = 'early';
+      else if (summary.includes('中番') || summary.includes('中種')) type = 'day';
+      else if (summary.includes('遅番') || summary.includes('夜番')) type = 'late';
+      shifts[ev.date] = { type, note: summary };
+      count++;
+    });
+    saveShifts(shifts);
+    renderShiftTable();
+    if (btn) { btn.textContent = `✅ ${count}件同期完了`; btn.disabled = false; }
+    setTimeout(() => { if (btn) btn.textContent = '🔄 Googleカレンダーと同期'; }, 3000);
+  } catch(e) {
+    if (btn) { btn.textContent = '❌ 同期失敗'; btn.disabled = false; }
+    setTimeout(() => { if (btn) btn.textContent = '🔄 Googleカレンダーと同期'; }, 3000);
+  }
+};
+
+window.addShift = function() {
+  const date = document.getElementById('shift-date-input').value;
+  const type = document.getElementById('shift-type-input').value;
+  const note = document.getElementById('shift-note-input').value.trim();
+  if (!date) { alert('日付を選択してください'); return; }
+  const shifts = getShifts();
+  shifts[date] = { type, note };
+  saveShifts(shifts);
+  renderShiftTable();
+};
+
+function renderShiftTable() {
+  const label = document.getElementById('shift-month-label');
+  if (!label) return;
+  label.textContent = `${shiftYear}年${shiftMonth+1}月`;
+  const days = new Date(shiftYear, shiftMonth+1, 0).getDate();
+  const shifts = getShifts();
+  const WDAYS = ['日','月','火','水','木','金','土'];
+  let workDays=0, earlyDays=0, dayDays=0, lateDays=0;
+
+  let html = `<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
+    <tr style="background:var(--surface2);">
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:36px;">日</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:28px;">曜</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">シフト</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">メモ</th>
+      <th style="padding:6px 4px;width:28px;"></th>
+    </tr>`;
+
+  for (let d=1; d<=days; d++) {
+    const dateStr = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow = new Date(shiftYear, shiftMonth, d).getDay();
+    const shift = shifts[dateStr];
+    const isToday = dateStr === new Date().toISOString().slice(0,10);
+    const st = shift ? SHIFT_TYPES[shift.type] : null;
+    if (st && !['off','paid'].includes(shift.type)) workDays++;
+    if (shift?.type==='early') earlyDays++;
+    if (shift?.type==='day') dayDays++;
+    if (shift?.type==='late') lateDays++;
+    const rowBg = isToday ? 'rgba(200,169,110,0.1)' : '';
+    const dayColor = dow===0?'#c06060':dow===6?'#6080a8':'var(--text)';
+    html += `<tr style="border-bottom:1px solid var(--border);background:${rowBg};">
+      <td style="padding:6px 8px;color:${dayColor};">${d}</td>
+      <td style="padding:6px 8px;color:${dayColor};">${WDAYS[dow]}</td>
+      <td style="padding:6px 8px;">
+        ${st ? `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${st.color}22;color:${st.color};font-size:0.78rem;border:1px solid ${st.color}44;">${st.label}</span>` : '<span style="color:var(--muted);font-size:0.78rem;">未設定</span>'}
+      </td>
+      <td style="padding:6px 8px;color:var(--muted2);font-size:0.78rem;">${shift?.note||''}</td>
+      <td style="padding:4px;"><button onclick="deleteShift('${dateStr}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;padding:2px 4px;">✕</button></td>
+    </tr>`;
+  }
+  html += '</table>';
+  const wrap = document.getElementById('shift-table-wrap');
+  if (wrap) wrap.innerHTML = html;
+
+  // サマリー
+  const summary = document.getElementById('shift-summary');
+  if (summary) summary.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
+      <div><div style="font-size:0.68rem;color:var(--muted2);">勤務日数</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--accent);">${workDays}</div></div>
+      <div><div style="font-size:0.68rem;color:var(--muted2);">早番</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#5B8DD9;">${earlyDays}</div></div>
+      <div><div style="font-size:0.68rem;color:var(--muted2);">日勤</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#7A9E7E;">${dayDays}</div></div>
+      <div><div style="font-size:0.68rem;color:var(--muted2);">遅番</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#E8B84B;">${lateDays}</div></div>
+    </div>`;
+}
+
+window.deleteShift = function(date) {
+  const shifts = getShifts();
+  delete shifts[date];
+  saveShifts(shifts);
+  renderShiftTable();
+};
+
+// ── 労組カレンダー ──
+const UNION_KEY = 'kouki_union_events';
+let unionYear = new Date().getFullYear();
+let unionMonth = new Date().getMonth();
+const UNION_COLORS = { meeting:'#5B8DD9', event:'#E8B84B', deadline:'#c06060', other:'#8a7868' };
+
+function getUnionEvents() { try { return JSON.parse(localStorage.getItem(UNION_KEY))||[]; } catch { return []; } }
+function saveUnionEvents(e) { localStorage.setItem(UNION_KEY, JSON.stringify(e)); }
+
+window.changeUnionMonth = function(dir) {
+  unionMonth+=dir; if(unionMonth>11){unionMonth=0;unionYear++;} if(unionMonth<0){unionMonth=11;unionYear--;}
+  renderUnionCal(); renderUnionEvents();
+};
+
+function renderUnionCal() {
+  const lbl = document.getElementById('union-month-label'); if(!lbl)return;
+  lbl.textContent = `${unionYear}年${unionMonth+1}月`;
+  const grid = document.getElementById('union-cal-grid'); grid.innerHTML='';
+  ['日','月','火','水','木','金','土'].forEach(d=>{const e=document.createElement('div');e.className='cal-dname';e.textContent=d;grid.appendChild(e);});
+  const first=new Date(unionYear,unionMonth,1).getDay(), days=new Date(unionYear,unionMonth+1,0).getDate();
+  const tStr=new Date().toISOString().slice(0,10);
+  const events=getUnionEvents();
+  for(let i=0;i<first;i++){const e=document.createElement('div');e.className='cal-day empty';grid.appendChild(e);}
+  for(let d=1;d<=days;d++){
+    const ds=`${unionYear}-${String(unionMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(unionYear,unionMonth,d).getDay();
+    const e=document.createElement('div');
+    let cls='cal-day';if(dow===0)cls+=' sunday';if(dow===6)cls+=' saturday';if(ds===tStr)cls+=' today';
+    if(events.some(v=>v.date===ds))cls+=' has-event';
+    e.className=cls;e.textContent=d;
+    e.onclick=()=>{document.getElementById('union-ev-date').value=ds;toggleUnionEventForm(true);};
+    grid.appendChild(e);
+  }
+}
+
+function renderUnionEvents() {
+  const today=new Date().toISOString().slice(0,10);
+  const upcoming=getUnionEvents().filter(e=>e.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  const list=document.getElementById('union-event-list'); if(!list)return;
+  if(!upcoming.length){list.innerHTML='<div class="empty"><span class="empty-icon">🤝</span>組合イベントはありません</div>';return;}
+  const WDAYS=['日','月','火','水','木','金','土'];
+  list.innerHTML=upcoming.map(ev=>{
+    const d=new Date(ev.date+'T00:00:00');
+    const col=UNION_COLORS[ev.type]||'#8a7868';
+    return`<div class="event-item" style="border-left-color:${col};">
+      <div><div class="event-date">${d.getMonth()+1}/${d.getDate()} (${WDAYS[d.getDay()]})</div>
+      <div class="event-title-text">${esc(ev.title)}</div></div>
+      <button class="event-del" onclick="deleteUnionEvent('${ev.id}')">✕</button>
+    </div>`;
+  }).join('');
+}
+
+window.toggleUnionEventForm = function(open) {
+  const f=document.getElementById('union-event-form');
+  if(open===true)f.classList.add('open');else f.classList.toggle('open');
+  if(f.classList.contains('open'))document.getElementById('union-ev-title').focus();
+};
+
+window.addUnionEvent = function() {
+  const date=document.getElementById('union-ev-date').value;
+  const title=document.getElementById('union-ev-title').value.trim();
+  const type=document.getElementById('union-ev-type').value;
+  if(!date||!title){alert('日付と内容を入力してください');return;}
+  const events=getUnionEvents();
+  events.push({id:Date.now().toString(),date,title,type});
+  saveUnionEvents(events);
+  document.getElementById('union-ev-date').value='';
+  document.getElementById('union-ev-title').value='';
+  document.getElementById('union-event-form').classList.remove('open');
+  renderUnionCal();renderUnionEvents();
+};
+
+window.deleteUnionEvent = function(id) {
+  if(!confirm('削除しますか？'))return;
+  saveUnionEvents(getUnionEvents().filter(e=>e.id!==id));
+  renderUnionCal();renderUnionEvents();
+};
+
+// ── シフト調整ツール ──
+let _adjustOffDates = [];
+
+window.addAdjustOff = function() {
+  const date=document.getElementById('adjust-off-date').value;
+  if(!date||_adjustOffDates.includes(date))return;
+  _adjustOffDates.push(date);
+  _adjustOffDates.sort();
+  renderAdjustOff();
+};
+
+function renderAdjustOff() {
+  const list=document.getElementById('adjust-off-list');
+  if(!list)return;
+  list.innerHTML=_adjustOffDates.map(d=>`
+    <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(192,96,96,0.15);border:1px solid rgba(192,96,96,0.3);border-radius:12px;padding:3px 10px;font-size:0.78rem;color:var(--red);">
+      ${d.slice(5)} <button onclick="removeAdjustOff('${d}')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:0.8rem;line-height:1;">✕</button>
+    </span>`).join('');
+}
+
+window.removeAdjustOff = function(d) { _adjustOffDates=_adjustOffDates.filter(x=>x!==d); renderAdjustOff(); };
+
+window.generateAdjustPlan = function() {
+  const days=parseInt(document.getElementById('adjust-days').value)||20;
+  const pref=document.getElementById('adjust-pref').value;
+  const now=new Date(); const year=now.getFullYear(), month=now.getMonth();
+  const totalDays=new Date(year,month+1,0).getDate();
+  const result=document.getElementById('adjust-result');
+
+  const plan={};
+  let workCount=0;
+  const WDAYS=['日','月','火','水','木','金','土'];
+
+  for(let d=1;d<=totalDays;d++){
+    const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dow=new Date(year,month,d).getDay();
+    if(_adjustOffDates.includes(ds)){plan[ds]={type:'off',label:'希望休'};continue;}
+    if(dow===0||dow===6){plan[ds]={type:'off',label:'休日'};continue;}
+    if(workCount<days){
+      const type=pref==='early'?'early':pref==='late'?'late':pref==='day'?'day':'early';
+      plan[ds]={type,label:SHIFT_TYPES[type].label};
+      workCount++;
+    }else{plan[ds]={type:'off',label:'公休'};}
+  }
+
+  result.style.display='block';
+  result.innerHTML=`<div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:10px;">📋 シフト案（${year}年${month+1}月）</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px;">
+      ${WDAYS.map(w=>`<div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">${w}</div>`).join('')}
+      ${Array(new Date(year,month,1).getDay()).fill('<div></div>').join('')}
+      ${Array.from({length:totalDays},(_,i)=>{
+        const d=i+1;
+        const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const p=plan[ds];const st=p?SHIFT_TYPES[p.type]:null;
+        const col=st?st.color:'var(--muted)';
+        return`<div style="text-align:center;padding:4px 2px;border-radius:6px;background:${col}22;border:1px solid ${col}33;">
+          <div style="font-size:0.72rem;color:${col};font-weight:700;">${d}</div>
+          <div style="font-size:0.58rem;color:${col};">${p?p.label:''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="font-size:0.8rem;color:var(--muted2);">勤務予定：<span style="color:var(--accent);font-weight:700;">${workCount}日</span> / 希望休：<span style="color:var(--red);">${_adjustOffDates.length}日</span></div>`;
+};
+
+// ── 油脂計算システム ──
+
+// 共通：結果表示ヘルパー
+function showOilResult(id, units, color, detail, suffix='個') {
+  const result = document.getElementById(id+'-result');
+  if (!result) return;
+  result.style.display = 'block';
+  const unitsEl = document.getElementById(id+'-units') || document.getElementById(id+'-order');
+  if (unitsEl) unitsEl.textContent = units;
+  const detailEl = document.getElementById(id+'-detail');
+  if (detailEl) detailEl.innerHTML = detail;
+}
+function hideOilResult(id) {
+  const r = document.getElementById(id+'-result'); if(r) r.style.display='none';
+}
+
+// ① セベリアーノGZマーガリン（1個=10kg）
+// 明日の本数×20kg、在庫があれば差し引く → 必要個数（1個=10kg）
+window.calcOil1 = function() {
+  const tomorrow = parseFloat(document.getElementById('oil1-tomorrow').value) || 0;
+  const stock = parseFloat(document.getElementById('oil1-stock').value) || 0;
+  if (!tomorrow) { hideOilResult('oil1'); return; }
+  const need = tomorrow * 20; // 1本あたり20kg使用
+  const netNeed = Math.max(0, need - stock);
+  const units = Math.ceil(netNeed / 10); // 1個=10kg
+  const remainder = (units * 10) - netNeed;
+  showOilResult('oil1', units, '#5B8DD9',
+    `明日${tomorrow}本 × 20kg = <b>${need}kg</b>` +
+    (stock > 0 ? ` ー 在庫${stock}kg = 実必要<b>${netNeed.toFixed(1)}kg</b>` : '') +
+    ` → <b style="color:#5B8DD9;">${units}個</b>（余り${remainder.toFixed(1)}kg）`
+  );
+};
+
+// ② カネカマーガリンSD（1個=15kg・自動計算なし）
+// 在庫個数と必要個数を手入力して差分を表示
+window.calcOil2 = function() {
+  const stockUnits = parseFloat(document.getElementById('oil2-stock-units').value) ?? null;
+  const needUnits = parseFloat(document.getElementById('oil2-need-units').value) ?? null;
+  const result = document.getElementById('oil2-result');
+  if (stockUnits === null && needUnits === null) { if(result)result.style.display='none'; return; }
+  const s = stockUnits || 0, n = needUnits || 0;
+  const order = Math.max(0, n - s);
+  if(result) result.style.display='block';
+  const orderEl = document.getElementById('oil2-order'); if(orderEl) orderEl.textContent = order;
+  const detailEl = document.getElementById('oil2-detail');
+  if(detailEl) detailEl.innerHTML = `在庫: ${s}個 | 必要: ${n}個 → <b style="color:#E8B84B;">発注${order}個</b>`;
+};
+
+// ③ FHマーガリン（1個=10kg・明後日の本数×10kg使用）
+// 余りの個数を入力し、明後日の本数から必要個数を計算
+window.calcOil3 = function() {
+  const leftover = parseFloat(document.getElementById('oil3-leftover').value) || 0;
+  const day2 = parseFloat(document.getElementById('oil3-day2').value) || 0;
+  if (!day2) { hideOilResult('oil3'); return; }
+  const need = day2 * 10; // 1本あたり10kg
+  const leftoverKg = leftover * 10; // 余り個数→kg（1個=10kg）
+  const netNeed = Math.max(0, need - leftoverKg);
+  const units = Math.ceil(netNeed / 10);
+  const remainder = (units * 10) - netNeed;
+  showOilResult('oil3', units, '#7A9E7E',
+    `明後日${day2}本 × 10kg = <b>${need}kg</b>` +
+    (leftover > 0 ? ` ー 余り${leftover}個(${leftoverKg}kg) = 実必要<b>${netNeed.toFixed(1)}kg</b>` : '') +
+    ` → <b style="color:#7A9E7E;">${units}個</b>（余り${remainder.toFixed(1)}kg）`
+  );
+};
+
+// ④ カネカマーガリンCF（1個=15kg・1本10kg使用・明後日の本数）
+window.calcOil4 = function() {
+  const leftover = parseFloat(document.getElementById('oil4-leftover').value) || 0;
+  const day2 = parseFloat(document.getElementById('oil4-day2').value) || 0;
+  if (!day2) { hideOilResult('oil4'); return; }
+  const need = day2 * 10; // 1本あたり10kg
+  const leftoverKg = leftover * 15; // 余り個数→kg（1個=15kg）
+  const netNeed = Math.max(0, need - leftoverKg);
+  const units = Math.ceil(netNeed / 15);
+  const remainder = (units * 15) - netNeed;
+  showOilResult('oil4', units, '#A07BE0',
+    `明後日${day2}本 × 10kg = <b>${need}kg</b>` +
+    (leftover > 0 ? ` ー 余り${leftover}個(${leftoverKg}kg) = 実必要<b>${netNeed.toFixed(1)}kg</b>` : '') +
+    ` → <b style="color:#A07BE0;">${units}個</b>（余り${remainder.toFixed(1)}kg）`
+  );
+};
+
+// ⑤ FFソフトマーガリン（1個=10kg・1本10kg使用・明後日の本数）
+window.calcOil5 = function() {
+  const leftover = parseFloat(document.getElementById('oil5-leftover').value) || 0;
+  const day2 = parseFloat(document.getElementById('oil5-day2').value) || 0;
+  if (!day2) { hideOilResult('oil5'); return; }
+  const need = day2 * 10; // 1本あたり10kg
+  const leftoverKg = leftover * 10; // 余り個数→kg（1個=10kg）
+  const netNeed = Math.max(0, need - leftoverKg);
+  const units = Math.ceil(netNeed / 10);
+  const remainder = (units * 10) - netNeed;
+  showOilResult('oil5', units, '#c8a96e',
+    `明後日${day2}本 × 10kg = <b>${need}kg</b>` +
+    (leftover > 0 ? ` ー 余り${leftover}個(${leftoverKg}kg) = 実必要<b>${netNeed.toFixed(1)}kg</b>` : '') +
+    ` → <b style="color:#c8a96e;">${units}個</b>（余り${remainder.toFixed(1)}kg）`
+  );
+};
+
+window.clearAllOilCalc = function() {
+  ['oil1-tomorrow','oil1-stock','oil2-stock-units','oil2-need-units',
+   'oil3-leftover','oil3-day2','oil4-leftover','oil4-day2','oil5-leftover','oil5-day2']
+    .forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['oil1','oil2','oil3','oil4','oil5']
+    .forEach(id => hideOilResult(id));
+};
 
 // ════ 設定ページ ════
 const THEME_KEY = 'kouki_theme';
@@ -2020,23 +2914,6 @@ function renderChatMsgs(isPolling = false) {
   if (wasAtBottom || !isPolling) c.scrollTop = c.scrollHeight;
 }
 
-// タブ切り替え時にチャット初期化
-const _origSwitchTab = window.switchTab;
-window.switchTab = function(n) {
-  _origSwitchTab(n);
-  // チャットパネルの表示制御
-  const cp = document.getElementById('chat-panel');
-  if (cp) cp.style.display = n === 'chat' ? 'flex' : 'none';
-  if (n === 'chat') {
-    renderChatMsgs();
-    const c = document.getElementById('chat-messages');
-    if (c) c.scrollTop = c.scrollHeight;
-    if (!chatPollInterval) chatPollInterval = setInterval(() => renderChatMsgs(true), 3000);
-  } else {
-    if (chatPollInterval) { clearInterval(chatPollInterval); chatPollInterval = null; }
-  }
-};
-
 // ════ 家計（musuko統合）════
 // Firebase compat（musuko用・既存のFirebase v11とは別）
 // スクリプトはheadで静的読み込み済み
@@ -2304,36 +3181,79 @@ function initSimTab(){loadSimSettings();}
 function loadSimSettings(){const s=simSettings;if(s.current)document.getElementById('sim-current').value=s.current;if(s.monthly)document.getElementById('sim-monthly').value=s.monthly;if(s.rate)document.getElementById('sim-rate').value=s.rate;if(s.years)document.getElementById('sim-years').value=s.years;if(s.target)document.getElementById('sim-target').value=s.target;if(document.getElementById('sim-current').value)runSimulation();}
 window.simLoadFromSpend=function(){const income=parseInt(localStorage.getItem(SPEND_INCOME_KEY))||0,items=spendGetCycleItems(spendYear,spendMonth),totalExp=items.reduce((s,i)=>s+Number(i.amount),0);if(income){document.getElementById('sim-monthly').value=income-totalExp>0?income-totalExp:0;}document.getElementById('sim-expense').value=totalExp;runSimulation();};
 window.runSimulation=function(){
-  const current=Number(document.getElementById('sim-current').value)||0,monthly=Number(document.getElementById('sim-monthly').value)||0,rate=Number(document.getElementById('sim-rate').value)||0,years=Number(document.getElementById('sim-years').value)||0,target=Number(document.getElementById('sim-target').value)||0;
-  if(!years){document.getElementById('sim-summary').style.display='none';document.getElementById('sim-graph-empty').style.display='block';document.getElementById('sim-chart').style.display='none';document.getElementById('sim-table-wrap').style.display='none';return;}
-  const monthlyRate=rate/100/12;let balance=current;const yearlyData=[{year:0,balance:Math.round(current),interest:0,principal:0}];let totalInterest=0,totalPrincipal=0,targetYear=null;
-  for(let y=1;y<=years;y++){let yearInterest=0;for(let m=0;m<12;m++){const interest=balance*monthlyRate;balance+=interest+monthly;yearInterest+=interest;}totalInterest+=yearInterest;totalPrincipal+=monthly*12;yearlyData.push({year:y,balance:Math.round(balance),interest:Math.round(yearInterest),principal:monthly*12});if(target&&targetYear===null&&balance>=target)targetYear=y;}
-  document.getElementById('sim-result-final').textContent=`¥${Math.round(balance).toLocaleString()}`;document.getElementById('sim-result-interest').textContent=`¥${Math.round(totalInterest).toLocaleString()}`;document.getElementById('sim-result-principal').textContent=`¥${totalPrincipal.toLocaleString()}`;
-  if(target&&targetYear){document.getElementById('sim-target-card').style.display='block';document.getElementById('sim-result-target').textContent=`${targetYear}年後`;}else{document.getElementById('sim-target-card').style.display='none';}
+  const current=Number(document.getElementById('sim-current').value)||0;
+  const monthly=Number(document.getElementById('sim-monthly').value)||0;
+  const rate=Number(document.getElementById('sim-rate').value)||0; // 0も許容
+  const years=Number(document.getElementById('sim-years').value)||0;
+  const target=Number(document.getElementById('sim-target').value)||0;
+
+  if(!years){
+    document.getElementById('sim-summary').style.display='none';
+    document.getElementById('sim-graph-empty').style.display='block';
+    document.getElementById('sim-chart').style.display='none';
+    document.getElementById('sim-table-wrap').style.display='none';
+    return;
+  }
+
+  const monthlyRate=rate/100/12;
+  let balance=current;
+  const yearlyData=[{year:0,balance:Math.round(current),interest:0,principal:0}];
+  let totalInterest=0,totalPrincipal=0,targetYear=null;
+
+  for(let y=1;y<=years;y++){
+    let yearInterest=0;
+    for(let m=0;m<12;m++){
+      const interest=balance*monthlyRate;
+      balance+=interest+monthly;
+      yearInterest+=interest;
+    }
+    totalInterest+=yearInterest;
+    totalPrincipal+=monthly*12;
+    yearlyData.push({year:y,balance:Math.round(balance),interest:Math.round(yearInterest),principal:monthly*12});
+    if(target&&targetYear===null&&balance>=target)targetYear=y;
+  }
+
+  document.getElementById('sim-result-final').textContent=`¥${Math.round(balance).toLocaleString()}`;
+  document.getElementById('sim-result-interest').textContent=`¥${Math.round(totalInterest).toLocaleString()}`;
+  document.getElementById('sim-result-principal').textContent=`¥${totalPrincipal.toLocaleString()}`;
+  if(target&&targetYear){document.getElementById('sim-target-card').style.display='block';document.getElementById('sim-result-target').textContent=`${targetYear}年後`;}
+  else{document.getElementById('sim-target-card').style.display='none';}
   document.getElementById('sim-summary').style.display='block';
-  // 保存
   if(window.mdb)window.mdb.ref(window.FB_SIM).set({current,monthly,rate,years,target});
-  // グラフ
-  if(typeof Chart!=='undefined'){const ctx=document.getElementById('sim-chart').getContext('2d');if(_simChartInst)_simChartInst.destroy();document.getElementById('sim-graph-empty').style.display='none';document.getElementById('sim-chart').style.display='block';const labels=yearlyData.map(d=>`${d.year}年`),balances=yearlyData.map(d=>d.balance),principals=[current,...Array(years).fill(0).map((_,i)=>current+(i+1)*monthly*12)];_simChartInst=new Chart(ctx,{type:'line',data:{labels,datasets:[{label:'資産総額',data:balances,borderColor:'#7A9E7E',backgroundColor:'rgba(122,158,126,0.15)',borderWidth:2,fill:true,tension:0.4},{label:'元本',data:principals,borderColor:'#D4956A',borderWidth:2,borderDash:[5,3],fill:false,tension:0.4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:false,ticks:{callback:v=>'¥'+(v/10000).toFixed(0)+'万',font:{size:10}}},x:{ticks:{font:{size:10}}}}}});}
-  // テーブル
-  document.getElementById('sim-table-wrap').style.display='block';document.getElementById('sim-table').innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.78rem"><tr style="border-bottom:2px solid #F5E6D0"><th style="padding:6px 8px;text-align:left;color:#9A8070">経過</th><th style="padding:6px 8px;text-align:right;color:#9A8070">資産額</th><th style="padding:6px 8px;text-align:right;color:#5B8DD9">利息</th></tr>${yearlyData.filter(d=>d.year>0).map(d=>`<tr style="border-bottom:1px solid #F5E6D0${target&&d.balance>=target?' background:#E8F8EE':''}"><td style="padding:6px 8px;color:#4A2C1A">${d.year}年後</td><td style="padding:6px 8px;text-align:right;font-weight:700;color:${d.balance>current?'#7A9E7E':'#4A2C1A'}">¥${d.balance.toLocaleString()}</td><td style="padding:6px 8px;text-align:right;color:#5B8DD9">¥${d.interest.toLocaleString()}</td></tr>`).join('')}</table></div>`;
+
+  // グラフ（Chart.jsが読み込まれるまで待つ）
+  const drawChart = () => {
+    if(typeof Chart==='undefined'){setTimeout(drawChart,300);return;}
+    const ctx=document.getElementById('sim-chart');
+    if(!ctx)return;
+    document.getElementById('sim-graph-empty').style.display='none';
+    document.getElementById('sim-chart').style.display='block';
+    const labels=yearlyData.map(d=>d.year===0?'現在':`${d.year}年後`);
+    const balances=yearlyData.map(d=>d.balance);
+    const principals=yearlyData.map((_,i)=>Math.round(current+i*monthly*12));
+    if(_simChartInst){try{_simChartInst.destroy();}catch(e){}}
+    _simChartInst=new Chart(ctx.getContext('2d'),{
+      type:'line',
+      data:{labels,datasets:[
+        {label:'資産総額',data:balances,borderColor:'#7A9E7E',backgroundColor:'rgba(122,158,126,0.15)',borderWidth:2,fill:true,tension:0.4,pointRadius:2},
+        {label:'元本累計',data:principals,borderColor:'#D4956A',borderWidth:2,borderDash:[5,3],fill:false,tension:0.4,pointRadius:2}
+      ]},
+      options:{
+        responsive:true,maintainAspectRatio:true,
+        plugins:{legend:{position:'bottom',labels:{font:{size:11},color:'#9A8070'}}},
+        scales:{
+          y:{beginAtZero:false,ticks:{callback:v=>v>=10000?'¥'+(v/10000).toFixed(0)+'万':'¥'+v.toLocaleString(),font:{size:10},color:'#6a6058'},grid:{color:'rgba(255,255,255,0.05)'}},
+          x:{ticks:{font:{size:10},color:'#6a6058'},grid:{color:'rgba(255,255,255,0.05)'}}
+        }
+      }
+    });
+  };
+  drawChart();
+
+  document.getElementById('sim-table-wrap').style.display='block';
+  document.getElementById('sim-table').innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.78rem"><tr style="border-bottom:2px solid #F5E6D0"><th style="padding:6px 8px;text-align:left;color:#9A8070">経過</th><th style="padding:6px 8px;text-align:right;color:#9A8070">資産額</th><th style="padding:6px 8px;text-align:right;color:#5B8DD9">利息</th></tr>${yearlyData.filter(d=>d.year>0).map(d=>`<tr style="border-bottom:1px solid #F5E6D0${target&&d.balance>=target?' background:#E8F8EE':''}"><td style="padding:6px 8px;color:#4A2C1A">${d.year}年後</td><td style="padding:6px 8px;text-align:right;font-weight:700;color:${d.balance>current?'#7A9E7E':'#4A2C1A'}">¥${d.balance.toLocaleString()}</td><td style="padding:6px 8px;text-align:right;color:#5B8DD9">¥${d.interest.toLocaleString()}</td></tr>`).join('')}</table></div>`;
 };
 
-// 家計タブ開いたときに初期化
-const _switchTabOrig = window.switchTab;
-window.switchTab = function(n) {
-  _switchTabOrig(n);
-  const cp=document.getElementById('chat-panel');if(cp)cp.style.display=n==='chat'?'flex':'none';
-  if(n==='kakeibo') {
-    if(!window._kakeiboInited){
-      window._kakeiboInited=true;
-    }
-    if(window.mdb) {
-      renderSpendCal();
-      renderSpendList();
-    }
-  }
-};
 window.switchCalSub = function(sub, el) {
   document.querySelectorAll('#calendar-panel .filter-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
