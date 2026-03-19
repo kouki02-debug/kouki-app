@@ -2005,6 +2005,58 @@ window.switchWorkTab = function(tab) {
   if (tab==='calc') renderCalcHistory();
 };
 
+// ── フジパン(株) Googleカレンダーデータ（MCP取得: 2026-03-19）
+// 形式: { "YYYY-MM-DD": [{s:"概要", t:"HH:MM〜HH:MM"}, ...], ... }
+// 終日イベントはt:""
+window.GCAL_EVENTS_DATA = {
+  "2026-01-09":[{s:"冬季休暇",t:""}],"2026-01-10":[{s:"冬季休暇",t:""}],
+  "2026-01-11":[{s:"冬季休暇",t:""}],"2026-01-12":[{s:"冬季休暇",t:""}],"2026-01-13":[{s:"冬季休暇",t:""}],
+  "2026-01-14":[{s:"中種配合",t:"06:00〜15:00"}],"2026-01-15":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-01-16":[{s:"中種配合",t:"06:00〜15:00"}],"2026-01-17":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-01-20":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-01-21":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-22":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-23":[{s:"中種",t:"10:00〜19:00"}],"2026-01-24":[{s:"中種",t:"09:00〜18:00"}],
+  "2026-01-27":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-01-28":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-29":[{s:"【朝番】配合＆パンニング",t:"06:00〜15:00"}],
+  "2026-01-30":[{s:"中種",t:"06:00〜15:00"}],"2026-01-31":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-05":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-06":[{s:"中種",t:"06:00〜15:00"}],"2026-02-07":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-12":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-13":[{s:"中種",t:"06:00〜15:00"}],"2026-02-14":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-16":[{s:"大卒教育開始2ヶ月間",t:""}],
+  "2026-02-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜17:00"}],
+  "2026-02-19":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-20":[{s:"中種",t:"06:00〜15:00"}],"2026-02-21":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-24":[{s:"【朝番】配合＆仕込み",t:"08:00〜17:00"}],"2026-02-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-26":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-27":[{s:"中種　特枠",t:"09:00〜16:45"}],"2026-02-28":[{s:"中種",t:"10:00〜19:00"}],
+  "2026-03-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-05":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-06":[{s:"中種",t:"10:00〜19:00"}],"2026-03-07":[{s:"中種",t:"09:00〜18:00"}],
+  "2026-03-08":[{s:"休日",t:""}],"2026-03-09":[{s:"休日",t:""}],
+  "2026-03-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-12":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-13":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],"2026-03-14":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],
+  "2026-03-15":[{s:"休日",t:""}],"2026-03-16":[{s:"休日",t:""}],
+  "2026-03-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-19":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-20":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-03-21":[{s:"【中番】中種専属",t:"09:00〜19:00"}],
+  "2026-03-22":[{s:"臨時出勤",t:""},{s:"【中番】中種",t:"09:00〜19:00"}],
+  "2026-03-23":[{s:"休日",t:""}],"2026-03-24":[{s:"休日",t:""}],
+  "2026-03-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-26":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-27":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-03-28":[{s:"【中番】中種専属",t:"09:00〜19:00"}],
+  "2026-03-29":[{s:"休日",t:""}],"2026-03-30":[{s:"休日",t:""}],
+  "2026-04-01":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-02":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-03":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-04":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-05":[{s:"休日",t:""}],"2026-04-06":[{s:"休日",t:""}],
+  "2026-04-07":[{s:"健康診断　10時予定",t:""},{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-08":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-09":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-10":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-04-11":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
+  "2026-04-12":[{s:"休日",t:""}],"2026-04-13":[{s:"休日",t:""}]
+};
+
 // ── シフトスケジュール ──
 const FUJIPAN_CAL_ID = 'a531b4940fa67c2b341cd0c62cdf765f7a2c10c844b00289b6fde019bcae32af@group.calendar.google.com';
 const SHIFT_KEY = 'kouki_shifts';
@@ -2075,8 +2127,15 @@ function renderShiftTable() {
   }
   // ステータス表示更新
   const status = document.getElementById('gcal-sync-status');
-  if (status && window.GCAL_SHIFT_DATA) {
-    status.textContent = `✅ フジパン(株) ${Object.keys(window.GCAL_SHIFT_DATA).length}件 自動同期済み（最終取得: 2026-03-19）`;
+  if (status) {
+    const evtCount = window.GCAL_EVENTS_DATA ? Object.keys(window.GCAL_EVENTS_DATA).length : 0;
+    const shiftCount = window.GCAL_SHIFT_DATA ? Object.keys(window.GCAL_SHIFT_DATA).length : 0;
+    const parts = [];
+    if (shiftCount) parts.push(`シフト${shiftCount}件`);
+    if (evtCount) parts.push(`概要${evtCount}日分`);
+    status.textContent = parts.length
+      ? `✅ フジパン(株) ${parts.join('・')} 自動同期済み（最終取得: 2026-03-19）`
+      : '';
   }
   label.textContent = `${shiftYear}年${shiftMonth+1}月`;
   const days = new Date(shiftYear, shiftMonth+1, 0).getDate();
@@ -2090,7 +2149,7 @@ function renderShiftTable() {
       <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:32px;">日</th>
       <th style="padding:6px 4px;text-align:left;color:var(--muted2);font-weight:500;width:24px;">曜</th>
       <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:56px;">シフト</th>
-      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">説明</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">📅 概要 / 就業時間</th>
     </tr>`;
 
   for (let d=1; d<=days; d++) {
@@ -2105,13 +2164,24 @@ function renderShiftTable() {
     if (shift?.type==='late') lateDays++;
     const rowBg = isToday ? 'rgba(200,169,110,0.12)' : '';
     const dayColor = dow===0?'#c06060':dow===6?'#6080a8':'var(--text)';
+    const gcalEvents = (window.GCAL_EVENTS_DATA && window.GCAL_EVENTS_DATA[dateStr]) || [];
+    const gcalHtml = gcalEvents.length
+      ? gcalEvents.map(e => {
+          const timeTag = e.t
+            ? `<span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#6a9e7a;margin-left:5px;">${e.t}</span>`
+            : '';
+          return `<div style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;background:rgba(159,198,231,0.12);border:1px solid rgba(159,198,231,0.3);margin:1px 2px 1px 0;">
+            <span style="font-size:0.73rem;color:#9fc6e7;white-space:nowrap;">${esc(e.s)}</span>${timeTag}
+          </div>`;
+        }).join('')
+      : '<span style="color:var(--border2);font-size:0.72rem;">ー</span>';
     html += `<tr style="border-bottom:1px solid var(--border);background:${rowBg};">
       <td style="padding:6px 8px;color:${dayColor};font-weight:${isToday?'700':'400'};">${d}</td>
       <td style="padding:6px 4px;color:${dayColor};">${WDAYS[dow]}</td>
       <td style="padding:6px 8px;">
         ${st ? `<span style="display:inline-block;padding:1px 6px;border-radius:8px;background:${st.color}22;color:${st.color};font-size:0.75rem;border:1px solid ${st.color}44;white-space:nowrap;">${st.label}</span>` : '<span style="color:var(--border2);font-size:0.72rem;">ー</span>'}
       </td>
-      <td style="padding:6px 8px;color:var(--muted2);font-size:0.78rem;line-height:1.4;">${esc(shift?.note||'')}</td>
+      <td style="padding:6px 8px;line-height:1.8;">${gcalHtml}</td>
     </tr>`;
   }
   html += '</table>';
