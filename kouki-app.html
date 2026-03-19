@@ -409,48 +409,35 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
   <!-- シフトスケジュール -->
   <div id="wsec-shift" style="padding:16px;display:block;">
-    <div class="sec-title">📅 シフトスケジュール</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <button onclick="changeShiftMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">‹</button>
-      <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);"></span>
-      <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
+      <button onclick="changeShiftMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">‹</button>
+      <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--accent);"></span>
+      <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">›</button>
     </div>
-    <!-- 同期ステータス（自動同期） -->
-    <div id="gcal-sync-status" style="font-size:0.75rem;text-align:center;margin-bottom:8px;min-height:16px;color:var(--muted2);">
-      📅 Googleカレンダーデータ読み込み中...
+    <!-- 印刷ボタン -->
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button onclick="printShiftList()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ リスト印刷</button>
+      <button onclick="printShiftCal()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ カレンダー印刷</button>
     </div>
-    <!-- シフト表 -->
-    <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:12px;"></div>
-    <!-- シフト追加 -->
-    <div class="card" style="margin-bottom:12px;">
-      <div style="font-size:0.85rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">シフトを追加</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <input type="date" id="shift-date-input" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
-        <select id="shift-type-input" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;cursor:pointer;">
-          <option value="early">早番 (6:00〜)</option>
-          <option value="day">日勤 (9:00〜)</option>
-          <option value="late">遅番 (〜22:00)</option>
-          <option value="off">公休</option>
-          <option value="paid">有給</option>
-          <option value="custom">カスタム</option>
-        </select>
-        <input type="text" id="shift-note-input" placeholder="メモ（任意）" maxlength="20"
-          style="flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
-        <button onclick="addShift()" class="btn-icon">＋</button>
-      </div>
-    </div>
+    <!-- 同期ステータス -->
+    <div id="gcal-sync-status" style="font-size:0.72rem;text-align:center;margin-bottom:10px;min-height:14px;color:var(--muted2);"></div>
+    <!-- シフトリスト -->
+    <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
+    <!-- 月間カレンダー -->
+    <div id="shift-cal-wrap" style="margin-bottom:16px;"></div>
     <!-- 月間サマリー -->
     <div class="card" id="shift-summary"></div>
   </div>
 
   <!-- 労組カレンダー -->
   <div id="wsec-union" style="padding:16px;display:none;">
-    <div class="sec-title">🤝 労働組合</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <button onclick="changeUnionMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">‹</button>
-      <span id="union-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);"></span>
-      <button onclick="changeUnionMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
+      <button onclick="changeUnionMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">‹</button>
+      <span id="union-month-label" style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--accent);"></span>
+      <button onclick="changeUnionMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">›</button>
     </div>
+    <button onclick="printUnionCal()" style="width:100%;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;margin-bottom:10px;">🖨️ カレンダー印刷</button>
+    <div id="union-sync-status" style="font-size:0.72rem;text-align:center;margin-bottom:10px;color:var(--muted2);">✅ フジパン(株)労働組合 自動同期済み（最終取得: 2026-03-19）</div>
     <div class="cal-grid" id="union-cal-grid" style="margin-bottom:16px;"></div>
     <div class="sec-title">組合イベント</div>
     <div id="union-event-list"></div>
@@ -1159,7 +1146,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 <!-- Firebase モジュール -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { getFirestore, doc, collection, setDoc, deleteDoc, onSnapshot }
   from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
@@ -1180,7 +1167,6 @@ const provider = new GoogleAuthProvider();
 
 // ─── Auth状態監視 ───
 const ALLOWED_UID = 'BrDyd83L3HZbQom14auP7pma7sy2';
-let _redirectChecked = false;
 
 onAuthStateChanged(auth, (user) => {
   document.getElementById('loading-screen').style.display = 'none';
@@ -1275,14 +1261,23 @@ window.fsDelShared = async (col, id) => {
 };
 
 // ─── Googleログイン ───
+// リダイレクト結果を最初に処理（スマホでのGoogleログイン後）
+getRedirectResult(auth).catch(() => {});
+
 window.doGoogleLogin = async () => {
   const errEl = document.getElementById('login-error');
   errEl.textContent = '';
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   try {
-    await signInWithPopup(auth, provider);
+    if (isMobile) {
+      // スマホはリダイレクト方式（ポップアップはブロックされる）
+      await signInWithRedirect(auth, provider);
+    } else {
+      await signInWithPopup(auth, provider);
+    }
   } catch(e) {
     if (e.code !== 'auth/cancelled-popup-request' && e.code !== 'auth/popup-closed-by-user') {
-      errEl.textContent = 'Googleログインに失敗しました (' + (e.code || e.message) + ')';
+      errEl.textContent = 'ログイン失敗: ' + (e.code || e.message);
     }
   }
 };
@@ -1419,7 +1414,7 @@ window.showMainScreen = function() {
   initFareToggle();
   // 恋愛PDF読み込み
   setTimeout(loadLovePdfs, 2000);
-  // シフト初期化（Googleカレンダーデータ強制適用）
+  // シフトデータ事前書き込み（localStorageのみ・描画はタブを開いたときに実行）
   if (window.GCAL_SHIFT_DATA) {
     try {
       const existing = JSON.parse(localStorage.getItem('kouki_shifts') || '{}');
@@ -1428,8 +1423,6 @@ window.showMainScreen = function() {
       localStorage.setItem('kouki_shifts', JSON.stringify(merged));
     } catch(e) {}
   }
-  applyGcalShiftData();
-  renderShiftTable();
   // 労組カレンダー初期化
   renderUnionCal();
   renderUnionEvents();
@@ -2004,12 +1997,44 @@ window.switchWorkTab = function(tab) {
     }
     renderShiftTable();
   }
-  if (tab==='union') { renderUnionCal(); renderUnionEvents(); }
+  if (tab==='union') {
+    const us = document.getElementById('union-sync-status');
+    if (us) us.textContent = `✅ フジパン(株)労働組合 自動同期済み（3〜4月イベントなし・最終取得: 2026-03-19）`;
+    renderUnionCal(); renderUnionEvents();
+  }
   if (tab==='calc') renderCalcHistory();
 };
 
 // ── シフトスケジュール ──
 const FUJIPAN_CAL_ID = 'a531b4940fa67c2b341cd0c62cdf765f7a2c10c844b00289b6fde019bcae32af@group.calendar.google.com';
+const SHIFT_KEY = 'kouki_shifts';
+const SHIFT_TYPES = {
+  early:{label:'早番',color:'#5B8DD9',time:'6:00〜'},
+  day:{label:'日勤',color:'#7A9E7E',time:'9:00〜'},
+  late:{label:'遅番',color:'#E8B84B',time:'〜22:00'},
+  off:{label:'公休',color:'#6a6058',time:''},
+  paid:{label:'有給',color:'#A07BE0',time:''},
+  custom:{label:'カスタム',color:'#c8a96e',time:''}
+};
+let shiftYear = new Date().getFullYear();
+let shiftMonth = new Date().getMonth();
+
+function getShifts() { try { return JSON.parse(localStorage.getItem(SHIFT_KEY))||{}; } catch { return {}; } }
+function saveShifts(s) { localStorage.setItem(SHIFT_KEY, JSON.stringify(s)); }
+
+window.changeShiftMonth = function(dir) {
+  shiftMonth += dir;
+  if (shiftMonth > 11) { shiftMonth = 0; shiftYear++; }
+  if (shiftMonth < 0) { shiftMonth = 11; shiftYear--; }
+  renderShiftTable();
+};
+
+window.deleteShift = function(date) {
+  const shifts = getShifts();
+  delete shifts[date];
+  saveShifts(shifts);
+  renderShiftTable();
+};
 
 // applyGcalShiftData: window.GCAL_SHIFT_DATA をシフトに反映
 function applyGcalShiftData() {
@@ -2051,7 +2076,7 @@ function renderShiftTable() {
   // ステータス表示更新
   const status = document.getElementById('gcal-sync-status');
   if (status && window.GCAL_SHIFT_DATA) {
-    status.textContent = `✅ フジパン(株) ${Object.keys(window.GCAL_SHIFT_DATA).length}件 反映済み（最終取得: 2026-03-19）`;
+    status.textContent = `✅ フジパン(株) ${Object.keys(window.GCAL_SHIFT_DATA).length}件 自動同期済み（最終取得: 2026-03-19）`;
   }
   label.textContent = `${shiftYear}年${shiftMonth+1}月`;
   const days = new Date(shiftYear, shiftMonth+1, 0).getDate();
@@ -2059,13 +2084,13 @@ function renderShiftTable() {
   const WDAYS = ['日','月','火','水','木','金','土'];
   let workDays=0, earlyDays=0, dayDays=0, lateDays=0;
 
+  // ── リスト表示 ──
   let html = `<table style="width:100%;border-collapse:collapse;font-size:0.82rem;">
     <tr style="background:var(--surface2);">
-      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:36px;">日</th>
-      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:28px;">曜</th>
-      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">シフト</th>
-      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">メモ</th>
-      <th style="padding:6px 4px;width:28px;"></th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:32px;">日</th>
+      <th style="padding:6px 4px;text-align:left;color:var(--muted2);font-weight:500;width:24px;">曜</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;width:56px;">シフト</th>
+      <th style="padding:6px 8px;text-align:left;color:var(--muted2);font-weight:500;">説明</th>
     </tr>`;
 
   for (let d=1; d<=days; d++) {
@@ -2078,47 +2103,124 @@ function renderShiftTable() {
     if (shift?.type==='early') earlyDays++;
     if (shift?.type==='day') dayDays++;
     if (shift?.type==='late') lateDays++;
-    const rowBg = isToday ? 'rgba(200,169,110,0.1)' : '';
+    const rowBg = isToday ? 'rgba(200,169,110,0.12)' : '';
     const dayColor = dow===0?'#c06060':dow===6?'#6080a8':'var(--text)';
     html += `<tr style="border-bottom:1px solid var(--border);background:${rowBg};">
-      <td style="padding:6px 8px;color:${dayColor};">${d}</td>
-      <td style="padding:6px 8px;color:${dayColor};">${WDAYS[dow]}</td>
+      <td style="padding:6px 8px;color:${dayColor};font-weight:${isToday?'700':'400'};">${d}</td>
+      <td style="padding:6px 4px;color:${dayColor};">${WDAYS[dow]}</td>
       <td style="padding:6px 8px;">
-        ${st ? `<span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${st.color}22;color:${st.color};font-size:0.78rem;border:1px solid ${st.color}44;">${st.label}</span>` : '<span style="color:var(--muted);font-size:0.78rem;">未設定</span>'}
+        ${st ? `<span style="display:inline-block;padding:1px 6px;border-radius:8px;background:${st.color}22;color:${st.color};font-size:0.75rem;border:1px solid ${st.color}44;white-space:nowrap;">${st.label}</span>` : '<span style="color:var(--border2);font-size:0.72rem;">ー</span>'}
       </td>
-      <td style="padding:6px 8px;color:var(--muted2);font-size:0.78rem;">${shift?.note||''}</td>
-      <td style="padding:4px;"><button onclick="deleteShift('${dateStr}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.8rem;padding:2px 4px;">✕</button></td>
+      <td style="padding:6px 8px;color:var(--muted2);font-size:0.78rem;line-height:1.4;">${esc(shift?.note||'')}</td>
     </tr>`;
   }
   html += '</table>';
   const wrap = document.getElementById('shift-table-wrap');
   if (wrap) wrap.innerHTML = html;
 
-  // サマリー
+  // ── カレンダー表示 ──
+  const calWrap = document.getElementById('shift-cal-wrap');
+  if (calWrap) {
+    const firstDow = new Date(shiftYear, shiftMonth, 1).getDay();
+    let calHtml = `<div style="font-size:0.78rem;color:var(--muted2);margin-bottom:8px;text-align:center;letter-spacing:0.05em;">${shiftYear}年${shiftMonth+1}月 カレンダー</div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">`;
+    ['日','月','火','水','木','金','土'].forEach((w,i) => {
+      const c = i===0?'#c06060':i===6?'#6080a8':'var(--muted2)';
+      calHtml += `<div style="text-align:center;font-size:0.7rem;color:${c};padding:4px 0;font-weight:500;">${w}</div>`;
+    });
+    for (let i=0; i<firstDow; i++) calHtml += '<div></div>';
+    for (let d=1; d<=days; d++) {
+      const ds = `${shiftYear}-${String(shiftMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dow = new Date(shiftYear, shiftMonth, d).getDay();
+      const shift = shifts[ds];
+      const st = shift ? SHIFT_TYPES[shift.type] : null;
+      const isToday = ds === new Date().toISOString().slice(0,10);
+      const dayColor = dow===0?'#c06060':dow===6?'#6080a8':'var(--text)';
+      const bg = st ? st.color+'18' : 'var(--surface2)';
+      const border = isToday ? '2px solid var(--accent)' : `1px solid ${st?st.color+'44':'var(--border)'}`;
+      calHtml += `<div style="border:${border};border-radius:6px;padding:4px 2px;background:${bg};text-align:center;min-height:52px;">
+        <div style="font-size:0.75rem;color:${dayColor};font-weight:${isToday?'700':'400'};">${d}</div>
+        ${st ? `<div style="font-size:0.62rem;color:${st.color};font-weight:700;margin-top:2px;">${st.label}</div>` : ''}
+        ${shift?.note ? `<div style="font-size:0.55rem;color:var(--muted2);margin-top:1px;line-height:1.2;overflow:hidden;max-height:24px;">${esc(shift.note).slice(0,8)}</div>` : ''}
+      </div>`;
+    }
+    calHtml += '</div>';
+    calWrap.innerHTML = calHtml;
+  }
+
+  // ── サマリー ──
   const summary = document.getElementById('shift-summary');
   if (summary) summary.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;">
-      <div><div style="font-size:0.68rem;color:var(--muted2);">勤務日数</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--accent);">${workDays}</div></div>
+      <div><div style="font-size:0.68rem;color:var(--muted2);">勤務</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--accent);">${workDays}</div></div>
       <div><div style="font-size:0.68rem;color:var(--muted2);">早番</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#5B8DD9;">${earlyDays}</div></div>
       <div><div style="font-size:0.68rem;color:var(--muted2);">日勤</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#7A9E7E;">${dayDays}</div></div>
       <div><div style="font-size:0.68rem;color:var(--muted2);">遅番</div><div style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#E8B84B;">${lateDays}</div></div>
     </div>`;
 }
 
-window.deleteShift = function(date) {
-  const shifts = getShifts();
-  delete shifts[date];
-  saveShifts(shifts);
-  renderShiftTable();
+// ── 印刷機能 ──
+window.printShiftList = function() {
+  const title = `${shiftYear}年${shiftMonth+1}月 シフトリスト`;
+  const content = document.getElementById('shift-table-wrap')?.innerHTML || '';
+  const summ = document.getElementById('shift-summary')?.innerHTML || '';
+  _printContent(title, content + '<br>' + summ);
 };
+window.printShiftCal = function() {
+  const title = `${shiftYear}年${shiftMonth+1}月 シフトカレンダー`;
+  const content = document.getElementById('shift-cal-wrap')?.innerHTML || '';
+  const summ = document.getElementById('shift-summary')?.innerHTML || '';
+  _printContent(title, content + '<br>' + summ);
+};
+window.printUnionCal = function() {
+  const title = `${unionYear}年${unionMonth+1}月 労働組合カレンダー`;
+  const cal = document.getElementById('union-cal-grid')?.outerHTML || '';
+  const list = document.getElementById('union-event-list')?.innerHTML || '';
+  _printContent(title, cal + '<br>' + list);
+};
+function _printContent(title, bodyHtml) {
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="utf-8"><title>${title}</title>
+    <style>
+      body{font-family:'Noto Sans JP',sans-serif;padding:20px;color:#222;background:#fff;}
+      h1{font-size:1.1rem;margin-bottom:16px;color:#333;border-bottom:2px solid #ccc;padding-bottom:8px;}
+      table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+      th,td{padding:5px 8px;border:1px solid #ddd;text-align:left;}
+      th{background:#f5f5f5;}
+      span{border-radius:4px;padding:1px 5px;}
+      @media print{body{padding:0;}}
+    </style>
+  </head><body>
+    <h1>${title}</h1>
+    ${bodyHtml}
+    <script>window.onload=()=>{window.print();}<\/script>
+  </body></html>`);
+  w.document.close();
+}
 
 // ── 労組カレンダー ──
 const UNION_KEY = 'kouki_union_events';
+const UNION_CAL_ID = '43b8afd5435657057a9fba574785df31505c67094c054947ba28b3192c97213a@group.calendar.google.com';
 let unionYear = new Date().getFullYear();
 let unionMonth = new Date().getMonth();
-const UNION_COLORS = { meeting:'#5B8DD9', event:'#E8B84B', deadline:'#c06060', other:'#8a7868' };
+const UNION_COLORS = { meeting:'#5B8DD9', event:'#E8B84B', deadline:'#c06060', other:'#8a7868', gcal:'#9fc6e7' };
 
-function getUnionEvents() { try { return JSON.parse(localStorage.getItem(UNION_KEY))||[]; } catch { return []; } }
+// フジパン(株)労働組合カレンダーデータ（最終取得: 2026-03-19）
+const GCAL_UNION_DATA = [];
+// ※ 3〜4月はイベントなし。新しいイベントはClaudeに頼んで追加してください。
+
+function getUnionEvents() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(UNION_KEY))||[];
+    // GCALデータとマージ（重複除去）
+    const all = [...stored];
+    GCAL_UNION_DATA.forEach(gc => {
+      if (!all.find(e => e.id === gc.id)) all.push(gc);
+    });
+    return all;
+  } catch { return []; }
+}
 function saveUnionEvents(e) { localStorage.setItem(UNION_KEY, JSON.stringify(e)); }
 
 window.changeUnionMonth = function(dir) {
