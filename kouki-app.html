@@ -416,7 +416,9 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
     </div>
     <!-- 同期ステータス（自動同期） -->
-    <div id="gcal-sync-status" style="font-size:0.75rem;text-align:center;margin-bottom:8px;min-height:16px;color:var(--muted2);"></div>
+    <div id="gcal-sync-status" style="font-size:0.75rem;text-align:center;margin-bottom:8px;min-height:16px;color:var(--muted2);">
+      📅 Googleカレンダーデータ読み込み中...
+    </div>
     <!-- シフト表 -->
     <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:12px;"></div>
     <!-- シフト追加 -->
@@ -1417,7 +1419,15 @@ window.showMainScreen = function() {
   initFareToggle();
   // 恋愛PDF読み込み
   setTimeout(loadLovePdfs, 2000);
-  // シフト初期化（Googleカレンダーデータ自動反映）
+  // シフト初期化（Googleカレンダーデータ強制適用）
+  if (window.GCAL_SHIFT_DATA) {
+    try {
+      const existing = JSON.parse(localStorage.getItem('kouki_shifts') || '{}');
+      const merged = Object.assign({}, window.GCAL_SHIFT_DATA);
+      Object.keys(existing).forEach(d => { if (!window.GCAL_SHIFT_DATA[d]) merged[d] = existing[d]; });
+      localStorage.setItem('kouki_shifts', JSON.stringify(merged));
+    } catch(e) {}
+  }
   applyGcalShiftData();
   renderShiftTable();
   // 労組カレンダー初期化
@@ -1454,8 +1464,8 @@ window.switchTab = function(n) {
     renderSpendList();
   }
 
-  // 仕事タブ：シフト表示
-  if (n === 'work') { renderShiftTable(); }
+  // 仕事タブ：シフトを初期表示
+  if (n === 'work') { switchWorkTab('shift'); }
 };
 
 function updateHeaderDate() {
@@ -1984,7 +1994,16 @@ window.switchWorkTab = function(tab) {
     if (sec) sec.style.display = t===tab?'block':'none';
     if (btn) btn.classList.toggle('active', t===tab);
   });
-  if (tab==='shift') renderShiftTable();
+  if (tab==='shift') {
+    // シフトタブを開くたびにGCALデータを強制適用して再描画
+    if (window.GCAL_SHIFT_DATA) {
+      const existing = JSON.parse(localStorage.getItem('kouki_shifts') || '{}');
+      const merged = Object.assign({}, window.GCAL_SHIFT_DATA);
+      Object.keys(existing).forEach(d => { if (!window.GCAL_SHIFT_DATA[d]) merged[d] = existing[d]; });
+      localStorage.setItem('kouki_shifts', JSON.stringify(merged));
+    }
+    renderShiftTable();
+  }
   if (tab==='union') { renderUnionCal(); renderUnionEvents(); }
   if (tab==='calc') renderCalcHistory();
 };
@@ -2023,6 +2042,17 @@ window.addShift = function() {
 function renderShiftTable() {
   const label = document.getElementById('shift-month-label');
   if (!label) return;
+
+  // GCALデータが未適用なら強制適用
+  const currentShifts = getShifts();
+  if (Object.keys(currentShifts).length === 0 && window.GCAL_SHIFT_DATA) {
+    localStorage.setItem('kouki_shifts', JSON.stringify(window.GCAL_SHIFT_DATA));
+  }
+  // ステータス表示更新
+  const status = document.getElementById('gcal-sync-status');
+  if (status && window.GCAL_SHIFT_DATA) {
+    status.textContent = `✅ フジパン(株) ${Object.keys(window.GCAL_SHIFT_DATA).length}件 反映済み（最終取得: 2026-03-19）`;
+  }
   label.textContent = `${shiftYear}年${shiftMonth+1}月`;
   const days = new Date(shiftYear, shiftMonth+1, 0).getDate();
   const shifts = getShifts();
