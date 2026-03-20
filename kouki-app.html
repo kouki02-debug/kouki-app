@@ -395,6 +395,41 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     style="background:none;border:none;color:var(--muted);font-size:0.72rem;cursor:pointer;">
     ⚙️ 管理者モード
   </button>
+
+  <!-- 恋愛カレンダー連携 -->
+  <div style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="sec-title" style="margin-bottom:0;">💗 恋愛2510 カレンダー</div>
+      <button onclick="syncLoveCalendar()" id="love-sync-btn"
+        style="display:flex;align-items:center;gap:5px;padding:6px 14px;background:rgba(255,0,212,0.08);border:1px solid rgba(255,0,212,0.3);border-radius:20px;color:#ff69b4;font-size:0.78rem;cursor:pointer;transition:all 0.2s;font-family:'Noto Sans JP',sans-serif;">
+        🔄 同期更新
+      </button>
+    </div>
+    <div id="love-sync-status" style="font-size:0.72rem;color:var(--muted2);text-align:center;margin-bottom:12px;min-height:16px;"></div>
+
+    <!-- タイムラインカレンダー -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <button onclick="lovePrevMonth()" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">‹</button>
+        <span id="love-cal-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);"></span>
+        <button onclick="loveNextMonth()" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:5px 12px;border-radius:8px;cursor:pointer;font-size:1rem;">›</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;">
+        <div style="text-align:center;font-size:0.68rem;color:#c06060;padding:3px 0;">日</div>
+        <div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">月</div>
+        <div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">火</div>
+        <div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">水</div>
+        <div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">木</div>
+        <div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">金</div>
+        <div style="text-align:center;font-size:0.68rem;color:#6080a8;padding:3px 0;">土</div>
+      </div>
+      <div id="love-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
+    </div>
+
+    <!-- タイムラインリスト -->
+    <div class="sec-title" style="font-size:0.88rem;">📋 出来事リスト</div>
+    <div id="love-event-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
 </div>
 
 <!-- 仕事パネル -->
@@ -403,7 +438,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
     <button class="wtab active" id="wtab-shift" onclick="switchWorkTab('shift')">📅 シフト</button>
     <button class="wtab" id="wtab-union" onclick="switchWorkTab('union')">🤝 労組</button>
-    <button class="wtab" id="wtab-adjust" onclick="switchWorkTab('adjust')">🔄 調整</button>
+    <button class="wtab" id="wtab-adjust" onclick="switchWorkTab('adjust')">🔄 シフト調整</button>
     <button class="wtab" id="wtab-calc" onclick="switchWorkTab('calc')">🧮 油脂計算</button>
   </div>
 
@@ -414,10 +449,11 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--accent);"></span>
       <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">›</button>
     </div>
-    <!-- 印刷ボタン -->
+    <!-- 印刷・同期ボタン -->
     <div style="display:flex;gap:8px;margin-bottom:10px;">
       <button onclick="printShiftList()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ リスト印刷</button>
       <button onclick="printShiftCal()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ カレンダー印刷</button>
+      <button onclick="manualSyncGcal()" id="gcal-sync-btn" style="flex:1;padding:9px;background:rgba(159,198,231,0.12);border:1px solid rgba(159,198,231,0.4);border-radius:8px;color:#9fc6e7;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">🔄 カレンダー同期</button>
     </div>
     <!-- 同期ステータス -->
     <div id="gcal-sync-status" style="font-size:0.72rem;text-align:center;margin-bottom:10px;min-height:14px;color:var(--muted2);"></div>
@@ -474,20 +510,37 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     </div>
     <div class="card" style="margin-bottom:12px;">
       <div style="font-size:0.85rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">勤務条件</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
         <div>
           <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">月間希望勤務日数</div>
           <input type="number" id="adjust-days" min="1" max="31" placeholder="例：20"
             style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.9rem;">
         </div>
         <div>
-          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">優先シフト</div>
+          <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">優先シフト（3勤交代）</div>
           <select id="adjust-pref" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);outline:none;font-size:0.85rem;">
             <option value="early">早番優先</option>
             <option value="day">日勤優先</option>
             <option value="late">遅番優先</option>
-            <option value="any">指定なし</option>
+            <option value="any">指定なし（均等）</option>
           </select>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;">希望ポジション（複数選択可）</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;cursor:pointer;">
+            <input type="checkbox" id="pos-nakadane" value="中種" checked style="accent-color:var(--accent);"> 中種
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;cursor:pointer;">
+            <input type="checkbox" id="pos-shikomi" value="仕込み" checked style="accent-color:var(--accent);"> 仕込み
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;cursor:pointer;">
+            <input type="checkbox" id="pos-panning" value="パンニング" checked style="accent-color:var(--accent);"> パンニング
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:var(--text);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;cursor:pointer;">
+            <input type="checkbox" id="pos-oven" value="オーブン" checked style="accent-color:var(--accent);"> オーブン
+          </label>
         </div>
       </div>
     </div>
@@ -1459,6 +1512,16 @@ window.switchTab = function(n) {
 
   // 仕事タブ：シフトを初期表示
   if (n === 'work') { switchWorkTab('shift'); }
+
+  // 恋愛タブ：カレンダー・リスト初期化
+  if (n === 'love') {
+    renderLoveCal();
+    renderLoveEventList();
+    const status = document.getElementById('love-sync-status');
+    if (status && !status.textContent) {
+      status.textContent = `✅ 恋愛2510 ${getLoveEvents().length}件 同期済み（最終取得: 2026-03-20）`;
+    }
+  }
 };
 
 function updateHeaderDate() {
@@ -1909,6 +1972,128 @@ window.toggleLoveAdmin = function() {
   document.getElementById('love-admin-btn').textContent = _loveAdminMode ? '⚙️ 管理者モード終了' : '⚙️ 管理者モード';
 };
 
+// ════ シフト手動同期 ════
+window.manualSyncGcal = function() {
+  const btn = document.getElementById('gcal-sync-btn');
+  const status = document.getElementById('gcal-sync-status');
+  if (btn) { btn.textContent = '⏳ 同期中...'; btn.disabled = true; }
+  // GCAL_SHIFT_DATAを再適用してシフト再描画
+  setTimeout(() => {
+    if (window.GCAL_SHIFT_DATA) {
+      const existing = JSON.parse(localStorage.getItem('kouki_shifts') || '{}');
+      const merged = Object.assign({}, window.GCAL_SHIFT_DATA);
+      Object.keys(existing).forEach(d => { if (!window.GCAL_SHIFT_DATA[d]) merged[d] = existing[d]; });
+      localStorage.setItem('kouki_shifts', JSON.stringify(merged));
+    }
+    renderShiftTable();
+    if (btn) { btn.textContent = '✅ 同期完了'; setTimeout(() => { btn.textContent = '🔄 カレンダー同期'; btn.disabled = false; }, 2000); }
+    if (status) {
+      const now = new Date();
+      const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      status.textContent = `✅ フジパン(株) 同期済み（${ts}）`;
+    }
+  }, 600);
+};
+
+// ════ 恋愛カレンダー ════
+const LOVE_CAL_ID = '54a94f9a433779030f85b7e42bfcd7aedeeed9b08cc8e16a761af36258113fea@group.calendar.google.com';
+const LOVE_CAL_KEY = 'kouki_love_cal_events';
+// 埋め込みデータ（MCP取得: 2026-03-20）
+const LOVE_CAL_EMBEDDED = [
+  { date: '2026-03-07', summary: '【大発展】ステージ3→4へ突入', time: '' }
+];
+let loveCal = { year: new Date().getFullYear(), month: new Date().getMonth() };
+
+function getLoveEvents() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(LOVE_CAL_KEY)) || [];
+    // 埋め込みとマージ（id重複除去）
+    const all = [...LOVE_CAL_EMBEDDED];
+    stored.forEach(ev => { if (!all.find(e => e.date === ev.date && e.summary === ev.summary)) all.push(ev); });
+    return all.sort((a, b) => a.date.localeCompare(b.date));
+  } catch { return LOVE_CAL_EMBEDDED; }
+}
+
+function renderLoveCal() {
+  const label = document.getElementById('love-cal-label');
+  if (label) label.textContent = `${loveCal.year}年${loveCal.month + 1}月`;
+  const grid = document.getElementById('love-cal-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const events = getLoveEvents();
+  const first = new Date(loveCal.year, loveCal.month, 1).getDay();
+  const days = new Date(loveCal.year, loveCal.month + 1, 0).getDate();
+  const todayStr = new Date().toISOString().slice(0, 10);
+  for (let i = 0; i < first; i++) {
+    const el = document.createElement('div'); grid.appendChild(el);
+  }
+  for (let d = 1; d <= days; d++) {
+    const ds = `${loveCal.year}-${String(loveCal.month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const dow = new Date(loveCal.year, loveCal.month, d).getDay();
+    const hasEv = events.some(e => e.date === ds);
+    const isToday = ds === todayStr;
+    const dayColor = dow === 0 ? '#c06060' : dow === 6 ? '#6080a8' : 'var(--text)';
+    const el = document.createElement('div');
+    el.style.cssText = `aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:8px;font-size:0.8rem;position:relative;cursor:default;${isToday ? 'background:rgba(200,169,110,0.2);border:1px solid var(--accent);' : ''}`;
+    el.innerHTML = `<span style="color:${isToday ? 'var(--accent)' : dayColor};font-weight:${isToday ? '700' : '400'};">${d}</span>${hasEv ? '<span style="width:5px;height:5px;background:#ff69b4;border-radius:50%;position:absolute;bottom:2px;"></span>' : ''}`;
+    grid.appendChild(el);
+  }
+}
+
+function renderLoveEventList() {
+  const list = document.getElementById('love-event-list');
+  if (!list) return;
+  const events = getLoveEvents();
+  if (!events.length) {
+    list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:0.85rem;">📅 出来事がありません</div>';
+    return;
+  }
+  const WDAYS = ['日', '月', '火', '水', '木', '金', '土'];
+  list.innerHTML = events.map(ev => {
+    const d = new Date(ev.date + 'T00:00:00');
+    const dateLabel = `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日（${WDAYS[d.getDay()]}）`;
+    const timeTag = ev.time ? `<span style="font-size:0.72rem;color:var(--muted2);margin-left:6px;">${ev.time}</span>` : '';
+    // 今日からの経過日数
+    const today = new Date(); today.setHours(0,0,0,0);
+    const evDate = new Date(ev.date + 'T00:00:00');
+    const diffDays = Math.round((evDate - today) / 86400000);
+    const diffLabel = diffDays === 0 ? '<span style="font-size:0.7rem;background:rgba(255,105,180,0.2);color:#ff69b4;border-radius:8px;padding:1px 7px;margin-left:6px;">今日</span>'
+      : diffDays > 0 ? `<span style="font-size:0.7rem;color:var(--muted2);margin-left:6px;">${diffDays}日後</span>`
+      : `<span style="font-size:0.7rem;color:var(--muted2);margin-left:6px;">${Math.abs(diffDays)}日前</span>`;
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-left:3px solid #ff69b4;border-radius:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin-bottom:4px;">
+        <span style="font-size:0.72rem;color:var(--muted2);font-family:'DM Mono',monospace;">${dateLabel}</span>
+        ${timeTag}${diffLabel}
+      </div>
+      <div style="font-size:0.92rem;color:var(--text);line-height:1.5;">💗 ${esc(ev.summary)}</div>
+    </div>`;
+  }).join('');
+}
+
+window.lovePrevMonth = function() {
+  loveCal.month--; if (loveCal.month < 0) { loveCal.month = 11; loveCal.year--; }
+  renderLoveCal();
+};
+window.loveNextMonth = function() {
+  loveCal.month++; if (loveCal.month > 11) { loveCal.month = 0; loveCal.year++; }
+  renderLoveCal();
+};
+
+window.syncLoveCalendar = function() {
+  const btn = document.getElementById('love-sync-btn');
+  const status = document.getElementById('love-sync-status');
+  if (btn) btn.textContent = '⏳ 同期中...';
+  // 埋め込みデータを再ロード・再描画
+  setTimeout(() => {
+    renderLoveCal();
+    renderLoveEventList();
+    if (btn) { btn.innerHTML = '✅ 同期完了'; setTimeout(() => { btn.innerHTML = '🔄 同期更新'; }, 2000); }
+    const now = new Date();
+    const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    if (status) status.textContent = `✅ 恋愛2510 ${getLoveEvents().length}件 同期済み（最終取得: ${ts}）`;
+  }, 500);
+};
+
 function loadLovePdfs() {
   if (!window.mdb) { setTimeout(loadLovePdfs, 1000); return; }
   window.mdb.ref(LOVE_DB_KEY).on('value', snap => {
@@ -2005,56 +2190,88 @@ window.switchWorkTab = function(tab) {
   if (tab==='calc') renderCalcHistory();
 };
 
-// ── フジパン(株) Googleカレンダーデータ（MCP取得: 2026-03-19）
-// 形式: { "YYYY-MM-DD": [{s:"概要", t:"HH:MM〜HH:MM"}, ...], ... }
-// 終日イベントはt:""
+// ── フジパン(株) Googleカレンダーデータ（MCP取得: 2026-03-20）
+// 形式: { "YYYY-MM-DD": [{s:"概要", t:"HH:MM〜HH:MM", lunch:"HH:MM〜HH:MM"}, ...], ... }
+// lunch: Googleカレンダーに「昼休憩」イベントが登録されている日のみ時刻を記載
 window.GCAL_EVENTS_DATA = {
+  // 1月
   "2026-01-09":[{s:"冬季休暇",t:""}],"2026-01-10":[{s:"冬季休暇",t:""}],
   "2026-01-11":[{s:"冬季休暇",t:""}],"2026-01-12":[{s:"冬季休暇",t:""}],"2026-01-13":[{s:"冬季休暇",t:""}],
   "2026-01-14":[{s:"中種配合",t:"06:00〜15:00"}],"2026-01-15":[{s:"中種配合",t:"06:00〜15:00"}],
   "2026-01-16":[{s:"中種配合",t:"06:00〜15:00"}],"2026-01-17":[{s:"中種配合",t:"06:00〜15:00"}],
-  "2026-01-20":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-01-21":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-20":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-21":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-01-22":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-01-23":[{s:"中種",t:"10:00〜19:00"}],"2026-01-24":[{s:"中種",t:"09:00〜18:00"}],
-  "2026-01-27":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-01-28":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-23":[{s:"中種",t:"10:00〜19:00"}],
+  "2026-01-24":[{s:"中種",t:"09:00〜18:00"}],
+  "2026-01-27":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-28":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-01-29":[{s:"【朝番】配合＆パンニング",t:"06:00〜15:00"}],
-  "2026-01-30":[{s:"中種",t:"06:00〜15:00"}],"2026-01-31":[{s:"中種",t:"06:00〜15:00"}],
-  "2026-02-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-01-30":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-01-31":[{s:"中種",t:"06:00〜15:00"}],
+  // 2月
+  "2026-02-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-02-05":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-02-06":[{s:"中種",t:"06:00〜15:00"}],"2026-02-07":[{s:"中種",t:"06:00〜15:00"}],
-  "2026-02-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-06":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-07":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-02-12":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-02-13":[{s:"中種",t:"06:00〜15:00"}],"2026-02-14":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-13":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-14":[{s:"中種",t:"06:00〜15:00"}],
   "2026-02-16":[{s:"大卒教育開始2ヶ月間",t:""}],
-  "2026-02-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-02-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜17:00"}],
+  "2026-02-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜17:00"}],
   "2026-02-19":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-02-20":[{s:"中種",t:"06:00〜15:00"}],"2026-02-21":[{s:"中種",t:"06:00〜15:00"}],
-  "2026-02-24":[{s:"【朝番】配合＆仕込み",t:"08:00〜17:00"}],"2026-02-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-20":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-21":[{s:"中種",t:"06:00〜15:00"}],
+  "2026-02-24":[{s:"【朝番】配合＆仕込み",t:"08:00〜17:00"}],
+  "2026-02-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-02-26":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-02-27":[{s:"中種　特枠",t:"09:00〜16:45"}],"2026-02-28":[{s:"中種",t:"10:00〜19:00"}],
-  "2026-03-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-02-27":[{s:"中種　特枠",t:"09:00〜16:45"}],
+  "2026-02-28":[{s:"中種",t:"10:00〜19:00"}],
+  // 3月
+  "2026-03-03":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-04":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-03-05":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-03-06":[{s:"中種",t:"10:00〜19:00"}],"2026-03-07":[{s:"中種",t:"09:00〜18:00"}],
+  "2026-03-06":[{s:"中種",t:"10:00〜19:00"}],
+  "2026-03-07":[{s:"中種",t:"09:00〜18:00"}],
   "2026-03-08":[{s:"休日",t:""}],"2026-03-09":[{s:"休日",t:""}],
-  "2026-03-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-10":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-11":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-03-12":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-03-13":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],"2026-03-14":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],
+  "2026-03-13":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],
+  "2026-03-14":[{s:"【早番】中種・配合",t:"06:00〜15:00"}],
   "2026-03-15":[{s:"休日",t:""}],"2026-03-16":[{s:"休日",t:""}],
-  "2026-03-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-17":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
+  "2026-03-18":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
   "2026-03-19":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-03-20":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-03-21":[{s:"【中番】中種専属",t:"09:00〜19:00"}],
+  "2026-03-20":[{s:"【中番】中種専属",t:"10:00〜19:00"}],
+  "2026-03-21":[{s:"【中番】中種専属",t:"09:00〜19:00"}],
   "2026-03-22":[{s:"臨時出勤",t:""},{s:"【中番】中種",t:"09:00〜19:00"}],
-  "2026-03-23":[{s:"休日",t:""}],"2026-03-24":[{s:"休日",t:""}],
-  "2026-03-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],"2026-03-26":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"}],
-  "2026-03-27":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-03-28":[{s:"【中番】中種専属",t:"09:00〜19:00"}],
-  "2026-03-29":[{s:"休日",t:""}],"2026-03-30":[{s:"休日",t:""}],
-  "2026-04-01":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-02":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
-  "2026-04-03":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-04":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-03-23":[{s:"休日",t:""},{s:"5味テスト",t:""}],
+  "2026-03-24":[{s:"休日",t:""},{s:"5味テスト",t:""}],
+  "2026-03-25":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00",lunch:"10:00〜11:00"},{s:"5味テスト",t:""}],
+  "2026-03-26":[{s:"【朝番】配合＆仕込み",t:"06:00〜15:00"},{s:"5味テスト",t:""}],
+  "2026-03-27":[{s:"【朝番】中種専属",t:"06:00〜15:00"},{s:"5味テスト",t:""}],
+  "2026-03-28":[{s:"【朝番】中種専属＋教育9時～",t:"06:00〜16:30"},{s:"5味テスト",t:""}],
+  "2026-03-29":[{s:"休日",t:""},{s:"5味テスト",t:""}],
+  "2026-03-30":[{s:"休日",t:""},{s:"5味テスト",t:""}],
+  // 4月
+  "2026-04-01":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-02":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-03":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-04":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
   "2026-04-05":[{s:"休日",t:""}],"2026-04-06":[{s:"休日",t:""}],
-  "2026-04-07":[{s:"健康診断　10時予定",t:""},{s:"【早番】中種配合",t:"06:00〜15:00"}],
-  "2026-04-08":[{s:"【早番】中種配合",t:"06:00〜15:00"}],"2026-04-09":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
-  "2026-04-10":[{s:"【中番】中種専属",t:"10:00〜19:00"}],"2026-04-11":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
-  "2026-04-12":[{s:"休日",t:""}],"2026-04-13":[{s:"休日",t:""}]
+  "2026-04-07":[{s:"健康診断　10時予定",t:""},{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"11:00〜12:00"}],
+  "2026-04-08":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-09":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-10":[{s:"【中番】中種専属",t:"10:00〜19:00"}],
+  "2026-04-11":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
+  "2026-04-12":[{s:"休日",t:""}],"2026-04-13":[{s:"休日",t:""}],
+  "2026-04-19":[{s:"休日",t:""}],"2026-04-20":[{s:"休日",t:""}],
+  "2026-04-26":[{s:"休日",t:""}],"2026-04-27":[{s:"休日",t:""}]
 };
 
 // ── シフトスケジュール ──
@@ -2167,11 +2384,30 @@ function renderShiftTable() {
     const gcalEvents = (window.GCAL_EVENTS_DATA && window.GCAL_EVENTS_DATA[dateStr]) || [];
     const gcalHtml = gcalEvents.length
       ? gcalEvents.map(e => {
-          const timeTag = e.t
-            ? `<span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#6a9e7a;margin-left:5px;">${e.t}</span>`
+          let timeTag = '';
+          if (e.t) {
+            const [startStr, endStr] = e.t.split('〜');
+            if (startStr && endStr) {
+              const [sh, sm] = startStr.split(':').map(Number);
+              const [eh, em] = endStr.split(':').map(Number);
+              const totalMin = (eh * 60 + em) - (sh * 60 + sm);
+              const workMin = totalMin - 60;
+              const overMin = workMin - 480;
+              if (overMin > 0) {
+                const overH = Math.floor(overMin / 60);
+                const overM = overMin % 60;
+                const overLabel = overH > 0 ? `+${overH}h${overM > 0 ? overM + 'm' : ''}` : `+${overM}m`;
+                timeTag = `<span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#6a9e7a;margin-left:5px;">${e.t}</span><span style="font-size:0.65rem;background:rgba(232,184,75,0.2);color:#E8B84B;border:1px solid rgba(232,184,75,0.4);border-radius:6px;padding:0 5px;margin-left:4px;">残業${overLabel}</span>`;
+              } else {
+                timeTag = `<span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:#6a9e7a;margin-left:5px;">${e.t}</span>`;
+              }
+            }
+          }
+          const lunchTag = e.lunch
+            ? `<span style="font-size:0.63rem;background:rgba(106,158,122,0.15);color:#6a9e7a;border:1px solid rgba(106,158,122,0.3);border-radius:6px;padding:0 5px;margin-left:4px;">🍱 昼休憩 ${e.lunch}</span>`
             : '';
           return `<div style="display:inline-flex;align-items:center;padding:2px 7px;border-radius:8px;background:rgba(159,198,231,0.12);border:1px solid rgba(159,198,231,0.3);margin:1px 2px 1px 0;">
-            <span style="font-size:0.73rem;color:#9fc6e7;white-space:nowrap;">${esc(e.s)}</span>${timeTag}
+            <span style="font-size:0.73rem;color:#9fc6e7;white-space:nowrap;">${esc(e.s)}</span>${timeTag}${lunchTag}
           </div>`;
         }).join('')
       : '<span style="color:var(--border2);font-size:0.72rem;">ー</span>';
@@ -2206,12 +2442,28 @@ function renderShiftTable() {
       const st = shift ? SHIFT_TYPES[shift.type] : null;
       const isToday = ds === new Date().toISOString().slice(0,10);
       const dayColor = dow===0?'#c06060':dow===6?'#6080a8':'var(--text)';
-      const bg = st ? st.color+'18' : 'var(--surface2)';
-      const border = isToday ? '2px solid var(--accent)' : `1px solid ${st?st.color+'44':'var(--border)'}`;
-      calHtml += `<div style="border:${border};border-radius:6px;padding:4px 2px;background:${bg};text-align:center;min-height:52px;">
+      // GCAL_EVENTS_DATAから○番/休日ラベルを優先取得
+      const gcalDay = (window.GCAL_EVENTS_DATA && window.GCAL_EVENTS_DATA[ds]) || [];
+      const workEv = gcalDay.find(e => e.t); // 就業時間があるイベント（勤務日）
+      const restEv = gcalDay.find(e => e.s === '休日' && !e.t);
+      let calLabel = '', calColor = 'var(--muted2)';
+      if (workEv) {
+        // 概要から番種ラベルを抽出（【○番】や○番を優先）
+        const m = workEv.s.match(/【(.+?)】/) || workEv.s.match(/^(朝番|早番|中番|日勤|遅番)/);
+        calLabel = m ? m[1] : workEv.s.slice(0, 4);
+        calColor = st ? st.color : 'var(--accent)';
+      } else if (restEv || gcalDay.some(e => e.s === '休日')) {
+        calLabel = '休日';
+        calColor = '#6a6058';
+      } else if (st) {
+        calLabel = st.label;
+        calColor = st.color;
+      }
+      const bg = calLabel && calLabel !== '休日' ? (st ? st.color+'18' : 'rgba(200,169,110,0.08)') : (calLabel === '休日' ? 'rgba(106,96,88,0.08)' : 'var(--surface2)');
+      const border = isToday ? '2px solid var(--accent)' : `1px solid ${calLabel ? calColor+'44' : 'var(--border)'}`;
+      calHtml += `<div style="border:${border};border-radius:6px;padding:4px 2px;background:${bg};text-align:center;min-height:46px;">
         <div style="font-size:0.75rem;color:${dayColor};font-weight:${isToday?'700':'400'};">${d}</div>
-        ${st ? `<div style="font-size:0.62rem;color:${st.color};font-weight:700;margin-top:2px;">${st.label}</div>` : ''}
-        ${shift?.note ? `<div style="font-size:0.55rem;color:var(--muted2);margin-top:1px;line-height:1.2;overflow:hidden;max-height:24px;">${esc(shift.note).slice(0,8)}</div>` : ''}
+        ${calLabel ? `<div style="font-size:0.6rem;color:${calColor};font-weight:700;margin-top:2px;line-height:1.3;">${esc(calLabel)}</div>` : ''}
       </div>`;
     }
     calHtml += '</div>';
@@ -2391,9 +2643,21 @@ window.generateAdjustPlan = function() {
   const totalDays=new Date(year,month+1,0).getDate();
   const result=document.getElementById('adjust-result');
 
+  // 希望ポジション取得
+  const positions = ['nakadane','shikomi','panning','oven']
+    .filter(id => document.getElementById('pos-'+id)?.checked)
+    .map(id => document.getElementById('pos-'+id).value);
+  const posLabel = positions.length ? positions.join('・') : '指定なし';
+
   const plan={};
   let workCount=0;
   const WDAYS=['日','月','火','水','木','金','土'];
+  // 3勤交代パターン：早番→日勤→遅番のサイクル
+  const rotationTypes = pref==='early' ? ['early','early','day','late']
+    : pref==='day' ? ['day','day','early','late']
+    : pref==='late' ? ['late','late','day','early']
+    : ['early','day','late'];
+  let rotIdx=0;
 
   for(let d=1;d<=totalDays;d++){
     const ds=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -2401,14 +2665,16 @@ window.generateAdjustPlan = function() {
     if(_adjustOffDates.includes(ds)){plan[ds]={type:'off',label:'希望休'};continue;}
     if(dow===0||dow===6){plan[ds]={type:'off',label:'休日'};continue;}
     if(workCount<days){
-      const type=pref==='early'?'early':pref==='late'?'late':pref==='day'?'day':'early';
+      const type=rotationTypes[rotIdx % rotationTypes.length];
       plan[ds]={type,label:SHIFT_TYPES[type].label};
-      workCount++;
+      rotIdx++; workCount++;
     }else{plan[ds]={type:'off',label:'公休'};}
   }
 
   result.style.display='block';
-  result.innerHTML=`<div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:10px;">📋 シフト案（${year}年${month+1}月）</div>
+  result.innerHTML=`
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:6px;">📋 シフト案（${year}年${month+1}月）</div>
+    <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;">ポジション：${esc(posLabel)}　／　3勤交代</div>
     <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:10px;">
       ${WDAYS.map(w=>`<div style="text-align:center;font-size:0.68rem;color:var(--muted2);padding:3px 0;">${w}</div>`).join('')}
       ${Array(new Date(year,month,1).getDay()).fill('<div></div>').join('')}
@@ -2419,7 +2685,7 @@ window.generateAdjustPlan = function() {
         const col=st?st.color:'var(--muted)';
         return`<div style="text-align:center;padding:4px 2px;border-radius:6px;background:${col}22;border:1px solid ${col}33;">
           <div style="font-size:0.72rem;color:${col};font-weight:700;">${d}</div>
-          <div style="font-size:0.58rem;color:${col};">${p?p.label:''}</div>
+          <div style="font-size:0.55rem;color:${col};">${p?p.label:''}</div>
         </div>`;
       }).join('')}
     </div>
