@@ -269,20 +269,18 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   <div class="login-box">
     <div class="login-logo">功稀</div>
     <div class="login-sub">Personal Dashboard</div>
-    <div class="login-section-label">— パスワードでログイン —</div>
-    <div class="login-input-wrap">
-      <input type="password" class="login-input" id="pw-input" placeholder="パスワードを入力"
-        autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-      <button class="toggle-pw" onclick="togglePw()">👁</button>
-    </div>
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <div class="divider">または</div>
-    <button class="google-btn" onclick="doGoogleLogin()">
+
+    <div class="login-section-label">— Googleアカウント認証専用 —</div>
+
+    <button class="google-btn" id="google-login-btn" onclick="doGoogleLogin()">
       <div class="google-icon"></div>Googleアカウントでログイン
     </button>
-    <div style="text-align:center"><span class="sync-badge">☁️ クラウド同期対応</span></div>
+
+    <div style="text-align:center">
+      <span class="sync-badge">🔒 許可済みアカウントのみ</span>
+    </div>
+
     <div class="login-error" id="login-error"></div>
-    <div class="login-attempts" id="login-attempts"></div>
   </div>
 </div>
 
