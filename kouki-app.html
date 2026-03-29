@@ -687,6 +687,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
     <button class="wtab active" id="dtab-driver" onclick="switchDriveTab('driver')">🚗 運転者</button>
     <button class="wtab" id="dtab-commute" onclick="switchDriveTab('commute')">🚌 通勤</button>
+    <button class="wtab" id="dtab-music" onclick="switchDriveTab('music')">🎵 音楽</button>
     <button class="wtab" id="dtab-settings" onclick="switchDriveTab('settings')">⚙️ 設定</button>
   </div>
 
@@ -795,6 +796,53 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
         style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;outline:none;resize:none;line-height:1.5;"
         oninput="saveCommuteMemo()"></textarea>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">※ 自動保存されます</div>
+    </div>
+  </div>
+
+  <!-- ═══ 音楽タブ ═══ -->
+  <div id="dsec-music" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+    <!-- 管理者：アップロードエリア -->
+    <div id="music-admin-area" style="display:none;margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+        <select id="music-upload-cat"
+          style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;">
+          <option value="love">💕 恋愛楽曲</option>
+          <option value="20th">🎉 20thAnniversary</option>
+          <option value="birthday">🎂 誕生日0330</option>
+          <option value="other">🎵 その他</option>
+        </select>
+        <button onclick="document.getElementById('music-file-input').click()"
+          style="padding:9px;background:rgba(200,169,110,0.1);border:1px solid var(--accent);border-radius:10px;color:var(--accent);font-size:0.85rem;cursor:pointer;font-family:'Shippori Mincho',serif;">
+          ➕ 音楽を追加
+        </button>
+      </div>
+      <input type="file" id="music-file-input" accept="audio/*" multiple style="display:none" onchange="uploadMusicFiles(this)">
+      <div id="music-upload-status" style="font-size:0.75rem;text-align:center;min-height:16px;color:var(--muted2);"></div>
+    </div>
+
+    <!-- 管理者モードボタン -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div class="sec-title" style="margin-bottom:0;">🎵 音楽ライブラリ</div>
+      <button id="music-admin-btn" onclick="toggleMusicAdmin()"
+        style="background:none;border:none;color:var(--muted);font-size:0.72rem;cursor:pointer;">⚙️ 管理者モード</button>
+    </div>
+
+    <!-- カテゴリフィルター -->
+    <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;">
+      <button class="filter-btn active" id="mcat-all" onclick="filterMusicCat('all',this)">すべて</button>
+      <button class="filter-btn" id="mcat-love" onclick="filterMusicCat('love',this)">💕 恋愛</button>
+      <button class="filter-btn" id="mcat-20th" onclick="filterMusicCat('20th',this)">🎉 20th</button>
+      <button class="filter-btn" id="mcat-birthday" onclick="filterMusicCat('birthday',this)">🎂 誕生日</button>
+      <button class="filter-btn" id="mcat-other" onclick="filterMusicCat('other',this)">🎵 その他</button>
+    </div>
+
+    <!-- 音楽リスト -->
+    <div id="music-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+
+    <!-- 並び替えヒント（管理者モード時） -->
+    <div id="music-sort-hint" style="display:none;text-align:center;margin-top:10px;font-size:0.72rem;color:var(--muted);">
+      ☰ ドラッグで並び替え可能
     </div>
   </div>
 
@@ -2112,7 +2160,7 @@ function updatePassengerView(state) {
 
 // ════ 運転タブ切り替え ════
 window.switchDriveTab = function(tab) {
-  ['driver','commute','settings'].forEach(t => {
+  ['driver','commute','music','settings'].forEach(t => {
     const sec = document.getElementById('dsec-'+t);
     const btn = document.getElementById('dtab-'+t);
     if (sec) sec.style.display = t === tab ? 'block' : 'none';
@@ -2120,6 +2168,7 @@ window.switchDriveTab = function(tab) {
   });
   if (tab === 'driver') setTimeout(initDriveMap, 100);
   if (tab === 'commute') setTimeout(initCommuteMap, 100);
+  if (tab === 'music') initMusicTab();
   if (tab === 'settings') initDriveVoiceSelect();
 };
 
@@ -2243,7 +2292,235 @@ function loadCommuteMemo() {
   if (el) el.value = localStorage.getItem(COMMUTE_MEMO_KEY) || '';
 }
 
-// ════ 音声設定（設定タブ） ════
+// ════ 音楽タブ ════
+const MUSIC_DB_KEY  = 'kouki-app/music';
+const MUSIC_STORAGE = 'music/';
+const MUSIC_MAX_MB  = 30;
+const MUSIC_CAT_LABELS = { love:'💕 恋愛楽曲', '20th':'🎉 20thAnniversary', birthday:'🎂 誕生日0330', other:'🎵 その他' };
+const MUSIC_CAT_COLORS = { love:'#ff69b4', '20th':'#E8B84B', birthday:'#5B8DD9', other:'#9fc6e7' };
+
+let _musicItems = [];
+let _musicAdminMode = false;
+let _musicCatFilter = 'all';
+let _currentAudio = null;
+let _currentPlayId = null;
+let _musicLoaded = false;
+let _dragSrcId = null;
+
+function initMusicTab() {
+  if (_musicLoaded) { renderMusicList(); return; }
+  loadMusicItems();
+}
+
+function loadMusicItems() {
+  if (!window.mdb) { setTimeout(loadMusicItems, 800); return; }
+  window.mdb.ref(MUSIC_DB_KEY).on('value', snap => {
+    const data = snap.val();
+    _musicItems = data
+      ? Object.entries(data).map(([id, v]) => ({ id, ...v }))
+          .sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999))
+      : [];
+    _musicLoaded = true;
+    renderMusicList();
+  });
+}
+
+function renderMusicList() {
+  const list = document.getElementById('music-list');
+  if (!list) return;
+  const filtered = _musicCatFilter === 'all'
+    ? _musicItems
+    : _musicItems.filter(m => m.cat === _musicCatFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">🎵</span>楽曲がありません</div>';
+    const hint = document.getElementById('music-sort-hint');
+    if (hint) hint.style.display = 'none';
+    return;
+  }
+
+  list.innerHTML = '';
+  filtered.forEach(item => {
+    const col = MUSIC_CAT_COLORS[item.cat] || 'var(--accent)';
+    const catLabel = MUSIC_CAT_LABELS[item.cat] || item.cat;
+    const isPlaying = _currentPlayId === item.id;
+    const sizeMB = item.size ? (item.size / 1024 / 1024).toFixed(1) + ' MB' : '';
+
+    const div = document.createElement('div');
+    div.dataset.id = item.id;
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid ' + col + ';border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px;transition:background 0.15s;' + (_musicAdminMode ? 'cursor:grab;' : '');
+
+    const dragHandle = _musicAdminMode
+      ? '<span style="color:var(--muted);font-size:1.1rem;cursor:grab;user-select:none;">☰</span>'
+      : '';
+
+    const catOptions = Object.entries(MUSIC_CAT_LABELS)
+      .map(([k, v]) => '<option value="' + k + '"' + (k === item.cat ? ' selected' : '') + '>' + v + '</option>')
+      .join('');
+
+    const progressBar = isPlaying
+      ? '<div id="progress-bar-' + item.id + '" style="margin-top:6px;height:3px;background:var(--border2);border-radius:2px;overflow:hidden;"><div id="progress-fill-' + item.id + '" style="height:100%;background:' + col + ';width:0%;transition:width 0.4s linear;"></div></div>'
+      : '';
+
+    const adminControls = _musicAdminMode
+      ? '<select onchange="changeMusicCat(\'' + item.id + '\',this.value)" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:4px 6px;color:var(--text);font-size:0.72rem;outline:none;max-width:80px;">' + catOptions + '</select>'
+        + '<button onclick="deleteMusicItem(\'' + item.id + '\',\'' + item.path + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:4px;border-radius:6px;">✕</button>'
+      : '';
+
+    div.innerHTML = dragHandle
+      + '<button onclick="toggleMusicPlay(\'' + item.id + '\')"'
+      + ' id="play-btn-' + item.id + '"'
+      + ' style="width:42px;height:42px;border-radius:50%;border:none;background:' + (isPlaying ? col : 'var(--surface2)') + ';color:' + (isPlaying ? '#0f0f0f' : col) + ';font-size:1.1rem;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;">'
+      + (isPlaying ? '⏸' : '▶') + '</button>'
+      + '<div style="flex:1;min-width:0;">'
+      +   '<div style="font-size:0.9rem;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(item.name) + '</div>'
+      +   '<div style="display:flex;align-items:center;gap:6px;margin-top:3px;">'
+      +     '<span style="font-size:0.68rem;background:' + col + '22;color:' + col + ';border:1px solid ' + col + '44;border-radius:6px;padding:1px 7px;">' + catLabel + '</span>'
+      +     (sizeMB ? '<span style="font-size:0.68rem;color:var(--muted);">' + sizeMB + '</span>' : '')
+      +   '</div>'
+      +   progressBar
+      + '</div>'
+      + adminControls;
+
+    // ドラッグ&ドロップ（管理者モード）
+    if (_musicAdminMode) {
+      div.draggable = true;
+      div.addEventListener('dragstart', () => { _dragSrcId = item.id; div.style.opacity = '0.5'; });
+      div.addEventListener('dragend',   () => { div.style.opacity = '1'; });
+      div.addEventListener('dragover',  e  => { e.preventDefault(); div.style.background = 'var(--surface2)'; });
+      div.addEventListener('dragleave', () => { div.style.background = 'var(--surface)'; });
+      div.addEventListener('drop',      e  => {
+        e.preventDefault();
+        div.style.background = 'var(--surface)';
+        if (_dragSrcId && _dragSrcId !== item.id) reorderMusic(_dragSrcId, item.id);
+      });
+    }
+
+    list.appendChild(div);
+  });
+
+  const hint = document.getElementById('music-sort-hint');
+  if (hint) hint.style.display = (_musicAdminMode && filtered.length > 1) ? 'block' : 'none';
+}
+
+// ── 再生制御 ──
+window.toggleMusicPlay = function(id) {
+  const item = _musicItems.find(m => m.id === id);
+  if (!item) return;
+
+  if (_currentPlayId === id) {
+    if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+    _currentPlayId = null;
+    renderMusicList();
+    return;
+  }
+
+  if (_currentAudio) { _currentAudio.pause(); _currentAudio = null; }
+  _currentPlayId = id;
+  renderMusicList();
+
+  const audio = new Audio(item.url);
+  _currentAudio = audio;
+  audio.addEventListener('timeupdate', () => {
+    const fill = document.getElementById('progress-fill-' + id);
+    if (fill && audio.duration) fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+  });
+  audio.addEventListener('ended', () => { _currentAudio = null; _currentPlayId = null; renderMusicList(); });
+  audio.addEventListener('error', () => { _currentAudio = null; _currentPlayId = null; renderMusicList(); });
+  audio.play().catch(() => { _currentAudio = null; _currentPlayId = null; renderMusicList(); });
+};
+
+// ── カテゴリフィルター ──
+window.filterMusicCat = function(cat, btn) {
+  _musicCatFilter = cat;
+  document.querySelectorAll('[id^="mcat-"]').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderMusicList();
+};
+
+// ── 管理者モード ──
+window.toggleMusicAdmin = function() {
+  if (!window._isAdmin) { alert('管理者権限が必要です'); return; }
+  _musicAdminMode = !_musicAdminMode;
+  const btn  = document.getElementById('music-admin-btn');
+  const area = document.getElementById('music-admin-area');
+  if (btn)  btn.textContent  = _musicAdminMode ? '⚙️ 管理者モード終了' : '⚙️ 管理者モード';
+  if (area) area.style.display = _musicAdminMode ? 'block' : 'none';
+  renderMusicList();
+};
+
+// ── アップロード ──
+window.uploadMusicFiles = async function(input) {
+  if (!window._isAdmin) { alert('管理者権限が必要です'); input.value=''; return; }
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  const status = document.getElementById('music-upload-status');
+  const cat = document.getElementById('music-upload-cat').value;
+
+  let retries = 0;
+  while ((!_mstorage || !window.mdb) && retries < 20) {
+    await new Promise(r => setTimeout(r, 300)); retries++;
+  }
+  if (!_mstorage || !window.mdb) { status.style.color='var(--red)'; status.textContent='⚠️ Firebase未初期化'; return; }
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const mb = file.size / 1024 / 1024;
+    if (mb > MUSIC_MAX_MB) {
+      status.style.color='var(--red)';
+      status.textContent='⚠️ ' + file.name + ' は' + MUSIC_MAX_MB + 'MBを超えています（' + mb.toFixed(1) + 'MB）';
+      continue;
+    }
+    status.style.color='var(--muted2)';
+    status.textContent = (i+1) + '/' + files.length + ' アップロード中：' + file.name;
+    try {
+      const id   = Date.now().toString() + '_' + Math.random().toString(36).slice(2,7);
+      const ext  = file.name.split('.').pop();
+      const path = MUSIC_STORAGE + id + '.' + ext;
+      const ref  = _mstorage.ref(path);
+      await ref.put(file, { contentType: file.type });
+      const url  = await ref.getDownloadURL();
+      const maxOrder = _musicItems.length ? Math.max(..._musicItems.map(m => m.order ?? 0)) : -1;
+      await window.mdb.ref(MUSIC_DB_KEY + '/' + id).set({
+        name: file.name.replace(/\.[^.]+$/, ''),
+        cat, url, path, size: file.size, order: maxOrder + 1, ts: Date.now()
+      });
+    } catch(e) { status.style.color='var(--red)'; status.textContent='エラー: '+e.message; return; }
+  }
+  status.style.color='var(--green)';
+  status.textContent='✅ ' + files.length + '曲追加しました';
+  input.value='';
+  setTimeout(() => { status.textContent=''; }, 3000);
+};
+
+// ── 削除 ──
+window.deleteMusicItem = async function(id, path) {
+  if (!confirm('この楽曲を削除しますか？')) return;
+  if (_currentPlayId === id && _currentAudio) { _currentAudio.pause(); _currentAudio=null; _currentPlayId=null; }
+  try {
+    if (_mstorage && path) await _mstorage.ref(path).delete().catch(()=>{});
+    await window.mdb.ref(MUSIC_DB_KEY + '/' + id).remove();
+  } catch(e) { alert('削除エラー: '+e.message); }
+};
+
+// ── カテゴリ変更 ──
+window.changeMusicCat = async function(id, cat) {
+  if (window.mdb) await window.mdb.ref(MUSIC_DB_KEY + '/' + id + '/cat').set(cat);
+};
+
+// ── 並び替え ──
+function reorderMusic(srcId, destId) {
+  if (!window.mdb) return;
+  const srcIdx = _musicItems.findIndex(m => m.id === srcId);
+  const dstIdx = _musicItems.findIndex(m => m.id === destId);
+  if (srcIdx < 0 || dstIdx < 0) return;
+  const items = [..._musicItems];
+  const [moved] = items.splice(srcIdx, 1);
+  items.splice(dstIdx, 0, moved);
+  const updates = {};
+  items.forEach((m, i) => { updates[MUSIC_DB_KEY + '/' + m.id + '/order'] = i; });
+  window.mdb.ref('/').update(updates);
+}
 function initDriveVoiceSelect() {
   const sel = document.getElementById('drive-voice-select');
   if (!sel || sel.options.length > 1) return;
