@@ -681,96 +681,191 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div>
 
 <!-- 運転モードパネル -->
-<div class="panel" id="drive-panel" style="padding:20px 16px;">
+<div class="panel" id="drive-panel" style="padding:0;">
 
-  <!-- 目的地設定 -->
-  <div class="sec-title">🗺️ 目的地</div>
-  <div class="card" style="margin-bottom:16px;">
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <input type="text" id="drive-dest-input" placeholder="目的地を入力（例：川越駅）"
-        style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.9rem;outline:none;"
-        onkeydown="if(event.key==='Enter')searchDriveDest()">
-      <button class="btn-icon" onclick="searchDriveDest()" title="検索">🔍</button>
+  <!-- 運転サブタブ -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
+    <button class="wtab active" id="dtab-driver" onclick="switchDriveTab('driver')">🚗 運転者</button>
+    <button class="wtab" id="dtab-commute" onclick="switchDriveTab('commute')">🚌 通勤</button>
+    <button class="wtab" id="dtab-settings" onclick="switchDriveTab('settings')">⚙️ 設定</button>
+  </div>
+
+  <!-- ═══ 運転者タブ ═══ -->
+  <div id="dsec-driver" style="padding:16px;display:block;">
+
+    <!-- 目的地設定 -->
+    <div class="sec-title">🗺️ 目的地</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <input type="text" id="drive-dest-input" placeholder="目的地を入力（例：川越駅）"
+          style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.9rem;outline:none;"
+          onkeydown="if(event.key==='Enter')searchDriveDest()">
+        <button class="btn-icon" onclick="searchDriveDest()" title="検索">🔍</button>
+      </div>
+      <div id="drive-dest-result" style="font-size:0.82rem;color:var(--muted2);min-height:18px;margin-bottom:8px;"></div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:6px;">📍 地図をタップして目的地を選択</div>
+      <div id="drive-map" style="width:100%;height:220px;border-radius:10px;overflow:hidden;border:1px solid var(--border2);"></div>
+      <div id="drive-map-pin" style="font-size:0.78rem;color:var(--muted2);margin-top:6px;min-height:16px;"></div>
     </div>
-    <div id="drive-dest-result" style="font-size:0.82rem;color:var(--muted2);min-height:18px;margin-bottom:8px;"></div>
-    <!-- 地図（タップで目的地選択） -->
-    <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:6px;">📍 地図をタップして目的地を選択</div>
-    <div id="drive-map" style="width:100%;height:240px;border-radius:10px;overflow:hidden;border:1px solid var(--border2);"></div>
-    <div id="drive-map-pin" style="font-size:0.78rem;color:var(--muted2);margin-top:6px;min-height:16px;"></div>
-  </div>
 
-  <!-- ステータス表示 -->
-  <div class="card" style="margin-bottom:16px;text-align:center;">
-    <div id="drive-status-icon" style="font-size:3rem;margin-bottom:8px;">🚗</div>
-    <div id="drive-status-text" style="font-family:'Shippori Mincho',serif;font-size:1.1rem;color:var(--accent);margin-bottom:4px;">目的地を設定してください</div>
-    <div id="drive-distance-text" style="font-size:0.82rem;color:var(--muted2);font-family:'DM Mono',monospace;"></div>
-    <div id="drive-gps-text" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
-  </div>
+    <!-- ステータス表示 -->
+    <div class="card" style="margin-bottom:16px;text-align:center;">
+      <div id="drive-status-icon" style="font-size:3rem;margin-bottom:8px;">🚗</div>
+      <div id="drive-status-text" style="font-family:'Shippori Mincho',serif;font-size:1.1rem;color:var(--accent);margin-bottom:4px;">目的地を設定してください</div>
+      <div id="drive-distance-text" style="font-size:0.82rem;color:var(--muted2);font-family:'DM Mono',monospace;"></div>
+      <div id="drive-gps-text" style="font-size:0.72rem;color:var(--muted);margin-top:4px;"></div>
+    </div>
 
-  <!-- アクションボタン -->
-  <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-    <button id="drive-announce-btn" onclick="driveAnnounce()"
-      style="padding:16px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:1rem;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;">
-      🔊 出発前アナウンス
-    </button>
-    <button id="drive-start-btn" onclick="driveStart()"
-      style="padding:16px;background:var(--accent);border:none;border-radius:var(--radius);color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;">
-      🚗 運転スタート
-    </button>
-    <button onclick="openPassengerTab()"
-      style="padding:12px;background:var(--surface2);border:1px solid var(--blue);border-radius:var(--radius);color:var(--blue);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">
-      🪑 乗客画面を開く（後部座席タブレット用）
-    </button>
-    <button id="drive-stop-btn" onclick="driveStop()"
-      style="display:none;padding:14px;background:var(--surface2);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;transition:all 0.2s;">
-      ⏹ 運転終了
-    </button>
-  </div>
-
-  <!-- タクシー料金メーター -->
-  <div class="card" style="margin-bottom:16px;text-align:center;display:none;" id="drive-meter-card">
-    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:4px;letter-spacing:0.05em;">🚕 概算料金</div>
-    <div id="drive-fare" style="font-family:'DM Mono',monospace;font-size:2.5rem;color:var(--accent);font-weight:700;">¥0</div>
-    <div id="drive-km" style="font-size:0.78rem;color:var(--muted2);margin-top:2px;font-family:'DM Mono',monospace;"></div>
-    <div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">1km = ¥500 加算</div>
-  </div>
-
-  <!-- アナウンス文章編集 -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="sec-title" style="margin-bottom:10px;">🔊 アナウンス編集</div>
-    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:6px;">出発前アナウンス</div>
-    <textarea id="drive-announce-text" rows="2"
-      style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;outline:none;resize:none;margin-bottom:10px;line-height:1.5;"
-      placeholder="例：目的地は{dest}です。準備ができたら運転スタートを押してください。"></textarea>
-    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:6px;">運転スタート時アナウンス</div>
-    <textarea id="drive-start-text" rows="2"
-      style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;outline:none;resize:none;margin-bottom:10px;line-height:1.5;"
-      placeholder="例：運転を開始します。目的地は{dest}です。安全運転でどうぞ。"></textarea>
-    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">※ <code style="background:var(--surface);padding:1px 5px;border-radius:4px;">{dest}</code> は目的地名に自動置換されます</div>
-    <div style="display:flex;gap:8px;">
-      <button onclick="saveDriveAnnounce()"
-        style="flex:1;padding:10px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;">
-        💾 保存
+    <!-- アクションボタン -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <button id="drive-announce-btn" onclick="driveAnnounce()"
+        style="padding:14px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:1rem;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;">
+        🔊 出発前アナウンス
       </button>
-      <button onclick="resetDriveAnnounce()"
-        style="padding:10px 14px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-        リセット
+      <button id="drive-start-btn" onclick="driveStart()"
+        style="padding:14px;background:var(--accent);border:none;border-radius:var(--radius);color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.05em;">
+        🚗 運転スタート
+      </button>
+      <button onclick="openPassengerTab()"
+        style="padding:12px;background:var(--surface2);border:1px solid var(--blue);border-radius:var(--radius);color:var(--blue);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;transition:all 0.2s;">
+        🪑 乗客画面を開く（後部座席タブレット用）
+      </button>
+      <button id="drive-stop-btn" onclick="driveStop()"
+        style="display:none;padding:14px;background:var(--surface2);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;transition:all 0.2s;">
+        ⏹ 運転終了
       </button>
     </div>
-    <div id="drive-announce-save-msg" style="font-size:0.78rem;text-align:center;margin-top:6px;color:var(--green);min-height:16px;"></div>
+
+    <!-- タクシー料金メーター -->
+    <div class="card" style="margin-bottom:16px;text-align:center;display:none;" id="drive-meter-card">
+      <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:4px;letter-spacing:0.05em;">🚕 概算料金</div>
+      <div id="drive-fare" style="font-family:'DM Mono',monospace;font-size:2.5rem;color:var(--accent);font-weight:700;">¥0</div>
+      <div id="drive-km" style="font-size:0.78rem;color:var(--muted2);margin-top:2px;font-family:'DM Mono',monospace;"></div>
+      <div style="font-size:0.68rem;color:var(--muted);margin-top:4px;">1km = ¥500 加算</div>
+    </div>
   </div>
 
-  <!-- LINE送信（後で設定） -->
-  <div class="card">
-    <div class="sec-title" style="margin-bottom:10px;">📱 LINE通知設定</div>
-    <div style="font-size:0.8rem;color:var(--muted2);margin-bottom:10px;">目的地500m手前でLINEに自動送信します</div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input type="text" id="drive-line-token" placeholder="Cloudflare Worker URLを入力"
-        style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;"
-        oninput="saveDriveSettings()">
+  <!-- ═══ 通勤タブ ═══ -->
+  <div id="dsec-commute" style="padding:16px;display:none;">
+    <div class="sec-title">🚌 通勤モード</div>
+
+    <!-- 地図で行き先を選択（情報漏洩防止：毎回選択・終了後リセット） -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-size:0.85rem;color:var(--accent);font-family:'Shippori Mincho',serif;">📍 地図で行き先を選択</div>
+        <span style="font-size:0.68rem;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:2px 8px;">終了後自動リセット</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:6px;">地図をタップして目的地を指定してください</div>
+      <div id="commute-map" style="width:100%;height:220px;border-radius:10px;overflow:hidden;border:1px solid var(--border2);margin-bottom:8px;"></div>
+      <div id="commute-map-pin" style="font-size:0.78rem;color:var(--muted2);min-height:16px;margin-bottom:8px;"></div>
+      <!-- 選択後に表示される行き先確認 -->
+      <div id="commute-dest-confirm" style="display:none;background:rgba(200,169,110,0.08);border:1px solid rgba(200,169,110,0.3);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">選択した目的地</div>
+        <div id="commute-dest-label" style="font-size:0.9rem;color:var(--accent);font-weight:700;"></div>
+      </div>
     </div>
-    <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;">※ Cloudflare Workers設定後に入力</div>
+
+    <!-- 通勤ステータス -->
+    <div class="card" style="margin-bottom:14px;text-align:center;" id="commute-status-card">
+      <div id="commute-status-icon" style="font-size:2.5rem;margin-bottom:8px;">🚌</div>
+      <div id="commute-status-text" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);margin-bottom:4px;">地図で行き先を選んでください</div>
+      <div id="commute-distance-text" style="font-size:0.82rem;color:var(--muted2);font-family:'DM Mono',monospace;"></div>
+    </div>
+
+    <!-- 通勤操作ボタン -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px;">
+      <button id="commute-announce-btn" onclick="commuteAnnounce()"
+        style="display:none;padding:13px;background:var(--surface2);border:1px solid var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;">
+        🔊 出発アナウンス
+      </button>
+      <button id="commute-start-btn" onclick="commuteStart()"
+        style="display:none;padding:13px;background:var(--accent);border:none;border-radius:var(--radius);color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;font-weight:700;cursor:pointer;">
+        🚌 通勤スタート
+      </button>
+      <button id="commute-stop-btn" onclick="commuteStop()"
+        style="display:none;padding:13px;background:var(--surface2);border:1px solid var(--red);border-radius:var(--radius);color:var(--red);font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;">
+        ⏹ 到着・終了（自動リセット）
+      </button>
+    </div>
+
+    <!-- 通勤メモ -->
+    <div class="card">
+      <div style="font-size:0.82rem;color:var(--accent);margin-bottom:8px;font-family:'Shippori Mincho',serif;">📝 通勤メモ</div>
+      <textarea id="commute-memo" rows="3" placeholder="買い物リスト、連絡事項など…"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;outline:none;resize:none;line-height:1.5;"
+        oninput="saveCommuteMemo()"></textarea>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:4px;">※ 自動保存されます</div>
+    </div>
   </div>
+
+  <!-- ═══ 設定タブ ═══ -->
+  <div id="dsec-settings" style="padding:16px;display:none;">
+    <div class="sec-title">⚙️ 運転設定</div>
+
+    <!-- アナウンス文章編集 -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:0.88rem;color:var(--accent);font-family:'Shippori Mincho',serif;margin-bottom:12px;">🔊 アナウンス編集</div>
+      <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:6px;">出発前アナウンス</div>
+      <textarea id="drive-announce-text" rows="2"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;outline:none;resize:none;margin-bottom:10px;line-height:1.5;"
+        placeholder="例：目的地は{dest}です。準備ができたら運転スタートを押してください。"></textarea>
+      <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:6px;">運転スタート時アナウンス</div>
+      <textarea id="drive-start-text" rows="2"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.85rem;outline:none;resize:none;margin-bottom:10px;line-height:1.5;"
+        placeholder="例：運転を開始します。目的地は{dest}です。安全運転でどうぞ。"></textarea>
+      <div style="font-size:0.72rem;color:var(--muted);margin-bottom:8px;">※ <code style="background:var(--surface);padding:1px 5px;border-radius:4px;">{dest}</code> は目的地名に自動置換されます</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="saveDriveAnnounce()"
+          style="flex:1;padding:10px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;">
+          💾 保存
+        </button>
+        <button onclick="resetDriveAnnounce()"
+          style="padding:10px 14px;background:none;border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+          リセット
+        </button>
+      </div>
+      <div id="drive-announce-save-msg" style="font-size:0.78rem;text-align:center;margin-top:6px;color:var(--green);min-height:16px;"></div>
+    </div>
+
+    <!-- 音声設定 -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:0.88rem;color:var(--accent);font-family:'Shippori Mincho',serif;margin-bottom:12px;">🔊 音声設定</div>
+      <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:8px;">アナウンス音声（ブラウザTTS）</div>
+      <select id="drive-voice-select"
+        style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-size:0.88rem;outline:none;margin-bottom:10px;">
+        <option value="">デフォルト（日本語）</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <span style="font-size:0.78rem;color:var(--muted2);min-width:48px;">速度</span>
+        <input type="range" id="drive-rate" min="0.5" max="2" step="0.1" value="1"
+          style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('drive-rate-val').textContent=this.value+'x'">
+        <span id="drive-rate-val" style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--accent);min-width:36px;">1x</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:0.78rem;color:var(--muted2);min-width:48px;">音量</span>
+        <input type="range" id="drive-volume" min="0" max="1" step="0.1" value="1"
+          style="flex:1;accent-color:var(--accent);" oninput="document.getElementById('drive-vol-val').textContent=Math.round(this.value*100)+'%'">
+        <span id="drive-vol-val" style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--accent);min-width:36px;">100%</span>
+      </div>
+      <button onclick="testDriveVoice()"
+        style="width:100%;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.85rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+        🔊 テスト再生
+      </button>
+    </div>
+
+    <!-- LINE通知設定 -->
+    <div class="card">
+      <div style="font-size:0.88rem;color:var(--accent);font-family:'Shippori Mincho',serif;margin-bottom:12px;">📱 LINE通知設定</div>
+      <div style="font-size:0.8rem;color:var(--muted2);margin-bottom:10px;">目的地500m手前でLINEに自動送信します</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="text" id="drive-line-token" placeholder="Cloudflare Worker URLを入力"
+          style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'DM Mono',monospace;font-size:0.78rem;outline:none;"
+          oninput="saveDriveSettings()">
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;">※ Cloudflare Workers設定後に入力</div>
+    </div>
+  </div>
+
 </div>
 
 <!-- 乗客パネル（横画面最適化・画面ロック対応） -->
@@ -1548,6 +1643,8 @@ window.showMainScreen = function() {
   initFareToggle();
   // 恋愛PDF読み込み
   setTimeout(loadLovePdfs, 2000);
+  // 通勤メモ読み込み
+  loadCommuteMemo();
   // シフトデータ事前書き込み（localStorageのみ・描画はタブを開いたときに実行）
   if (window.GCAL_SHIFT_DATA) {
     try {
@@ -1583,7 +1680,7 @@ window.switchTab = function(n) {
   }
 
   // 運転タブ：マップ初期化
-  if (n === 'drive') { setTimeout(initDriveMap, 200); }
+  if (n === 'drive') { setTimeout(initDriveMap, 200); switchDriveTab('driver'); }
 
   // 家計タブ：再描画
   if (n === 'kakeibo' && window.mdb) {
@@ -2012,6 +2109,166 @@ function updatePassengerView(state) {
     const fareEl = document.getElementById('pass-arrived-fare'); if (fareEl) fareEl.textContent = `¥${(state.fare||0).toLocaleString()}`;
   }
 }
+
+// ════ 運転タブ切り替え ════
+window.switchDriveTab = function(tab) {
+  ['driver','commute','settings'].forEach(t => {
+    const sec = document.getElementById('dsec-'+t);
+    const btn = document.getElementById('dtab-'+t);
+    if (sec) sec.style.display = t === tab ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'driver') setTimeout(initDriveMap, 100);
+  if (tab === 'commute') setTimeout(initCommuteMap, 100);
+  if (tab === 'settings') initDriveVoiceSelect();
+};
+
+// ════ 通勤モード ════
+const COMMUTE_MEMO_KEY = 'kouki_commute_memo';
+let _commuteDestName = '';
+let _commuteDestLat = null;
+let _commuteDetsLng = null;
+let _commuteMap = null;
+let _commuteMapMarker = null;
+
+// 通勤タブを開いたとき地図を初期化
+function initCommuteMap() {
+  if (typeof L === 'undefined') { setTimeout(initCommuteMap, 500); return; }
+  const mapEl = document.getElementById('commute-map');
+  if (!mapEl) return;
+
+  // すでに初期化済みなら再描画のみ
+  if (_commuteMap) { _commuteMap.invalidateSize(); return; }
+
+  // 地図初期化（現在地 or 埼玉付近をデフォルト）
+  _commuteMap = L.map('commute-map').setView([35.88, 139.49], 12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(_commuteMap);
+
+  // タップで目的地を選択
+  _commuteMap.on('click', async (e) => {
+    const { lat, lng } = e.latlng;
+    _commuteDestLat = lat;
+    _commuteDetsLng = lng;
+
+    // マーカー更新
+    if (_commuteMapMarker) _commuteMap.removeLayer(_commuteMapMarker);
+    _commuteMapMarker = L.marker([lat, lng]).addTo(_commuteMap);
+
+    // 逆ジオコーディングで住所取得（Nominatim）
+    document.getElementById('commute-map-pin').textContent = '📍 取得中...';
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&accept-language=ja`);
+      const data = await res.json();
+      const addr = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      // 住所は内部で使用するが表示はしない（情報漏洩防止）
+      // 代わりに選択完了メッセージのみ表示
+      _commuteDestName = addr;
+      document.getElementById('commute-map-pin').textContent = '✅ 目的地を選択しました';
+      document.getElementById('commute-dest-confirm').style.display = 'block';
+      document.getElementById('commute-dest-label').textContent = '地図で選択済み（タップで変更可）';
+      _commuteMapMarker.bindPopup('📍 目的地').openPopup();
+    } catch {
+      _commuteDestName = `地点(${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      document.getElementById('commute-map-pin').textContent = '✅ 目的地を選択しました';
+      document.getElementById('commute-dest-confirm').style.display = 'block';
+      document.getElementById('commute-dest-label').textContent = '地図で選択済み（タップで変更可）';
+    }
+
+    // 操作ボタンを表示
+    document.getElementById('commute-status-icon').textContent = '📍';
+    document.getElementById('commute-status-text').textContent = '目的地を設定しました';
+    document.getElementById('commute-distance-text').textContent = '';
+    document.getElementById('commute-announce-btn').style.display = 'block';
+    document.getElementById('commute-start-btn').style.display = 'block';
+    document.getElementById('commute-stop-btn').style.display = 'none';
+  });
+}
+
+// 通勤モードをリセット（情報漏洩防止：運転終了後に自動実行）
+function commuteReset() {
+  _commuteDestName = '';
+  _commuteDestLat = null;
+  _commuteDetsLng = null;
+
+  // マーカー削除
+  if (_commuteMapMarker && _commuteMap) {
+    _commuteMap.removeLayer(_commuteMapMarker);
+    _commuteMapMarker = null;
+  }
+
+  // UIリセット
+  document.getElementById('commute-status-icon').textContent = '🚌';
+  document.getElementById('commute-status-text').textContent = '地図で行き先を選んでください';
+  document.getElementById('commute-distance-text').textContent = '';
+  document.getElementById('commute-map-pin').textContent = '';
+  document.getElementById('commute-dest-confirm').style.display = 'none';
+  document.getElementById('commute-dest-label').textContent = '';
+  document.getElementById('commute-announce-btn').style.display = 'none';
+  document.getElementById('commute-start-btn').style.display = 'none';
+  document.getElementById('commute-stop-btn').style.display = 'none';
+}
+
+window.commuteAnnounce = function() {
+  if (!_commuteDestName) { alert('先に地図で目的地を選択してください'); return; }
+  speak('目的地を設定しました。安全運転でお出かけください。');
+};
+
+window.commuteStart = function() {
+  if (!_commuteDestName) { alert('先に地図で目的地を選択してください'); return; }
+  speak('出発します。お気をつけて。');
+  document.getElementById('commute-status-icon').textContent = '🚗';
+  document.getElementById('commute-status-text').textContent = '運転中';
+  document.getElementById('commute-announce-btn').style.display = 'none';
+  document.getElementById('commute-start-btn').style.display = 'none';
+  document.getElementById('commute-stop-btn').style.display = 'block';
+};
+
+window.commuteStop = function() {
+  speak('お疲れ様でした。');
+  document.getElementById('commute-status-icon').textContent = '✅';
+  document.getElementById('commute-status-text').textContent = '到着しました。お疲れ様でした！';
+  document.getElementById('commute-stop-btn').style.display = 'none';
+  // 3秒後に自動リセット（情報漏洩防止）
+  setTimeout(() => { commuteReset(); }, 3000);
+};
+
+window.saveCommuteMemo = function() {
+  localStorage.setItem(COMMUTE_MEMO_KEY, document.getElementById('commute-memo').value);
+};
+
+function loadCommuteMemo() {
+  const el = document.getElementById('commute-memo');
+  if (el) el.value = localStorage.getItem(COMMUTE_MEMO_KEY) || '';
+}
+
+// ════ 音声設定（設定タブ） ════
+function initDriveVoiceSelect() {
+  const sel = document.getElementById('drive-voice-select');
+  if (!sel || sel.options.length > 1) return;
+  const voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('ja'));
+  voices.forEach(v => {
+    const opt = document.createElement('option');
+    opt.value = v.name;
+    opt.textContent = v.name;
+    sel.appendChild(opt);
+  });
+  // 保存済みの設定を復元
+  const saved = localStorage.getItem('kouki_drive_voice');
+  if (saved) sel.value = saved;
+  const rate = localStorage.getItem('kouki_drive_rate');
+  if (rate) { document.getElementById('drive-rate').value = rate; document.getElementById('drive-rate-val').textContent = rate+'x'; }
+  const vol = localStorage.getItem('kouki_drive_volume');
+  if (vol) { document.getElementById('drive-volume').value = vol; document.getElementById('drive-vol-val').textContent = Math.round(vol*100)+'%'; }
+  sel.addEventListener('change', () => localStorage.setItem('kouki_drive_voice', sel.value));
+  document.getElementById('drive-rate').addEventListener('change', e => localStorage.setItem('kouki_drive_rate', e.target.value));
+  document.getElementById('drive-volume').addEventListener('change', e => localStorage.setItem('kouki_drive_volume', e.target.value));
+}
+
+window.testDriveVoice = function() {
+  speak('テストです。音声が聞こえていますか？');
+};
 
 window.openPassengerTab = function() { switchTab('passenger'); };
 
@@ -3099,12 +3356,14 @@ function speak(text) {
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ja-JP';
-  utter.rate = 0.88;   // ゆっくり丁寧に
-  utter.pitch = 1.05;  // 少し高め・明るい
-  utter.volume = 1.0;
-  // 日本語音声を優先選択
+  // 設定タブの値を反映（なければデフォルト値）
+  utter.rate   = parseFloat(localStorage.getItem('kouki_drive_rate')   || '0.88');
+  utter.volume = parseFloat(localStorage.getItem('kouki_drive_volume') || '1.0');
+  utter.pitch  = 1.05;
   const voices = window.speechSynthesis.getVoices();
-  const jaVoice = voices.find(v => v.lang === 'ja-JP' && v.name.includes('Female'))
+  const savedVoiceName = localStorage.getItem('kouki_drive_voice');
+  const jaVoice = (savedVoiceName && voices.find(v => v.name === savedVoiceName))
+    || voices.find(v => v.lang === 'ja-JP' && v.name.includes('Female'))
     || voices.find(v => v.lang === 'ja-JP')
     || voices.find(v => v.lang.startsWith('ja'));
   if (jaVoice) utter.voice = jaVoice;
