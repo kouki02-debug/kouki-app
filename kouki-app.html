@@ -119,6 +119,15 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 .insp-check-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; background:var(--surface2); }
 .insp-check-row label { flex:1; font-size:0.8rem; color:var(--text); cursor:pointer; }
 .insp-check-row select { background:var(--surface); border:1px solid var(--border2); border-radius:6px; padding:2px 6px; font-size:0.72rem; color:var(--text); outline:none; }
+/* 出発前チェックリスト */
+.drive-check-item { display:flex; align-items:center; gap:10px; padding:12px 14px; background:var(--surface2); border:1px solid var(--border2); border-radius:10px; cursor:pointer; transition:all 0.2s; user-select:none; }
+.drive-check-item.checked { background:rgba(122,158,126,0.12); border-color:#7A9E7E; }
+.drive-check-item .check-icon { font-size:1.3rem; transition:all 0.2s; }
+.drive-check-item .check-label { flex:1; font-size:0.9rem; color:var(--text); font-family:'Noto Sans JP',sans-serif; }
+.drive-check-item.checked .check-label { text-decoration:line-through; color:var(--muted2); }
+/* 設定タブのチェックリスト編集 */
+.settings-check-item { display:flex; align-items:center; gap:6px; padding:8px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; }
+.settings-check-item .s-check-label { flex:1; font-size:0.85rem; color:var(--text); cursor:text; }
 /* 印刷専用スタイル */
 @media print {
   body > * { display:none !important; }
@@ -336,6 +345,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab" onclick="switchTab('work')" id="tab-work">💼 仕事</button>
     <button class="tab" onclick="switchTab('drive')" id="tab-drive">🚗 運転</button>
     <button class="tab" onclick="switchTab('alcohol')" id="tab-alcohol">🍺 記録</button>
+    <button class="tab" onclick="switchTab('health')" id="tab-health">❤️ 健康</button>
     <button class="tab" onclick="switchTab('kakeibo')" id="tab-kakeibo">💰 家計</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 設定</button>
@@ -723,6 +733,44 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div>
 
 <!-- 運転モードパネル -->
+<!-- 出発前チェックモーダル -->
+<div id="drive-checklist-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:600;align-items:center;justify-content:center;backdrop-filter:blur(6px);">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:24px;width:90%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto;">
+    <!-- ヘッダー -->
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:2.2rem;margin-bottom:8px;">🚗</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.1rem;color:var(--accent);font-weight:700;letter-spacing:0.05em;">出発前チェック</div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin-top:4px;">すべての項目を確認してください</div>
+    </div>
+
+    <!-- チェックリスト -->
+    <div id="drive-checklist-items" style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;"></div>
+
+    <!-- 進捗バー -->
+    <div style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:0.72rem;color:var(--muted2);">確認済み</span>
+        <span id="drive-check-progress-text" style="font-size:0.72rem;color:var(--accent);font-family:'DM Mono',monospace;">0 / 0</span>
+      </div>
+      <div style="height:6px;background:var(--border2);border-radius:4px;overflow:hidden;">
+        <div id="drive-check-progress-bar" style="height:100%;background:var(--accent);border-radius:4px;width:0%;transition:width 0.3s ease;"></div>
+      </div>
+    </div>
+
+    <!-- ボタン -->
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button id="drive-checklist-go-btn" onclick="driveChecklistConfirm()"
+        style="width:100%;padding:14px;background:var(--accent);border:none;border-radius:var(--radius);color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:1rem;font-weight:700;cursor:pointer;opacity:0.4;pointer-events:none;transition:all 0.3s;letter-spacing:0.05em;">
+        🚀 出発する
+      </button>
+      <button onclick="driveChecklistSkip()"
+        style="width:100%;padding:11px;background:none;border:1px solid var(--border2);border-radius:var(--radius);color:var(--muted2);font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;cursor:pointer;transition:all 0.2s;">
+        スキップして進む
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="panel" id="drive-panel" style="padding:0;">
 
   <!-- 運転サブタブ -->
@@ -1076,7 +1124,21 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
           <!-- 目的地 -->
           <div>
             <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">目的地</div>
-            <input type="text" id="dlog-to" placeholder="例：〇〇病院、川越駅"
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <button class="dlog-to-btn" data-val="自宅" onclick="driveLogSelectTo(this)"
+                style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;transition:all 0.15s;">
+                🏠 自宅
+              </button>
+              <button class="dlog-to-btn" data-val="会社" onclick="driveLogSelectTo(this)"
+                style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;transition:all 0.15s;">
+                🏭 会社
+              </button>
+              <button class="dlog-to-btn" data-val="その他" onclick="driveLogSelectTo(this)"
+                style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;transition:all 0.15s;">
+                📍 その他
+              </button>
+            </div>
+            <input type="text" id="dlog-to" placeholder="または直接入力"
               style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
           </div>
 
@@ -1397,6 +1459,165 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div><!-- /passenger-panel -->
 
 <!-- 設定パネル -->
+<!-- 健康管理パネル -->
+<div class="panel" id="health-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
+  <div style="padding:16px;">
+
+    <!-- 月ナビ + PDFボタン -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="healthChangeMonth(-1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">‹</button>
+        <span id="health-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--text);font-weight:700;min-width:80px;text-align:center;"></span>
+        <button onclick="healthChangeMonth(1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">›</button>
+      </div>
+      <button onclick="healthPrint()"
+        style="padding:8px 14px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.85rem;cursor:pointer;font-weight:700;">
+        📄 PDF印刷
+      </button>
+    </div>
+
+    <!-- 月間サマリー -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;text-align:center;" id="health-summary">
+        <div><div style="font-size:0.65rem;color:var(--muted2);">平均体重</div><div id="hlth-avg-weight" style="font-family:'DM Mono',monospace;font-size:1.2rem;color:var(--accent);">—</div><div style="font-size:0.6rem;color:var(--muted);">kg</div></div>
+        <div><div style="font-size:0.65rem;color:var(--muted2);">平均血圧</div><div id="hlth-avg-bp" style="font-family:'DM Mono',monospace;font-size:1rem;color:#5B8DD9;line-height:1.2;">—</div><div style="font-size:0.6rem;color:var(--muted);">mmHg</div></div>
+        <div><div style="font-size:0.65rem;color:var(--muted2);">平均脈拍</div><div id="hlth-avg-pulse" style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#E8B84B;">—</div><div style="font-size:0.6rem;color:var(--muted);">bpm</div></div>
+        <div><div style="font-size:0.65rem;color:var(--muted2);">記録回数</div><div id="hlth-count" style="font-family:'DM Mono',monospace;font-size:1.2rem;color:#7A9E7E;">0</div><div style="font-size:0.6rem;color:var(--muted);">回</div></div>
+      </div>
+    </div>
+
+    <!-- 記録追加ボタン -->
+    <button onclick="healthToggleForm()" id="health-add-btn"
+      style="width:100%;padding:12px;background:rgba(200,169,110,0.08);border:1px dashed var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;margin-bottom:14px;transition:all 0.2s;">
+      ＋ 健康記録を追加
+    </button>
+
+    <!-- 記録フォーム -->
+    <div id="health-form" style="display:none;">
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:12px;">❤️ 健康記録を入力</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <!-- 日付・時刻 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">日付</div>
+              <input type="date" id="hlth-date" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">時刻（任意）</div>
+              <input type="time" id="hlth-time" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+            </div>
+          </div>
+
+          <!-- 体重・BMI -->
+          <div style="background:rgba(200,169,110,0.06);border:1px solid rgba(200,169,110,0.2);border-radius:10px;padding:12px;">
+            <div style="font-size:0.78rem;color:var(--accent);font-weight:700;margin-bottom:8px;">⚖️ 体重・体組成</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">体重（kg）</div>
+                <input type="number" id="hlth-weight" placeholder="例：65.2" min="0" max="300" step="0.1"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;"
+                  oninput="healthCalcBMI()">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">体脂肪率（%）</div>
+                <input type="number" id="hlth-bodyfat" placeholder="例：18.5" min="0" max="70" step="0.1"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">BMI（自動）</div>
+                <div id="hlth-bmi-display"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--accent);font-size:0.9rem;font-family:'DM Mono',monospace;min-height:36px;">—</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 血圧・脈拍 -->
+          <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:12px;">
+            <div style="font-size:0.78rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">💓 血圧・脈拍</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">収縮期（上）</div>
+                <input type="number" id="hlth-bp-sys" placeholder="例：120" min="50" max="300"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;"
+                  oninput="healthCheckBP()">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">拡張期（下）</div>
+                <input type="number" id="hlth-bp-dia" placeholder="例：80" min="30" max="200"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;"
+                  oninput="healthCheckBP()">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">脈拍（bpm）</div>
+                <input type="number" id="hlth-pulse" placeholder="例：72" min="20" max="250"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;">
+              </div>
+            </div>
+            <div id="hlth-bp-status" style="font-size:0.72rem;margin-top:6px;min-height:16px;text-align:center;"></div>
+          </div>
+
+          <!-- 体温・血糖 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🌡️ 体温（℃）</div>
+              <input type="number" id="hlth-temp" placeholder="例：36.5" min="30" max="43" step="0.1"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🩸 血糖値（mg/dL）</div>
+              <input type="number" id="hlth-glucose" placeholder="例：95" min="0" max="600"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+            </div>
+          </div>
+
+          <!-- 歩数・睡眠 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🚶 歩数</div>
+              <input type="number" id="hlth-steps" placeholder="例：8500" min="0"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">😴 睡眠時間（h）</div>
+              <input type="number" id="hlth-sleep" placeholder="例：7.5" min="0" max="24" step="0.5"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+            </div>
+          </div>
+
+          <!-- 体調・メモ -->
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">体調</div>
+            <div style="display:flex;gap:6px;margin-bottom:6px;">
+              <button class="hlth-cond-btn" data-val="5" onclick="healthSelectCond(this)" style="flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.9rem;cursor:pointer;transition:all 0.15s;">😄<br><span style="font-size:0.55rem;">絶好調</span></button>
+              <button class="hlth-cond-btn" data-val="4" onclick="healthSelectCond(this)" style="flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.9rem;cursor:pointer;transition:all 0.15s;">🙂<br><span style="font-size:0.55rem;">良い</span></button>
+              <button class="hlth-cond-btn" data-val="3" onclick="healthSelectCond(this)" style="flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.9rem;cursor:pointer;transition:all 0.15s;">😐<br><span style="font-size:0.55rem;">普通</span></button>
+              <button class="hlth-cond-btn" data-val="2" onclick="healthSelectCond(this)" style="flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.9rem;cursor:pointer;transition:all 0.15s;">😔<br><span style="font-size:0.55rem;">だるい</span></button>
+              <button class="hlth-cond-btn" data-val="1" onclick="healthSelectCond(this)" style="flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.9rem;cursor:pointer;transition:all 0.15s;">🤒<br><span style="font-size:0.55rem;">不調</span></button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">メモ（症状、服薬など）</div>
+            <input type="text" id="hlth-memo" placeholder="例：頭痛あり、薬服用" maxlength="80"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;">
+          </div>
+
+          <!-- 保存 -->
+          <div style="display:flex;gap:8px;">
+            <button onclick="healthSave()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;font-weight:700;">💾 保存</button>
+            <button onclick="healthToggleForm()" style="padding:11px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.88rem;cursor:pointer;">キャンセル</button>
+          </div>
+          <div id="health-save-msg" style="font-size:0.78rem;text-align:center;min-height:16px;color:var(--green);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 記録一覧 -->
+    <div class="sec-title" style="margin-bottom:10px;">❤️ 今月の健康記録</div>
+    <div id="health-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+  </div>
+</div>
 <!-- アルコール記録パネル -->
 <div class="panel" id="alcohol-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
   <div style="padding:16px;">
@@ -1602,6 +1823,24 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   </div>
 
   <!-- LINE Worker URL -->
+  <!-- 出発前チェックリスト設定 -->
+  <div class="sec-title">✅ 出発前チェックリスト</div>
+  <div class="card" style="margin-bottom:16px;">
+    <div style="font-size:0.78rem;color:var(--muted2);margin-bottom:12px;">運転タブを開くと表示されるチェック項目を管理します</div>
+    <div id="settings-checklist-items" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+    <!-- 追加フォーム -->
+    <div style="display:flex;gap:6px;">
+      <input type="text" id="settings-check-input" placeholder="新しい項目を入力（例：🔑 鍵）" maxlength="30"
+        style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;"
+        onkeydown="if(event.key==='Enter')checklistAddItem()">
+      <button onclick="checklistAddItem()"
+        style="padding:9px 14px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-weight:700;cursor:pointer;font-size:0.9rem;">
+        ＋
+      </button>
+    </div>
+    <div style="font-size:0.7rem;color:var(--muted);margin-top:8px;">※ 項目をドラッグで並び替え可、タップで編集、✕で削除</div>
+  </div>
+
   <div class="sec-title">📱 LINE通知設定</div>
   <div class="card" style="margin-bottom:16px;">
     <div style="font-size:0.82rem;color:var(--muted2);margin-bottom:10px;">Cloudflare Worker URLを設定すると運転モードでLINEに自動送信されます</div>
@@ -2296,8 +2535,10 @@ window.switchTab = function(n) {
     document.querySelector('header').style.display = 'flex';
   }
 
-  // 運転タブ：マップ初期化
-  if (n === 'drive') { setTimeout(initDriveMap, 200); switchDriveTab('driver'); }
+  // 運転タブ：チェックリストモーダル→マップ初期化
+  if (n === 'drive') {
+    showDriveChecklist();
+  }
 
   // 家計タブ：再描画
   if (n === 'kakeibo' && window.mdb) {
@@ -2311,8 +2552,11 @@ window.switchTab = function(n) {
   // アルコール記録タブ
   if (n === 'alcohol') { initAlcoholTab(); }
 
-  // 設定タブ：プロフィール読み込み
-  if (n === 'settings') { fortuneLoadProfile(); }
+  // 健康管理タブ
+  if (n === 'health') { initHealthTab(); }
+
+  // 設定タブ：プロフィール読み込み・チェックリスト描画
+  if (n === 'settings') { fortuneLoadProfile(); renderSettingsChecklist(); }
 
   // 恋愛タブ：カレンダー・リスト初期化
   if (n === 'love') {
@@ -3512,6 +3756,24 @@ window.driveLogSelectFrom = function(btn) {
   }
 };
 
+window.driveLogSelectTo = function(btn) {
+  document.querySelectorAll('.dlog-to-btn').forEach(b => {
+    b.style.background = 'var(--surface2)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = 'var(--muted2)';
+  });
+  btn.style.background = 'rgba(200,169,110,0.15)';
+  btn.style.borderColor = 'var(--accent)';
+  btn.style.color = 'var(--accent)';
+  const val = btn.dataset.val;
+  if (val !== 'その他') {
+    document.getElementById('dlog-to').value = val;
+  } else {
+    document.getElementById('dlog-to').value = '';
+    document.getElementById('dlog-to').focus();
+  }
+};
+
 // ── 保存 ──
 window.driveLogSave = async function() {
   const date     = document.getElementById('dlog-date')?.value;
@@ -3573,6 +3835,9 @@ window.driveLogSave = async function() {
     if (alcSel) alcSel.value = '';
     document.querySelectorAll('.dlog-purpose-btn').forEach(b => b.classList.remove('selected'));
     document.querySelectorAll('.dlog-from-btn').forEach(b => {
+      b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border2)'; b.style.color = 'var(--muted2)';
+    });
+    document.querySelectorAll('.dlog-to-btn').forEach(b => {
       b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border2)'; b.style.color = 'var(--muted2)';
     });
     // タイマーリセット
@@ -3713,18 +3978,18 @@ let _inspType = '';
 // 点検項目定義（国土交通省 日常点検基準に準拠）
 const INSP_ITEMS = {
   engine: [
-    { id:'oil',      label:'エンジンオイル量・汚れ' },
-    { id:'coolant',  label:'冷却水（クーラント）量' },
-    { id:'brake_f',  label:'ブレーキ液量' },
-    { id:'battery',  label:'バッテリー液量・端子' },
-    { id:'belt',     label:'ファンベルトの張り・損傷' },
+    { id:'oil',       label:'エンジンオイル量・汚れ' },
+    { id:'coolant',   label:'冷却水（クーラント）量' },
+    { id:'brake_f',   label:'ブレーキ液量' },
+    { id:'battery',   label:'バッテリー液量・端子' },
+    { id:'belt',      label:'ファンベルトの張り・損傷' },
     { id:'airfilter', label:'エアフィルターの汚れ' },
   ],
   brake: [
     { id:'brake_pad',   label:'ブレーキパッドの摩耗' },
     { id:'brake_op',    label:'ブレーキの効き・踏み代' },
     { id:'parking',     label:'パーキングブレーキの効き' },
-    { id:'tire_pres',   label:'タイヤ空気圧' },
+    { id:'tire_pres',   label:'タイヤ空気圧', type:'tire4' }, // ← 4タイヤ個別入力
     { id:'tire_wear',   label:'タイヤの摩耗・損傷・亀裂' },
     { id:'wheel_bolt',  label:'ホイールボルト・ナット' },
   ],
@@ -3769,11 +4034,35 @@ function renderInspChecklist() {
     el.innerHTML = '';
     items.forEach(item => {
       const row = document.createElement('div');
-      row.className = 'insp-check-row';
-      row.innerHTML = '<label for="insp-' + item.id + '">' + item.label + '</label>'
-        + '<select id="insp-' + item.id + '">'
-        + INSP_RESULT_OPTS.map(o => '<option value="' + o.val + '">' + o.val + '</option>').join('')
-        + '</select>';
+      if (item.type === 'tire4') {
+        // 4タイヤ個別空気圧入力
+        row.className = 'insp-check-row';
+        row.style.flexDirection = 'column';
+        row.style.alignItems = 'flex-start';
+        row.style.gap = '6px';
+        row.innerHTML = '<div style="font-size:0.8rem;color:var(--text);font-weight:500;width:100%;">🛞 ' + item.label + '（kPa / PSI）</div>'
+          + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;width:100%;">'
+          + ['FL（左前）','FR（右前）','RL（左後）','RR（右後）'].map((pos, i) => {
+            const key = ['fl','fr','rl','rr'][i];
+            return '<div style="display:flex;flex-direction:column;gap:2px;">'
+              + '<div style="font-size:0.65rem;color:var(--muted2);">' + pos + '</div>'
+              + '<input type="number" id="insp-tire-' + key + '" placeholder="例：230" min="0" max="500" step="1"'
+              + ' style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:5px 8px;color:var(--text);font-size:0.85rem;outline:none;font-family:\'DM Mono\',monospace;">'
+              + '</div>';
+          }).join('')
+          + '</div>'
+          + '<div style="display:flex;align-items:center;gap:8px;width:100%;">'
+          + '<span style="font-size:0.7rem;color:var(--muted2);">総合判定：</span>'
+          + '<select id="insp-tire_pres" style="background:var(--surface);border:1px solid var(--border2);border-radius:6px;padding:3px 6px;font-size:0.75rem;color:var(--text);outline:none;">'
+          + INSP_RESULT_OPTS.map(o => '<option value="' + o.val + '">' + o.val + '</option>').join('')
+          + '</select></div>';
+      } else {
+        row.className = 'insp-check-row';
+        row.innerHTML = '<label for="insp-' + item.id + '">' + item.label + '</label>'
+          + '<select id="insp-' + item.id + '">'
+          + INSP_RESULT_OPTS.map(o => '<option value="' + o.val + '">' + o.val + '</option>').join('')
+          + '</select>';
+      }
       el.appendChild(row);
     });
   });
@@ -3887,6 +4176,13 @@ window.inspSave = async function() {
     const el = document.getElementById('insp-' + item.id);
     if (el) checks[item.id] = el.value;
   });
+  // 4タイヤ空気圧
+  const tirePres = {};
+  ['fl','fr','rl','rr'].forEach(k => {
+    const el = document.getElementById('insp-tire-' + k);
+    if (el && el.value) tirePres[k] = Number(el.value);
+  });
+  if (Object.keys(tirePres).length) checks.tire_pres_data = tirePres;
 
   const id = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 5);
   const record = { date, checks, ts: Date.now() };
@@ -3923,6 +4219,15 @@ window.inspPrint = function() {
     const d   = new Date(r.date + 'T00:00:00');
     const dow = ['日','月','火','水','木','金','土'][d.getDay()];
     const checkCols = allItems.map(item => {
+      if (item.type === 'tire4') {
+        // 4タイヤ空気圧
+        const pd = r.checks?.tire_pres_data || {};
+        const overall = r.checks?.tire_pres || '—';
+        const color = overall==='良好'?'#2a6e2a':overall==='要注意'?'#8a5c00':overall==='要修理'?'#8a0000':'#888';
+        const vals = ['FL:' + (pd.fl||'—'), 'FR:' + (pd.fr||'—'), 'RL:' + (pd.rl||'—'), 'RR:' + (pd.rr||'—')].join(' ');
+        return '<td style="padding:3px 5px;font-size:6.5pt;color:' + color + ';white-space:nowrap;">'
+          + resultIcon(overall) + '<br><span style="font-size:5.5pt;color:#555;">' + vals + '</span></td>';
+      }
       const v = r.checks?.[item.id] || '—';
       const color = v==='良好'?'#2a6e2a':v==='要注意'?'#8a5c00':v==='要修理'?'#8a0000':'#888';
       return '<td style="padding:3px 5px;text-align:center;font-size:7.5pt;color:' + color + ';">' + resultIcon(v) + '</td>';
@@ -3941,7 +4246,7 @@ window.inspPrint = function() {
   }).join('');
 
   const headerCols = allItems.map(item =>
-    '<th style="padding:3px 4px;font-size:6.5pt;font-weight:500;writing-mode:vertical-rl;white-space:nowrap;max-height:60px;">' + item.label + '</th>'
+    '<th style="padding:4px 3px;font-size:6pt;font-weight:500;writing-mode:vertical-rl;white-space:nowrap;height:80px;vertical-align:bottom;">' + item.label + '</th>'
   ).join('');
 
   const html = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>' + mLabel + ' 車体検査記録</title>'
@@ -5716,6 +6021,455 @@ function renderChatMsgs(isPolling = false) {
   });
   if (wasAtBottom || !isPolling) c.scrollTop = c.scrollHeight;
 }
+
+// ════ 出発前チェックリスト ════
+const CHECKLIST_KEY = 'kouki_drive_checklist';
+
+const DEFAULT_CHECKLIST = [
+  { id:'key',      label:'🔑 鍵の閉め忘れ確認' },
+  { id:'license',  label:'🪪 運転免許証' },
+  { id:'wallet',   label:'💳 財布・貴重品' },
+  { id:'phone',    label:'📱 スマートフォン' },
+  { id:'fuel',     label:'⛽ ガソリン残量確認' },
+  { id:'lights',   label:'💡 ライト・ウインカー確認' },
+];
+
+let _checklistItems = null;  // 初回はlocalStorageから読む
+let _checklistState  = {};   // { id: boolean }
+let _checklistShownThisSession = false; // セッション中1回目かどうか
+
+function loadChecklist() {
+  if (_checklistItems !== null) return _checklistItems;
+  try {
+    const s = localStorage.getItem(CHECKLIST_KEY);
+    _checklistItems = s ? JSON.parse(s) : [...DEFAULT_CHECKLIST];
+  } catch { _checklistItems = [...DEFAULT_CHECKLIST]; }
+  return _checklistItems;
+}
+
+function saveChecklist() {
+  localStorage.setItem(CHECKLIST_KEY, JSON.stringify(_checklistItems));
+}
+
+// ── モーダル表示 ──
+function showDriveChecklist() {
+  // 初期化
+  _checklistItems = null;
+  loadChecklist();
+  _checklistState = {};
+  _checklistItems.forEach(item => { _checklistState[item.id] = false; });
+
+  // モーダルを表示してからタブ初期化
+  const modal = document.getElementById('drive-checklist-modal');
+  if (!modal) { driveChecklistConfirm(); return; }
+
+  renderChecklistModal();
+  modal.style.display = 'flex';
+}
+
+function renderChecklistModal() {
+  const container = document.getElementById('drive-checklist-items');
+  if (!container) return;
+  container.innerHTML = '';
+  _checklistItems.forEach(item => {
+    const checked = _checklistState[item.id] || false;
+    const div = document.createElement('div');
+    div.className = 'drive-check-item' + (checked ? ' checked' : '');
+    div.id = 'check-item-' + item.id;
+    div.onclick = () => driveCheckToggle(item.id);
+    div.innerHTML = '<span class="check-icon">' + (checked ? '✅' : '⬜') + '</span>'
+      + '<span class="check-label">' + esc(item.label) + '</span>';
+    container.appendChild(div);
+  });
+  updateChecklistProgress();
+}
+
+function updateChecklistProgress() {
+  const total   = _checklistItems.length;
+  const done    = Object.values(_checklistState).filter(Boolean).length;
+  const pct     = total > 0 ? (done / total) * 100 : 0;
+  const allDone = done >= total && total > 0;
+
+  const bar  = document.getElementById('drive-check-progress-bar');
+  const txt  = document.getElementById('drive-check-progress-text');
+  const btn  = document.getElementById('drive-checklist-go-btn');
+
+  if (bar) { bar.style.width = pct + '%'; bar.style.background = allDone ? '#7A9E7E' : 'var(--accent)'; }
+  if (txt) txt.textContent = done + ' / ' + total;
+  if (btn) {
+    btn.style.opacity   = allDone ? '1' : '0.4';
+    btn.style.pointerEvents = allDone ? 'auto' : 'none';
+    btn.textContent = allDone ? '🚀 全て確認！出発する' : '🚀 出発する';
+  }
+}
+
+window.driveCheckToggle = function(id) {
+  _checklistState[id] = !_checklistState[id];
+  const item = document.getElementById('check-item-' + id);
+  if (item) {
+    item.classList.toggle('checked', _checklistState[id]);
+    item.querySelector('.check-icon').textContent = _checklistState[id] ? '✅' : '⬜';
+    item.querySelector('.check-label').style.textDecoration = _checklistState[id] ? 'line-through' : '';
+    item.querySelector('.check-label').style.color = _checklistState[id] ? 'var(--muted2)' : 'var(--text)';
+    // チェック時のバイブレーション
+    if (navigator.vibrate) navigator.vibrate(30);
+  }
+  updateChecklistProgress();
+};
+
+window.driveChecklistConfirm = function() {
+  const modal = document.getElementById('drive-checklist-modal');
+  if (modal) modal.style.display = 'none';
+  setTimeout(initDriveMap, 200);
+  switchDriveTab('driver');
+};
+
+window.driveChecklistSkip = function() {
+  const modal = document.getElementById('drive-checklist-modal');
+  if (modal) modal.style.display = 'none';
+  setTimeout(initDriveMap, 200);
+  switchDriveTab('driver');
+};
+
+// ── 設定タブ：チェックリスト管理 ──
+function renderSettingsChecklist() {
+  loadChecklist();
+  const container = document.getElementById('settings-checklist-items');
+  if (!container) return;
+  container.innerHTML = '';
+  _checklistItems.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'settings-check-item';
+    div.draggable = true;
+    div.dataset.idx = idx;
+    div.innerHTML =
+      '<span style="color:var(--muted);cursor:grab;font-size:1rem;">☰</span>'
+      + '<span class="s-check-label" onclick="checklistEditItem(' + idx + ')">' + esc(item.label) + '</span>'
+      + '<button onclick="checklistDeleteItem(' + idx + ')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.85rem;padding:2px 5px;border-radius:4px;">✕</button>';
+
+    // ドラッグ並び替え
+    div.addEventListener('dragstart', () => { div.style.opacity='0.5'; div._dragIdx = idx; });
+    div.addEventListener('dragend',   () => { div.style.opacity='1'; });
+    div.addEventListener('dragover',  e => { e.preventDefault(); div.style.background='var(--surface)'; });
+    div.addEventListener('dragleave', () => { div.style.background=''; });
+    div.addEventListener('drop', e => {
+      e.preventDefault();
+      div.style.background = '';
+      const fromIdx = parseInt(e.currentTarget._dragIdx ?? idx);
+      const toIdx   = idx;
+      if (fromIdx !== toIdx) {
+        const [moved] = _checklistItems.splice(fromIdx, 1);
+        _checklistItems.splice(toIdx, 0, moved);
+        saveChecklist();
+        renderSettingsChecklist();
+      }
+    });
+
+    container.appendChild(div);
+  });
+}
+
+window.checklistAddItem = function() {
+  const inp = document.getElementById('settings-check-input');
+  const label = inp?.value.trim();
+  if (!label) return;
+  loadChecklist();
+  const id = 'custom_' + Date.now();
+  _checklistItems.push({ id, label });
+  saveChecklist();
+  inp.value = '';
+  renderSettingsChecklist();
+};
+
+window.checklistEditItem = function(idx) {
+  loadChecklist();
+  const cur = _checklistItems[idx]?.label || '';
+  const newLabel = prompt('項目名を編集', cur);
+  if (newLabel === null) return;
+  const trimmed = newLabel.trim();
+  if (!trimmed) { alert('項目名を入力してください'); return; }
+  _checklistItems[idx].label = trimmed;
+  saveChecklist();
+  renderSettingsChecklist();
+};
+
+window.checklistDeleteItem = function(idx) {
+  loadChecklist();
+  if (!confirm('「' + _checklistItems[idx]?.label + '」を削除しますか？')) return;
+  _checklistItems.splice(idx, 1);
+  saveChecklist();
+  renderSettingsChecklist();
+};
+
+// ════ 健康管理 ════
+const HEALTH_DB_KEY = 'kouki-app/health';
+let _healthRecords = [];
+let _healthLoaded  = false;
+let _healthYear, _healthMonth;
+let _healthFormOpen = false;
+let _healthCond = 0;
+
+(function(){ const n=new Date(); _healthYear=n.getFullYear(); _healthMonth=n.getMonth(); })();
+
+// 身長（BMI計算用）: 設定から取得、なければ170cm
+function getHeightCm() {
+  try { return parseFloat(localStorage.getItem('kouki_height_cm') || '170'); } catch { return 170; }
+}
+
+function initHealthTab() {
+  renderHealthList();
+  renderHealthSummary();
+  const di = document.getElementById('hlth-date');
+  if (di && !di.value) di.value = toDateStr(new Date());
+  if (!_healthLoaded) loadHealthRecords();
+}
+
+function loadHealthRecords() {
+  if (!window.mdb) { setTimeout(loadHealthRecords, 800); return; }
+  window.mdb.ref(HEALTH_DB_KEY).on('value', snap => {
+    const data = snap.val();
+    _healthRecords = data
+      ? Object.entries(data).map(([id,v])=>({id,...v})).sort((a,b)=>b.date.localeCompare(a.date)||(b.time||'').localeCompare(a.time||''))
+      : [];
+    _healthLoaded = true;
+    renderHealthList();
+    renderHealthSummary();
+  });
+}
+
+window.healthChangeMonth = function(dir) {
+  _healthMonth += dir;
+  if (_healthMonth > 11) { _healthMonth = 0; _healthYear++; }
+  if (_healthMonth < 0)  { _healthMonth = 11; _healthYear--; }
+  renderHealthList();
+  renderHealthSummary();
+};
+
+function getMonthRecs() {
+  const prefix = _healthYear + '-' + String(_healthMonth+1).padStart(2,'0');
+  return _healthRecords.filter(r => r.date && r.date.startsWith(prefix));
+}
+
+function renderHealthSummary() {
+  const label = document.getElementById('health-month-label');
+  if (label) label.textContent = _healthYear + '年' + (_healthMonth+1) + '月';
+  const recs = getMonthRecs();
+  const count = recs.length;
+  const wRecs = recs.filter(r => r.weight);
+  const bpRecs = recs.filter(r => r.bpSys && r.bpDia);
+  const pRecs  = recs.filter(r => r.pulse);
+  const avgW  = wRecs.length ? (wRecs.reduce((s,r)=>s+r.weight,0)/wRecs.length).toFixed(1) : '—';
+  const avgBpS = bpRecs.length ? Math.round(bpRecs.reduce((s,r)=>s+r.bpSys,0)/bpRecs.length) : null;
+  const avgBpD = bpRecs.length ? Math.round(bpRecs.reduce((s,r)=>s+r.bpDia,0)/bpRecs.length) : null;
+  const avgP  = pRecs.length ? Math.round(pRecs.reduce((s,r)=>s+r.pulse,0)/pRecs.length) : '—';
+  const aw = document.getElementById('hlth-avg-weight');
+  const ab = document.getElementById('hlth-avg-bp');
+  const ap = document.getElementById('hlth-avg-pulse');
+  const ac = document.getElementById('hlth-count');
+  if (aw) aw.textContent = avgW;
+  if (ab) ab.innerHTML = avgBpS ? avgBpS + '<br>' + avgBpD : '—';
+  if (ap) ap.textContent = avgP;
+  if (ac) ac.textContent = count;
+}
+
+function renderHealthList() {
+  const list = document.getElementById('health-list');
+  if (!list) return;
+  const recs = getMonthRecs();
+  if (!recs.length) { list.innerHTML = '<div class="empty"><span class="empty-icon">❤️</span>記録がありません</div>'; return; }
+  list.innerHTML = '';
+  recs.forEach(rec => {
+    const d   = new Date(rec.date + 'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+    const condEmoji = ['','🤒','😔','😐','🙂','😄'][rec.cond||0] || '';
+    const bpColor = rec.bpSys >= 140 || rec.bpDia >= 90 ? '#c06060' : rec.bpSys >= 130 ? '#E8B84B' : '#5B8DD9';
+    const tempColor = rec.temp >= 37.5 ? '#c06060' : rec.temp >= 37.0 ? '#E8B84B' : 'var(--text)';
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid #ff69b4;border-radius:10px;padding:12px 14px;';
+    div.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="font-size:0.82rem;color:var(--muted2);font-family:\'DM Mono\',monospace;">' + (d.getMonth()+1) + '/' + d.getDate() + '（' + dow + '）' + (rec.time?' '+rec.time:'') + '</span>'
+      + (condEmoji ? '<span style="font-size:1.1rem;">' + condEmoji + '</span>' : '')
+      + '</div>'
+      + '<button onclick="healthDelete(\'' + rec.id + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.82rem;padding:2px 6px;">✕</button>'
+      + '</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:8px;">'
+      + (rec.weight ? '<span style="font-size:0.82rem;"><span style="color:var(--muted2);font-size:0.7rem;">体重</span> <b style="color:var(--accent);font-family:\'DM Mono\',monospace;">' + rec.weight + '</b><span style="color:var(--muted);font-size:0.7rem;">kg</span></span>' : '')
+      + (rec.bmi    ? '<span style="font-size:0.82rem;"><span style="color:var(--muted2);font-size:0.7rem;">BMI</span> <b style="color:var(--accent);font-family:\'DM Mono\',monospace;">' + rec.bmi + '</b></span>' : '')
+      + (rec.bpSys  ? '<span style="font-size:0.82rem;"><span style="color:var(--muted2);font-size:0.7rem;">血圧</span> <b style="color:' + bpColor + ';font-family:\'DM Mono\',monospace;">' + rec.bpSys + '/' + rec.bpDia + '</b><span style="color:var(--muted);font-size:0.7rem;">mmHg</span></span>' : '')
+      + (rec.pulse  ? '<span style="font-size:0.82rem;"><span style="color:var(--muted2);font-size:0.7rem;">脈拍</span> <b style="color:#E8B84B;font-family:\'DM Mono\',monospace;">' + rec.pulse + '</b><span style="color:var(--muted);font-size:0.7rem;">bpm</span></span>' : '')
+      + (rec.temp   ? '<span style="font-size:0.82rem;"><span style="color:var(--muted2);font-size:0.7rem;">体温</span> <b style="color:' + tempColor + ';font-family:\'DM Mono\',monospace;">' + rec.temp + '</b><span style="color:var(--muted);font-size:0.7rem;">℃</span></span>' : '')
+      + (rec.steps  ? '<span style="font-size:0.78rem;color:var(--muted2);">🚶 ' + rec.steps.toLocaleString() + '歩</span>' : '')
+      + (rec.sleep  ? '<span style="font-size:0.78rem;color:var(--muted2);">😴 ' + rec.sleep + 'h</span>' : '')
+      + '</div>'
+      + (rec.memo ? '<div style="font-size:0.72rem;color:var(--muted2);margin-top:4px;">' + esc(rec.memo) + '</div>' : '');
+    list.appendChild(div);
+  });
+}
+
+window.healthToggleForm = function() {
+  _healthFormOpen = !_healthFormOpen;
+  const form = document.getElementById('health-form');
+  const btn  = document.getElementById('health-add-btn');
+  if (form) form.style.display = _healthFormOpen ? 'block' : 'none';
+  if (btn)  btn.textContent = _healthFormOpen ? '✕ 閉じる' : '＋ 健康記録を追加';
+  if (_healthFormOpen) {
+    const di = document.getElementById('hlth-date');
+    if (di && !di.value) di.value = toDateStr(new Date());
+  }
+};
+
+window.healthCalcBMI = function() {
+  const w = parseFloat(document.getElementById('hlth-weight')?.value);
+  const h = getHeightCm() / 100;
+  const el = document.getElementById('hlth-bmi-display');
+  if (!isNaN(w) && h > 0 && el) {
+    const bmi = (w / (h * h)).toFixed(1);
+    const cat = bmi < 18.5 ? '低体重' : bmi < 25 ? '標準' : bmi < 30 ? '肥満1度' : '肥満2度以上';
+    const col = bmi < 18.5 ? '#5B8DD9' : bmi < 25 ? '#7A9E7E' : bmi < 30 ? '#E8B84B' : '#c06060';
+    el.textContent = bmi;
+    el.style.color = col;
+  } else if (el) { el.textContent = '—'; el.style.color = 'var(--muted2)'; }
+};
+
+window.healthCheckBP = function() {
+  const sys = parseInt(document.getElementById('hlth-bp-sys')?.value);
+  const dia = parseInt(document.getElementById('hlth-bp-dia')?.value);
+  const el  = document.getElementById('hlth-bp-status');
+  if (!el || isNaN(sys) || isNaN(dia)) { if(el) el.textContent=''; return; }
+  let status, color;
+  if (sys >= 180 || dia >= 110)       { status='Ⅲ度高血圧（重症）'; color='#c06060'; }
+  else if (sys >= 160 || dia >= 100)  { status='Ⅱ度高血圧'; color='#c06060'; }
+  else if (sys >= 140 || dia >= 90)   { status='Ⅰ度高血圧 ⚠️'; color='#c06060'; }
+  else if (sys >= 130 || dia >= 80)   { status='高値血圧（注意）'; color='#E8B84B'; }
+  else if (sys >= 120 || dia >= 80)   { status='正常高値'; color='#E8B84B'; }
+  else if (sys < 90  || dia < 60)     { status='低血圧'; color='#5B8DD9'; }
+  else                                 { status='正常血圧 ✅'; color='#7A9E7E'; }
+  el.textContent = status; el.style.color = color;
+};
+
+window.healthSelectCond = function(btn) {
+  document.querySelectorAll('.hlth-cond-btn').forEach(b => {
+    b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border2)';
+  });
+  btn.style.background = 'rgba(200,169,110,0.15)'; btn.style.borderColor = 'var(--accent)';
+  _healthCond = parseInt(btn.dataset.val);
+};
+
+window.healthSave = async function() {
+  const date    = document.getElementById('hlth-date')?.value;
+  const time    = document.getElementById('hlth-time')?.value;
+  const weight  = document.getElementById('hlth-weight')?.value;
+  const bodyfat = document.getElementById('hlth-bodyfat')?.value;
+  const bpSys   = document.getElementById('hlth-bp-sys')?.value;
+  const bpDia   = document.getElementById('hlth-bp-dia')?.value;
+  const pulse   = document.getElementById('hlth-pulse')?.value;
+  const temp    = document.getElementById('hlth-temp')?.value;
+  const glucose = document.getElementById('hlth-glucose')?.value;
+  const steps   = document.getElementById('hlth-steps')?.value;
+  const sleep   = document.getElementById('hlth-sleep')?.value;
+  const memo    = document.getElementById('hlth-memo')?.value.trim();
+  const msg     = document.getElementById('health-save-msg');
+
+  if (!date) { msg.style.color='var(--red)'; msg.textContent='日付を選択してください'; return; }
+  if (!window.mdb) { msg.style.color='var(--red)'; msg.textContent='Firebase未接続'; return; }
+
+  const h = getHeightCm() / 100;
+  const bmi = weight && h ? parseFloat((parseFloat(weight)/(h*h)).toFixed(1)) : null;
+
+  const id = Date.now().toString() + '_' + Math.random().toString(36).slice(2,5);
+  const record = { date, ts: Date.now() };
+  if (time)    record.time    = time;
+  if (weight)  record.weight  = parseFloat(weight);
+  if (bmi)     record.bmi     = bmi;
+  if (bodyfat) record.bodyfat = parseFloat(bodyfat);
+  if (bpSys)   record.bpSys   = parseInt(bpSys);
+  if (bpDia)   record.bpDia   = parseInt(bpDia);
+  if (pulse)   record.pulse   = parseInt(pulse);
+  if (temp)    record.temp    = parseFloat(temp);
+  if (glucose) record.glucose = parseInt(glucose);
+  if (steps)   record.steps   = parseInt(steps);
+  if (sleep)   record.sleep   = parseFloat(sleep);
+  if (memo)    record.memo    = memo;
+  if (_healthCond) record.cond = _healthCond;
+
+  try {
+    await window.mdb.ref(HEALTH_DB_KEY + '/' + id).set(record);
+    msg.style.color='var(--green)'; msg.textContent='✅ 保存しました';
+    ['hlth-time','hlth-weight','hlth-bodyfat','hlth-bp-sys','hlth-bp-dia','hlth-pulse','hlth-temp','hlth-glucose','hlth-steps','hlth-sleep','hlth-memo'].forEach(i=>{
+      const e=document.getElementById(i); if(e) e.value='';
+    });
+    document.getElementById('hlth-bmi-display').textContent='—';
+    document.getElementById('hlth-bp-status').textContent='';
+    document.querySelectorAll('.hlth-cond-btn').forEach(b=>{b.style.background='var(--surface2)';b.style.borderColor='var(--border2)';});
+    _healthCond = 0;
+    setTimeout(()=>{msg.textContent=''; healthToggleForm();}, 1200);
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent='エラー: '+e.message; }
+};
+
+window.healthDelete = async function(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  if (window.mdb) await window.mdb.ref(HEALTH_DB_KEY + '/' + id).remove();
+};
+
+// ── 健康管理 PDF印刷 ──
+window.healthPrint = function() {
+  const recs   = getMonthRecs().sort((a,b)=>a.date.localeCompare(b.date));
+  const mLabel = _healthYear + '年' + (_healthMonth+1) + '月';
+  const condLabel = ['','🤒不調','😔だるい','😐普通','🙂良い','😄絶好調'];
+
+  const rows = recs.map((r,i) => {
+    const d   = new Date(r.date+'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+    const bpColor = r.bpSys >= 140 || r.bpDia >= 90 ? '#8a0000' : 'inherit';
+    const tempColor = r.temp >= 37.5 ? '#8a0000' : 'inherit';
+    return '<tr style="border-bottom:1px solid #eee;">'
+      + '<td style="padding:4px 6px;font-size:8pt;">' + (i+1) + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;">' + r.date.replace(/^\d{4}-/,'').replace('-','/') + '（' + dow + '）' + (r.time?' '+r.time:'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:right;">' + (r.weight||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:right;">' + (r.bmi||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:right;">' + (r.bodyfat||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:center;color:' + bpColor + ';">' + (r.bpSys&&r.bpDia ? r.bpSys+'/'+r.bpDia : '') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:center;">' + (r.pulse||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:center;color:' + tempColor + ';">' + (r.temp||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:center;">' + (r.glucose||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:right;">' + (r.steps ? r.steps.toLocaleString() : '') + '</td>'
+      + '<td style="padding:4px 6px;font-size:8pt;text-align:center;">' + (r.sleep||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:7.5pt;">' + (condLabel[r.cond||0]||'') + '</td>'
+      + '<td style="padding:4px 6px;font-size:7.5pt;">' + (r.memo||'') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const html = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>' + mLabel + ' 健康管理表</title>'
+    + '<style>*{box-sizing:border-box;margin:0;padding:0;}'
+    + 'body{font-family:\'Noto Sans JP\',sans-serif;font-size:9pt;color:#000;padding:12mm 10mm;background:#fff;}'
+    + 'h1{font-size:13pt;font-weight:700;margin-bottom:4px;} .sub{font-size:8pt;color:#555;margin-bottom:10px;}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'thead{background:#1a1a1a;color:#fff;} thead th{padding:5px 6px;font-size:7.5pt;font-weight:500;text-align:center;}'
+    + 'tbody tr:nth-child(even){background:#f8f8f8;}'
+    + '.footer{margin-top:10px;font-size:7pt;color:#999;text-align:right;}'
+    + '@media print{@page{size:A4 landscape;margin:10mm;}}'
+    + '</style></head><body>'
+    + '<h1>❤️ 健康管理表　' + mLabel + '</h1>'
+    + '<div class="sub">出力日時：' + new Date().toLocaleString('ja-JP') + '　合計 ' + recs.length + '件</div>'
+    + '<table><thead><tr>'
+    + '<th style="width:25px;">#</th><th style="width:90px;">日付・時刻</th>'
+    + '<th style="width:55px;">体重(kg)</th><th style="width:40px;">BMI</th><th style="width:55px;">体脂肪(%)</th>'
+    + '<th style="width:65px;">血圧(mmHg)</th><th style="width:50px;">脈拍</th>'
+    + '<th style="width:50px;">体温(℃)</th><th style="width:60px;">血糖(mg/dL)</th>'
+    + '<th style="width:65px;">歩数</th><th style="width:50px;">睡眠(h)</th>'
+    + '<th style="width:55px;">体調</th><th>メモ</th>'
+    + '</tr></thead>'
+    + '<tbody>' + (rows||'<tr><td colspan="13" style="padding:10px;text-align:center;color:#999;">記録がありません</td></tr>') + '</tbody>'
+    + '</table><div class="footer">血圧：赤=高血圧(140/90以上)　体温：赤=37.5℃以上</div>'
+    + '<script>window.onload=()=>{window.print();}<\/script></body></html>';
+
+  const w = window.open('', '_blank', 'width=950,height=650');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。');
+};
 
 // ════ アルコール記録 ════
 const ALC_DB_KEY = 'kouki-app/alcohol';
