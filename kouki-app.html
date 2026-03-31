@@ -1191,8 +1191,9 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
               style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;color:var(--text);font-size:0.85rem;outline:none;">
           </div>
 
-          <!-- アルコール記入欄 -->
-          <div style="background:rgba(192,96,96,0.06);border:1px solid rgba(192,96,96,0.2);border-radius:10px;padding:12px;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">メモ（任意）</div>
+            <input type="text" id="dlog-memo" placeholder="気づき・特記事項など" maxlength="60" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;">
             <div style="font-size:0.78rem;color:#c06060;font-weight:700;margin-bottom:8px;">🍺 飲酒確認（運転前）</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
               <div>
@@ -1226,9 +1227,41 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
             <div style="font-size:0.68rem;color:var(--muted);line-height:1.5;">⚠️ 飲酒運転は法律で禁止されています。</div>
           </div>
 
-          <div>
-            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">メモ（任意）</div>
-            <input type="text" id="dlog-memo" placeholder="気づき・特記事項など" maxlength="60" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;">
+          <!-- 高速道路・有料道路 -->
+          <div style="background:rgba(91,141,217,0.05);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:0.78rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">🛣️ 高速道路・有料道路</div>
+            <div style="display:flex;gap:8px;margin-bottom:8px;">
+              <button class="dlog-toll-btn" data-val="なし" onclick="driveLogSelectToll(this)"
+                style="flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.8rem;cursor:pointer;transition:all 0.15s;">
+                🚫 使用なし
+              </button>
+              <button class="dlog-toll-btn" data-val="あり" onclick="driveLogSelectToll(this)"
+                style="flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.8rem;cursor:pointer;transition:all 0.15s;">
+                ✅ 使用あり
+              </button>
+            </div>
+            <div id="dlog-toll-detail" style="display:none;display:flex;flex-direction:column;gap:6px;">
+              <input type="text" id="dlog-toll-route" placeholder="路線名（例：東名高速、外環道）"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.85rem;outline:none;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+                <div>
+                  <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:2px;">乗った IC</div>
+                  <input type="text" id="dlog-toll-entry" placeholder="例：横浜IC"
+                    style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.82rem;outline:none;">
+                </div>
+                <div>
+                  <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:2px;">降りた IC</div>
+                  <input type="text" id="dlog-toll-exit" placeholder="例：東京IC"
+                    style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.82rem;outline:none;">
+                </div>
+              </div>
+              <div>
+                <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:2px;">料金（円）</div>
+                <input type="number" id="dlog-toll-fee" placeholder="例：1430" min="0" step="10"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;font-family:'DM Mono',monospace;">
+              </div>
+            </div>
+          </div>
           </div>
           <div style="display:flex;gap:8px;">
             <button onclick="driveLogSave()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;font-weight:700;">💾 保存</button>
@@ -2796,8 +2829,8 @@ function jdToLunar(jd) {
 
 // ── 六曜計算 ──
 // 六曜は旧暦の月と日の和 mod 6 で決まる
-// 旧暦1月1日・7月1日 = 先勝、2月1日・8月1日 = 友引、...
-const ROKUYOU = ['先勝', '友引', '先負', '仏滅', '大安', '赤口'];
+// (旧暦月+旧暦日) % 6: 0=大安, 1=赤口, 2=先勝, 3=友引, 4=先負, 5=仏滅
+const ROKUYOU = ['大安', '赤口', '先勝', '友引', '先負', '仏滅'];
 const ROKUYOU_INFO = {
   '先勝': { color:'#5B8DD9', bg:'rgba(91,141,217,0.12)', icon:'⬆️', note:'午前中吉、急ぐことに向く' },
   '友引': { color:'#7A9E7E', bg:'rgba(122,158,126,0.12)', icon:'🤝', note:'引き分け。葬儀は避ける' },
@@ -3831,7 +3864,12 @@ function renderDriveLogList() {
       + '<span style="font-size:0.85rem;color:var(--text);">🚗</span>'
       + (rec.from ? '<span style="font-size:0.82rem;color:var(--muted2);">' + esc(rec.from) + '</span><span style="color:var(--muted);">→</span>' : '')
       + (rec.waypoints && rec.waypoints.length
-          ? rec.waypoints.map(wp => '<span style="font-size:0.78rem;color:var(--muted2);">' + esc(wp) + '</span><span style="color:var(--muted);">→</span>').join('')
+          ? rec.waypoints.map(wp => {
+              const name   = typeof wp === 'string' ? wp : (wp.name || '');
+              const arrive = typeof wp === 'object' && wp.arrive ? ' <span style="font-size:0.65rem;color:var(--muted);">着' + wp.arrive + '</span>' : '';
+              const depart = typeof wp === 'object' && wp.depart ? '<span style="font-size:0.65rem;color:var(--muted);">発' + wp.depart + '</span> ' : '';
+              return '<span style="font-size:0.78rem;color:var(--muted2);">' + arrive + esc(name) + depart + '</span><span style="color:var(--muted);">→</span>';
+            }).join('')
           : '')
       + '<span style="font-size:0.88rem;color:var(--text);font-weight:500;">' + esc(rec.to || '—') + '</span>'
       + (rec.dist ? '<span style="font-size:0.75rem;font-family:\'DM Mono\',monospace;color:#5B8DD9;margin-left:4px;">' + Number(rec.dist).toFixed(1) + 'km</span>' : '')
@@ -3840,6 +3878,7 @@ function renderDriveLogList() {
       + (rec.purpose ? '<span style="font-size:0.7rem;background:var(--surface2);color:var(--muted2);border:1px solid var(--border2);border-radius:8px;padding:1px 7px;">' + esc(rec.purpose) + '</span>' : '')
       + (rec.alcStatus ? '<span style="font-size:0.7rem;background:' + (rec.alcStatus==='飲酒なし'?'rgba(122,158,126,0.12)':rec.alcStatus==='前日飲酒'?'rgba(232,184,75,0.12)':'rgba(192,96,96,0.12)') + ';color:' + (rec.alcStatus==='飲酒なし'?'#7A9E7E':rec.alcStatus==='前日飲酒'?'#E8B84B':'#c06060') + ';border:1px solid;border-radius:8px;padding:1px 7px;">' + esc(rec.alcStatus) + '</span>' : '')
       + (rec.alcVol && rec.alcPct ? '<span style="font-size:0.68rem;color:var(--muted2);">🍺 ' + rec.alcVol + 'mL/' + rec.alcPct + '%</span>' : '')
+      + (rec.toll && rec.toll.used ? '<span style="font-size:0.7rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.3);border-radius:8px;padding:1px 7px;">🛣️ ' + (rec.toll.route ? esc(rec.toll.route) : '有料道路') + (rec.toll.fee ? ' ¥'+Number(rec.toll.fee).toLocaleString() : '') + '</span>' : '')
       + (rec.memo ? '<span style="font-size:0.72rem;color:var(--muted2);">' + esc(rec.memo) + '</span>' : '')
       + '</div>';
     list.appendChild(div);
@@ -4011,23 +4050,51 @@ window.driveLogSelectTo = function(btn) {
   }
 };
 
-// ── 経由地 ──
+// 高速道路・有料道路ボタン選択
+window.driveLogSelectToll = function(btn) {
+  document.querySelectorAll('.dlog-toll-btn').forEach(b => {
+    b.style.background = 'var(--surface2)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = 'var(--muted2)';
+  });
+  btn.style.background = 'rgba(91,141,217,0.15)';
+  btn.style.borderColor = '#5B8DD9';
+  btn.style.color = '#5B8DD9';
+  const detail = document.getElementById('dlog-toll-detail');
+  if (detail) detail.style.display = btn.dataset.val === 'あり' ? 'flex' : 'none';
+};
+
+// ── 経由地（waypoint: {name, arrive, depart}のオブジェクト配列） ──
 let _dlogWaypointCount = 0;
+
+function _wpRowHTML(n, id_prefix, name, arrive, depart, removeFunc) {
+  return '<div style="background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:8px 10px;margin-bottom:2px;">'
+    + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
+    + '<span style="font-size:0.72rem;color:var(--accent);font-weight:700;white-space:nowrap;">📍 経由' + n + '</span>'
+    + '<input type="text" id="' + id_prefix + '-name" placeholder="経由地名" value="' + (name||'') + '" '
+    + 'style="flex:1;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:6px 9px;color:var(--text);font-size:0.85rem;outline:none;">'
+    + '<button onclick="' + removeFunc + '(' + n + ')" '
+    + 'style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:3px 7px;flex-shrink:0;">✕</button>'
+    + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
+    + '<div><div style="font-size:0.65rem;color:var(--muted2);margin-bottom:2px;">到着時刻</div>'
+    + '<input type="time" id="' + id_prefix + '-arrive" value="' + (arrive||'') + '" '
+    + 'style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:5px 8px;color:var(--text);font-size:0.85rem;outline:none;font-family:\'DM Mono\',monospace;"></div>'
+    + '<div><div style="font-size:0.65rem;color:var(--muted2);margin-bottom:2px;">出発時刻</div>'
+    + '<input type="time" id="' + id_prefix + '-depart" value="' + (depart||'') + '" '
+    + 'style="width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:7px;padding:5px 8px;color:var(--text);font-size:0.85rem;outline:none;font-family:\'DM Mono\',monospace;"></div>'
+    + '</div>'
+    + '</div>';
+}
 
 window.dlogAddWaypoint = function() {
   const container = document.getElementById('dlog-waypoints');
   if (!container) return;
   _dlogWaypointCount++;
-  const id = 'dlog-wp-' + _dlogWaypointCount;
+  const n = _dlogWaypointCount;
   const div = document.createElement('div');
-  div.id = 'dlog-wp-row-' + _dlogWaypointCount;
-  div.style.cssText = 'display:flex;align-items:center;gap:6px;';
-  div.innerHTML =
-    '<span style="font-size:0.75rem;color:var(--muted2);white-space:nowrap;min-width:36px;">経由' + _dlogWaypointCount + '</span>'
-    + '<input type="text" id="' + id + '" placeholder="経由地名を入力" '
-    + 'style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.85rem;outline:none;">'
-    + '<button onclick="dlogRemoveWaypoint(' + _dlogWaypointCount + ')" '
-    + 'style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:4px 7px;">✕</button>';
+  div.id = 'dlog-wp-row-' + n;
+  div.innerHTML = _wpRowHTML(n, 'dlog-wp-' + n, '', '', '', 'dlogRemoveWaypoint');
   container.appendChild(div);
 };
 
@@ -4039,7 +4106,7 @@ window.dlogRemoveWaypoint = function(n) {
   if (!container) return;
   container.querySelectorAll('[id^="dlog-wp-row-"]').forEach((r, i) => {
     const label = r.querySelector('span');
-    if (label) label.textContent = '経由' + (i + 1);
+    if (label) label.textContent = '📍 経由' + (i + 1);
   });
 };
 
@@ -4047,9 +4114,17 @@ function dlogGetWaypoints(containerId = 'dlog-waypoints') {
   const container = document.getElementById(containerId);
   if (!container) return [];
   const wps = [];
-  container.querySelectorAll('input[type="text"]').forEach(inp => {
-    const v = inp.value.trim();
-    if (v) wps.push(v);
+  container.querySelectorAll('[id$="-wp-row-"], [id^="dlog-wp-row-"], [id^="dlog-edit-wp-row-"]').forEach(row => {
+    // id_prefixを抽出
+    const nameEl   = row.querySelector('input[id$="-name"]');
+    const arriveEl = row.querySelector('input[id$="-arrive"]');
+    const departEl = row.querySelector('input[id$="-depart"]');
+    const name = nameEl?.value.trim() || '';
+    if (!name) return;
+    const obj = { name };
+    if (arriveEl?.value) obj.arrive = arriveEl.value;
+    if (departEl?.value) obj.depart = departEl.value;
+    wps.push(obj);
   });
   return wps;
 }
@@ -4060,16 +4135,16 @@ function dlogRenderWaypoints(wps, containerId, editPrefix) {
   container.innerHTML = '';
   wps.forEach((wp, i) => {
     const n = i + 1;
-    const inputId = editPrefix + '-wp-' + n;
+    const rowId = editPrefix + '-wp-row-' + n;
+    const idPfx = editPrefix + '-wp-' + n;
+    // wp は string（旧形式）または {name, arrive, depart} オブジェクト
+    const name   = typeof wp === 'string' ? wp : (wp.name || '');
+    const arrive = typeof wp === 'object' ? (wp.arrive || '') : '';
+    const depart = typeof wp === 'object' ? (wp.depart || '') : '';
+    const removeFunc = editPrefix.startsWith('dlog-edit') ? 'dlogEditRemoveWaypoint' : 'dlogRemoveWaypoint';
     const div = document.createElement('div');
-    div.id = editPrefix + '-wp-row-' + n;
-    div.style.cssText = 'display:flex;align-items:center;gap:6px;';
-    div.innerHTML =
-      '<span style="font-size:0.75rem;color:var(--muted2);white-space:nowrap;min-width:36px;">経由' + n + '</span>'
-      + '<input type="text" id="' + inputId + '" value="' + esc(wp) + '" '
-      + 'style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.85rem;outline:none;">'
-      + '<button onclick="dlogEditRemoveWaypoint(' + n + ')" '
-      + 'style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:4px 7px;">✕</button>';
+    div.id = rowId;
+    div.innerHTML = _wpRowHTML(n, idPfx, name, arrive, depart, removeFunc);
     container.appendChild(div);
   });
 }
@@ -4082,19 +4157,20 @@ window.dlogEditAddWaypoint = function() {
   const n = container.querySelectorAll('[id^="dlog-edit-wp-row-"]').length + 1;
   const div = document.createElement('div');
   div.id = 'dlog-edit-wp-row-' + _dlogEditWaypointCount;
-  div.style.cssText = 'display:flex;align-items:center;gap:6px;';
-  div.innerHTML =
-    '<span style="font-size:0.75rem;color:var(--muted2);white-space:nowrap;min-width:36px;">経由' + n + '</span>'
-    + '<input type="text" id="dlog-edit-wp-' + _dlogEditWaypointCount + '" placeholder="経由地名" '
-    + 'style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;color:var(--text);font-size:0.85rem;outline:none;">'
-    + '<button onclick="dlogEditRemoveWaypoint(' + _dlogEditWaypointCount + ')" '
-    + 'style="background:none;border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:0.8rem;cursor:pointer;padding:4px 7px;">✕</button>';
+  div.innerHTML = _wpRowHTML(n, 'dlog-edit-wp-' + _dlogEditWaypointCount, '', '', '', 'dlogEditRemoveWaypoint');
   container.appendChild(div);
 };
 
 window.dlogEditRemoveWaypoint = function(n) {
-  const row = document.getElementById('dlog-edit-wp-row-' + n);
-  if (row) row.remove();
+  // 編集側の削除（idが連番とは限らないためrow直接検索）
+  const containers = document.getElementById('dlog-edit-waypoints');
+  if (!containers) return;
+  const rows = containers.querySelectorAll('[id^="dlog-edit-wp-row-"]');
+  // n番目のrow（1-indexed）を削除
+  const target = containers.querySelector('#dlog-edit-wp-row-' + n);
+  // もし直接IDで見つかれば削除、なければ渡された番号のrowを削除
+  if (target) { target.remove(); return; }
+  if (rows[n-1]) rows[n-1].remove();
 };
 
 // ── 保存 ──
@@ -4148,6 +4224,21 @@ window.driveLogSave = async function() {
   // 経由地
   const waypoints = dlogGetWaypoints('dlog-waypoints');
   if (waypoints.length) record.waypoints = waypoints;
+  // 高速道路・有料道路
+  const tollUsed = document.querySelector('.dlog-toll-btn[style*="#5B8DD9"]')?.dataset.val || '';
+  if (tollUsed === 'あり') {
+    const toll = {};
+    const route = document.getElementById('dlog-toll-route')?.value.trim();
+    const entry = document.getElementById('dlog-toll-entry')?.value.trim();
+    const exit  = document.getElementById('dlog-toll-exit')?.value.trim();
+    const fee   = document.getElementById('dlog-toll-fee')?.value;
+    if (route) toll.route = route;
+    if (entry) toll.entry = entry;
+    if (exit)  toll.exit  = exit;
+    if (fee)   toll.fee   = Number(fee);
+    toll.used = true;
+    record.toll = toll;
+  }
 
   try {
     await window.mdb.ref(DLOG_DB_KEY + '/' + id).set(record);
@@ -4161,6 +4252,15 @@ window.driveLogSave = async function() {
     const wpContainer = document.getElementById('dlog-waypoints');
     if (wpContainer) wpContainer.innerHTML = '';
     _dlogWaypointCount = 0;
+    // 高速道路リセット
+    ['dlog-toll-route','dlog-toll-entry','dlog-toll-exit','dlog-toll-fee'].forEach(id2 => {
+      const el = document.getElementById(id2); if (el) el.value = '';
+    });
+    document.querySelectorAll('.dlog-toll-btn').forEach(b => {
+      b.style.background = 'var(--surface2)'; b.style.borderColor = 'var(--border2)'; b.style.color = 'var(--muted2)';
+    });
+    const tollDetail = document.getElementById('dlog-toll-detail');
+    if (tollDetail) tollDetail.style.display = 'none';
     const alcSel = document.getElementById('dlog-alc-status');
     if (alcSel) alcSel.value = '';
     document.querySelectorAll('.dlog-purpose-btn').forEach(b => b.classList.remove('selected'));
@@ -4308,20 +4408,33 @@ window.driveLogPrint = function(orientation = 'landscape') {
       ? r.alcStatus + (r.alcVol ? '<br><span style="font-size:7pt;color:#888;">' + r.alcVol + 'mL' + (r.alcPct?'/'+r.alcPct+'%':'') + (r.alcTime?' '+r.alcTime:'') + '</span>' : '')
       : '—';
     const alcColor = r.alcStatus === '飲酒なし' ? '#2a6e2a' : r.alcStatus === '前日飲酒' ? '#8a5c00' : r.alcStatus === '当日飲酒' ? '#8a0000' : '#666';
-    // 経由地を含む経路
+    // 経由地を含む経路（時刻付き）
     const routeParts = [];
     if (r.from) routeParts.push(r.from);
-    if (r.waypoints && r.waypoints.length) r.waypoints.forEach(wp => routeParts.push('→' + wp));
+    if (r.waypoints && r.waypoints.length) {
+      r.waypoints.forEach(wp => {
+        const name   = typeof wp === 'string' ? wp : (wp.name || '');
+        const arrive = typeof wp === 'object' && wp.arrive ? '(着' + wp.arrive + ')' : '';
+        const depart = typeof wp === 'object' && wp.depart ? '(発' + wp.depart + ')' : '';
+        routeParts.push('→' + arrive + name + depart);
+      });
+    }
     routeParts.push('→' + (r.to || '—'));
     const routeCell = routeParts.join(' ');
+    // 高速道路
+    const tollCell = r.toll && r.toll.used
+      ? (r.toll.route || '有料') + (r.toll.entry ? '<br>' + r.toll.entry + '→' + (r.toll.exit || '') : '') + (r.toll.fee ? '<br>¥' + Number(r.toll.fee).toLocaleString() : '')
+      : '—';
+    const tollColor = r.toll && r.toll.used ? '#1a4a8a' : '#888';
     return '<tr style="border-bottom:1px solid #ddd;">'
       + '<td style="padding:5px 8px;text-align:center;">' + (i+1) + '</td>'
       + '<td style="padding:5px 8px;">' + r.date.replace(/^\d{4}-/, '').replace('-', '/') + '（' + dow + '）</td>'
       + '<td style="padding:5px 8px;">' + (r.startTime || '') + (r.endTime ? '〜' + r.endTime : '') + '</td>'
       + '<td style="padding:5px 8px;">' + dur + '</td>'
-      + '<td style="padding:5px 8px;">' + routeCell + '</td>'
+      + '<td style="padding:5px 8px;font-size:7.5pt;">' + routeCell + '</td>'
       + '<td style="padding:5px 8px;text-align:right;">' + (r.dist ? Number(r.dist).toFixed(1) : '—') + '</td>'
       + '<td style="padding:5px 8px;">' + (r.purpose || '') + '</td>'
+      + '<td style="padding:5px 8px;font-size:7.5pt;color:' + tollColor + ';">' + tollCell + '</td>'
       + '<td style="padding:5px 8px;color:' + alcColor + ';font-weight:' + (r.alcStatus && r.alcStatus !== '飲酒なし' ? '700' : '400') + ';">' + alcCell + '</td>'
       + '<td style="padding:5px 8px;">' + (r.memo || '') + '</td>'
       + '</tr>';
@@ -4333,22 +4446,22 @@ window.driveLogPrint = function(orientation = 'landscape') {
 <title>${mLabel} 運転記録表</title>
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Noto Sans JP','Hiragino Sans',sans-serif; font-size:10pt; color:#000; padding:15mm 12mm; background:#fff; }
-  h1 { font-size:15pt; font-weight:700; margin-bottom:6px; letter-spacing:0.05em; }
-  .subtitle { font-size:9pt; color:#555; margin-bottom:14px; }
-  .summary { display:flex; gap:24px; margin-bottom:16px; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd; border-radius:4px; }
+  body { font-family:'Noto Sans JP','Hiragino Sans',sans-serif; font-size:9.5pt; color:#000; padding:12mm 10mm; background:#fff; }
+  h1 { font-size:14pt; font-weight:700; margin-bottom:6px; letter-spacing:0.05em; }
+  .subtitle { font-size:8.5pt; color:#555; margin-bottom:12px; }
+  .summary { display:flex; gap:20px; margin-bottom:14px; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd; border-radius:4px; }
   .summary-item { text-align:center; }
-  .summary-item .label { font-size:7.5pt; color:#666; }
-  .summary-item .value { font-size:13pt; font-weight:700; color:#333; }
-  table { width:100%; border-collapse:collapse; font-size:8.5pt; }
+  .summary-item .label { font-size:7pt; color:#666; }
+  .summary-item .value { font-size:12pt; font-weight:700; color:#333; }
+  table { width:100%; border-collapse:collapse; font-size:8pt; }
   thead { background:#1a1a1a; color:#fff; }
-  thead th { padding:6px 8px; text-align:left; font-weight:500; font-size:8pt; }
+  thead th { padding:5px 7px; text-align:left; font-weight:500; font-size:7.5pt; }
   tbody tr:nth-child(even) { background:#f5f5f5; }
   tfoot { background:#f0f0f0; font-weight:700; }
-  tfoot td { padding:6px 8px; border-top:2px solid #999; }
-  .footer { margin-top:12px; font-size:7.5pt; color:#999; text-align:right; }
+  tfoot td { padding:5px 7px; border-top:2px solid #999; }
+  .footer { margin-top:10px; font-size:7pt; color:#999; text-align:right; }
   @media print {
-    @page { size:A4 ${orientation}; margin:12mm; }
+    @page { size:A4 ${orientation}; margin:10mm; }
   }
 </style>
 </head><body>
@@ -4362,23 +4475,24 @@ window.driveLogPrint = function(orientation = 'landscape') {
 <table>
   <thead>
     <tr>
-      <th style="width:30px;">#</th>
-      <th style="width:80px;">日付</th>
-      <th style="width:90px;">時刻</th>
-      <th style="width:50px;">時間</th>
-      <th>経路（出発→経由→目的地）</th>
-      <th style="width:50px;text-align:right;">距離(km)</th>
-      <th style="width:60px;">目的</th>
-      <th style="width:80px;">飲酒確認</th>
+      <th style="width:28px;">#</th>
+      <th style="width:78px;">日付</th>
+      <th style="width:85px;">時刻</th>
+      <th style="width:45px;">時間</th>
+      <th>経路（出発→経由(着/発時刻)→目的地）</th>
+      <th style="width:48px;text-align:right;">距離(km)</th>
+      <th style="width:55px;">目的</th>
+      <th style="width:75px;">🛣️ 高速道路</th>
+      <th style="width:72px;">飲酒確認</th>
       <th>メモ</th>
     </tr>
   </thead>
-  <tbody>${rows || '<tr><td colspan="9" style="padding:12px;text-align:center;color:#999;">記録がありません</td></tr>'}</tbody>
+  <tbody>${rows || '<tr><td colspan="10" style="padding:12px;text-align:center;color:#999;">記録がありません</td></tr>'}</tbody>
   <tfoot>
     <tr>
       <td colspan="5" style="text-align:right;">合計</td>
       <td style="text-align:right;">${dist.toFixed(1)}</td>
-      <td colspan="3">${count}件 / ${minutes >= 60 ? (minutes/60).toFixed(1)+'h' : minutes+'分'}</td>
+      <td colspan="4">${count}件 / ${minutes >= 60 ? (minutes/60).toFixed(1)+'h' : minutes+'分'}</td>
     </tr>
   </tfoot>
 </table>
