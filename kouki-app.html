@@ -110,6 +110,15 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 .fortune-blood-btn { flex:1; padding:8px 4px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); font-size:0.85rem; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans JP',sans-serif; }
 .fortune-blood-btn.selected { background:rgba(200,169,110,0.15); border-color:var(--accent); color:var(--accent); font-weight:700; }
 .fortune-stars { font-size:1rem; letter-spacing:1px; }
+/* 運転記録 */
+.dlog-purpose-btn { padding:6px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); font-size:0.75rem; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans JP',sans-serif; }
+.dlog-purpose-btn.selected { background:rgba(200,169,110,0.15); border-color:var(--accent); color:var(--accent); font-weight:700; }
+/* 印刷専用スタイル */
+@media print {
+  body > * { display:none !important; }
+  #dlog-print-area { display:block !important; }
+  #dlog-print-area { position:fixed; inset:0; background:#fff; color:#000; font-family:'Noto Sans JP',sans-serif; padding:20mm 15mm; }
+}
 
 /* TODO */
 .todo-add { display:flex; gap:8px; margin-bottom:16px; }
@@ -715,6 +724,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="wtab active" id="dtab-driver" onclick="switchDriveTab('driver')">🚗 運転者</button>
     <button class="wtab" id="dtab-commute" onclick="switchDriveTab('commute')">🚌 通勤</button>
     <button class="wtab" id="dtab-music" onclick="switchDriveTab('music')">🎵 音楽</button>
+    <button class="wtab" id="dtab-log" onclick="switchDriveTab('log')">📋 記録</button>
     <button class="wtab" id="dtab-settings" onclick="switchDriveTab('settings')">⚙️ 設定</button>
   </div>
 
@@ -939,6 +949,137 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       </div>
       <div style="font-size:0.72rem;color:var(--muted);margin-top:6px;">※ Cloudflare Workers設定後に入力</div>
     </div>
+  </div>
+
+  <!-- ═══ 運転記録タブ ═══ -->
+  <div id="dsec-log" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+    <!-- ヘッダー：月選択＋PDFボタン -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="driveLogChangeMonth(-1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">‹</button>
+        <span id="dlog-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--text);font-weight:700;min-width:80px;text-align:center;"></span>
+        <button onclick="driveLogChangeMonth(1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">›</button>
+      </div>
+      <button onclick="driveLogPrint()"
+        style="padding:8px 14px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.85rem;cursor:pointer;font-weight:700;">
+        📄 PDF印刷
+      </button>
+    </div>
+
+    <!-- 月間サマリー -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;">
+        <div><div style="font-size:0.68rem;color:var(--muted2);">運転回数</div><div id="dlog-sum-count" style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--accent);">0</div><div style="font-size:0.65rem;color:var(--muted);">回</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted2);">総走行距離</div><div id="dlog-sum-dist" style="font-family:'DM Mono',monospace;font-size:1.4rem;color:#5B8DD9;">0</div><div style="font-size:0.65rem;color:var(--muted);">km</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted2);">総運転時間</div><div id="dlog-sum-time" style="font-family:'DM Mono',monospace;font-size:1.4rem;color:#7A9E7E;">0</div><div style="font-size:0.65rem;color:var(--muted);">分</div></div>
+      </div>
+    </div>
+
+    <!-- 記録追加ボタン -->
+    <button onclick="driveLogToggleForm()" id="dlog-add-btn"
+      style="width:100%;padding:12px;background:rgba(200,169,110,0.08);border:1px dashed var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;margin-bottom:14px;transition:all 0.2s;">
+      ＋ 運転記録を追加
+    </button>
+
+    <!-- 記録フォーム -->
+    <div id="dlog-form" style="display:none;">
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:12px;">🚗 運転記録を入力</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">日付</div>
+            <input type="date" id="dlog-date" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">出発時刻</div>
+              <input type="time" id="dlog-start-time" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;" oninput="driveLogCalcTime()">
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">到着時刻</div>
+              <input type="time" id="dlog-end-time" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;" oninput="driveLogCalcTime()">
+            </div>
+          </div>
+          <div id="dlog-duration-display" style="font-size:0.78rem;color:var(--accent);text-align:center;min-height:16px;"></div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">出発地（任意）</div>
+            <input type="text" id="dlog-from" placeholder="例：自宅、〇〇駅" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">目的地</div>
+            <input type="text" id="dlog-to" placeholder="例：〇〇病院、川越駅" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">走行距離（km）</div>
+            <input type="number" id="dlog-dist" placeholder="例：12.5" min="0" step="0.1" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">運転目的</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+              <button class="dlog-purpose-btn" data-val="通勤" onclick="driveLogSelectPurpose(this)">🏭 通勤</button>
+              <button class="dlog-purpose-btn" data-val="送迎" onclick="driveLogSelectPurpose(this)">🚐 送迎</button>
+              <button class="dlog-purpose-btn" data-val="買い物" onclick="driveLogSelectPurpose(this)">🛒 買い物</button>
+              <button class="dlog-purpose-btn" data-val="通院" onclick="driveLogSelectPurpose(this)">🏥 通院</button>
+              <button class="dlog-purpose-btn" data-val="レジャー" onclick="driveLogSelectPurpose(this)">🎡 レジャー</button>
+              <button class="dlog-purpose-btn" data-val="その他" onclick="driveLogSelectPurpose(this)">📝 その他</button>
+            </div>
+            <input type="text" id="dlog-purpose-custom" placeholder="または直接入力" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:8px 12px;color:var(--text);font-size:0.85rem;outline:none;">
+          </div>
+
+          <!-- アルコール記入欄 -->
+          <div style="background:rgba(192,96,96,0.06);border:1px solid rgba(192,96,96,0.2);border-radius:10px;padding:12px;">
+            <div style="font-size:0.78rem;color:#c06060;font-weight:700;margin-bottom:8px;">🍺 飲酒確認（運転前）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">最後に飲んだ時刻</div>
+                <input type="time" id="dlog-alc-time"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.88rem;outline:none;">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">飲酒量（mL）</div>
+                <input type="number" id="dlog-alc-vol" placeholder="例：350" min="0" step="10"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.88rem;outline:none;">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">アルコール度数（%）</div>
+                <input type="number" id="dlog-alc-pct" placeholder="例：5" min="0" max="100" step="0.1"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.88rem;outline:none;">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">飲酒状態</div>
+                <select id="dlog-alc-status"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.85rem;outline:none;">
+                  <option value="">未記入</option>
+                  <option value="飲酒なし">✅ 飲酒なし</option>
+                  <option value="前日飲酒">⚠️ 前日飲酒</option>
+                  <option value="当日飲酒">🚫 当日飲酒</option>
+                </select>
+              </div>
+            </div>
+            <div style="font-size:0.68rem;color:var(--muted);line-height:1.5;">
+              ⚠️ 飲酒運転は法律で禁止されています。飲酒後は絶対に運転しないでください。
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">メモ（任意）</div>
+            <input type="text" id="dlog-memo" placeholder="気づき・特記事項など" maxlength="60" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="driveLogSave()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;font-weight:700;">💾 保存</button>
+            <button onclick="driveLogToggleForm()" style="padding:11px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.88rem;cursor:pointer;">キャンセル</button>
+          </div>
+          <div id="dlog-save-msg" style="font-size:0.78rem;text-align:center;min-height:16px;color:var(--green);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 記録一覧 -->
+    <div class="sec-title" style="margin-bottom:10px;">📋 今月の運転記録</div>
+    <div id="dlog-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
   </div>
 
 </div>
@@ -2289,7 +2430,8 @@ function getZodiac(month, day) {
 
 // 誕生年から十二支（生まれ年）
 function getBirthEto(year) {
-  const idx = ((year - 2000) % 12 + 12) % 12;
+  // 2000年 = 庚辰（辰=4番目）を基点に補正
+  const idx = (((year - 2000) % 12 + 12) % 12 + 4) % 12;
   const shi = ['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   const icons = ['🐭','🐮','🐯','🐇','🐉','🐍','🐴','🐑','🐒','🐓','🐕','🐖'];
   return { name: shi[idx], icon: icons[idx] };
@@ -2875,7 +3017,7 @@ function updatePassengerView(state) {
 
 // ════ 運転タブ切り替え ════
 window.switchDriveTab = function(tab) {
-  ['driver','commute','music','settings'].forEach(t => {
+  ['driver','commute','music','log','settings'].forEach(t => {
     const sec = document.getElementById('dsec-'+t);
     const btn = document.getElementById('dtab-'+t);
     if (sec) sec.style.display = t === tab ? 'block' : 'none';
@@ -2884,7 +3026,312 @@ window.switchDriveTab = function(tab) {
   if (tab === 'driver') setTimeout(initDriveMap, 100);
   if (tab === 'commute') setTimeout(initCommuteMap, 100);
   if (tab === 'music') initMusicTab();
+  if (tab === 'log') initDriveLog();
   if (tab === 'settings') initDriveVoiceSelect();
+};
+
+// ════ 運転記録 ════
+const DLOG_DB_KEY = 'kouki-app/drive_log';
+let _dlogRecords  = [];
+let _dlogLoaded   = false;
+let _dlogYear, _dlogMonth;
+let _dlogFormOpen = false;
+let _dlogPurpose  = '';
+
+(function() {
+  const n = new Date();
+  _dlogYear  = n.getFullYear();
+  _dlogMonth = n.getMonth();
+})();
+
+function initDriveLog() {
+  renderDriveLogMonth();
+  renderDriveLogList();
+  // 日付デフォルト
+  const di = document.getElementById('dlog-date');
+  if (di && !di.value) di.value = toDateStr(new Date());
+  if (!_dlogLoaded) loadDriveLogs();
+}
+
+function loadDriveLogs() {
+  if (!window.mdb) { setTimeout(loadDriveLogs, 800); return; }
+  window.mdb.ref(DLOG_DB_KEY).on('value', snap => {
+    const data = snap.val();
+    _dlogRecords = data
+      ? Object.entries(data).map(([id, v]) => ({ id, ...v })).sort((a, b) => (b.date + (b.startTime||'')).localeCompare(a.date + (a.startTime||'')))
+      : [];
+    _dlogLoaded = true;
+    renderDriveLogMonth();
+    renderDriveLogList();
+  });
+}
+
+// ── 月変更 ──
+window.driveLogChangeMonth = function(dir) {
+  _dlogMonth += dir;
+  if (_dlogMonth > 11) { _dlogMonth = 0; _dlogYear++; }
+  if (_dlogMonth < 0)  { _dlogMonth = 11; _dlogYear--; }
+  renderDriveLogMonth();
+  renderDriveLogList();
+};
+
+function renderDriveLogMonth() {
+  const label = document.getElementById('dlog-month-label');
+  if (label) label.textContent = _dlogYear + '年' + (_dlogMonth + 1) + '月';
+  const prefix = _dlogYear + '-' + String(_dlogMonth + 1).padStart(2, '0');
+  const recs = _dlogRecords.filter(r => r.date && r.date.startsWith(prefix));
+
+  const count   = recs.length;
+  const dist    = recs.reduce((s, r) => s + (Number(r.dist) || 0), 0);
+  const minutes = recs.reduce((s, r) => s + (Number(r.duration) || 0), 0);
+
+  const sc = document.getElementById('dlog-sum-count');
+  const sd = document.getElementById('dlog-sum-dist');
+  const st = document.getElementById('dlog-sum-time');
+  if (sc) sc.textContent = count;
+  if (sd) sd.textContent = dist.toFixed(1);
+  if (st) st.textContent = minutes >= 60 ? (minutes / 60).toFixed(1) + 'h' : minutes;
+}
+
+function renderDriveLogList() {
+  const list = document.getElementById('dlog-list');
+  if (!list) return;
+  const prefix = _dlogYear + '-' + String(_dlogMonth + 1).padStart(2, '0');
+  const recs = _dlogRecords.filter(r => r.date && r.date.startsWith(prefix));
+
+  if (!recs.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">🚗</span>運転記録がありません</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  recs.forEach(rec => {
+    const d   = new Date(rec.date + 'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+    const dowColor = d.getDay() === 0 ? 'var(--red)' : d.getDay() === 6 ? '#6080a8' : 'var(--muted2)';
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:10px;padding:12px 14px;';
+    div.innerHTML =
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="font-size:0.82rem;color:' + dowColor + ';font-family:\'DM Mono\',monospace;">' + (d.getMonth()+1) + '/' + d.getDate() + '（' + dow + '）</span>'
+      + (rec.startTime ? '<span style="font-size:0.75rem;color:var(--muted2);">' + rec.startTime + (rec.endTime ? '〜' + rec.endTime : '') + '</span>' : '')
+      + (rec.duration ? '<span style="font-size:0.7rem;background:rgba(200,169,110,0.1);color:var(--accent);border:1px solid rgba(200,169,110,0.3);border-radius:8px;padding:1px 6px;">' + (rec.duration >= 60 ? Math.floor(rec.duration/60) + 'h' + (rec.duration%60 ? (rec.duration%60) + 'm' : '') : rec.duration + '分') + '</span>' : '')
+      + '</div>'
+      + '<button onclick="driveLogDelete(\'' + rec.id + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.82rem;padding:2px 6px;">✕</button>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">'
+      + '<span style="font-size:0.85rem;color:var(--text);">🚗</span>'
+      + (rec.from ? '<span style="font-size:0.82rem;color:var(--muted2);">' + esc(rec.from) + '</span><span style="color:var(--muted);">→</span>' : '')
+      + '<span style="font-size:0.88rem;color:var(--text);font-weight:500;">' + esc(rec.to || '—') + '</span>'
+      + (rec.dist ? '<span style="font-size:0.75rem;font-family:\'DM Mono\',monospace;color:#5B8DD9;margin-left:4px;">' + Number(rec.dist).toFixed(1) + 'km</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+      + (rec.purpose ? '<span style="font-size:0.7rem;background:var(--surface2);color:var(--muted2);border:1px solid var(--border2);border-radius:8px;padding:1px 7px;">' + esc(rec.purpose) + '</span>' : '')
+      + (rec.alcStatus ? '<span style="font-size:0.7rem;background:' + (rec.alcStatus==='飲酒なし'?'rgba(122,158,126,0.12)':rec.alcStatus==='前日飲酒'?'rgba(232,184,75,0.12)':'rgba(192,96,96,0.12)') + ';color:' + (rec.alcStatus==='飲酒なし'?'#7A9E7E':rec.alcStatus==='前日飲酒'?'#E8B84B':'#c06060') + ';border:1px solid;border-radius:8px;padding:1px 7px;">' + esc(rec.alcStatus) + '</span>' : '')
+      + (rec.alcVol && rec.alcPct ? '<span style="font-size:0.68rem;color:var(--muted2);">🍺 ' + rec.alcVol + 'mL/' + rec.alcPct + '%</span>' : '')
+      + (rec.memo ? '<span style="font-size:0.72rem;color:var(--muted2);">' + esc(rec.memo) + '</span>' : '')
+      + '</div>';
+    list.appendChild(div);
+  });
+}
+
+// ── フォーム ──
+window.driveLogToggleForm = function() {
+  _dlogFormOpen = !_dlogFormOpen;
+  const form = document.getElementById('dlog-form');
+  const btn  = document.getElementById('dlog-add-btn');
+  if (form) form.style.display = _dlogFormOpen ? 'block' : 'none';
+  if (btn)  btn.textContent = _dlogFormOpen ? '✕ 閉じる' : '＋ 運転記録を追加';
+  if (_dlogFormOpen) {
+    const di = document.getElementById('dlog-date');
+    if (di && !di.value) di.value = toDateStr(new Date());
+  }
+};
+
+window.driveLogCalcTime = function() {
+  const s = document.getElementById('dlog-start-time')?.value;
+  const e = document.getElementById('dlog-end-time')?.value;
+  const disp = document.getElementById('dlog-duration-display');
+  if (!s || !e || !disp) return;
+  const [sh, sm] = s.split(':').map(Number);
+  const [eh, em] = e.split(':').map(Number);
+  let min = (eh * 60 + em) - (sh * 60 + sm);
+  if (min < 0) min += 24 * 60;
+  disp.textContent = min > 0 ? '⏱ 運転時間：' + (min >= 60 ? Math.floor(min/60) + '時間' + (min%60?min%60+'分':'') : min + '分') : '';
+};
+
+window.driveLogSelectPurpose = function(btn) {
+  document.querySelectorAll('.dlog-purpose-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _dlogPurpose = btn.dataset.val;
+  document.getElementById('dlog-purpose-custom').value = '';
+};
+
+// ── 保存 ──
+window.driveLogSave = async function() {
+  const date     = document.getElementById('dlog-date')?.value;
+  const st       = document.getElementById('dlog-start-time')?.value;
+  const et       = document.getElementById('dlog-end-time')?.value;
+  const from     = document.getElementById('dlog-from')?.value.trim();
+  const to       = document.getElementById('dlog-to')?.value.trim();
+  const dist     = document.getElementById('dlog-dist')?.value;
+  const purC     = document.getElementById('dlog-purpose-custom')?.value.trim();
+  const purpose  = purC || _dlogPurpose;
+  const memo     = document.getElementById('dlog-memo')?.value.trim();
+  const alcTime  = document.getElementById('dlog-alc-time')?.value;
+  const alcVol   = document.getElementById('dlog-alc-vol')?.value;
+  const alcPct   = document.getElementById('dlog-alc-pct')?.value;
+  const alcStatus = document.getElementById('dlog-alc-status')?.value;
+  const msg      = document.getElementById('dlog-save-msg');
+
+  if (!date) { msg.style.color='var(--red)'; msg.textContent='日付を選択してください'; return; }
+  if (!to)   { msg.style.color='var(--red)'; msg.textContent='目的地を入力してください'; return; }
+  if (!window.mdb) { msg.style.color='var(--red)'; msg.textContent='Firebase未接続'; return; }
+
+  // 運転時間（分）を計算
+  let duration = 0;
+  if (st && et) {
+    const [sh, sm] = st.split(':').map(Number);
+    const [eh, em] = et.split(':').map(Number);
+    duration = (eh * 60 + em) - (sh * 60 + sm);
+    if (duration < 0) duration += 24 * 60;
+  }
+
+  const id = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 5);
+  const record = { date, to, ts: Date.now() };
+  if (st)        record.startTime = st;
+  if (et)        record.endTime   = et;
+  if (duration)  record.duration  = duration;
+  if (from)      record.from      = from;
+  if (dist)      record.dist      = Number(dist);
+  if (purpose)   record.purpose   = purpose;
+  if (memo)      record.memo      = memo;
+  // アルコール情報
+  if (alcStatus) record.alcStatus = alcStatus;
+  if (alcTime)   record.alcTime   = alcTime;
+  if (alcVol)    record.alcVol    = Number(alcVol);
+  if (alcPct)    record.alcPct    = Number(alcPct);
+
+  try {
+    await window.mdb.ref(DLOG_DB_KEY + '/' + id).set(record);
+    msg.style.color='var(--green)'; msg.textContent='✅ 保存しました';
+    // フォームリセット
+    ['dlog-start-time','dlog-end-time','dlog-from','dlog-to','dlog-dist','dlog-purpose-custom','dlog-memo',
+     'dlog-alc-time','dlog-alc-vol','dlog-alc-pct'].forEach(id2 => {
+      const el = document.getElementById(id2); if (el) el.value = '';
+    });
+    const alcSel = document.getElementById('dlog-alc-status');
+    if (alcSel) alcSel.value = '';
+    document.querySelectorAll('.dlog-purpose-btn').forEach(b => b.classList.remove('selected'));
+    _dlogPurpose = '';
+    document.getElementById('dlog-duration-display').textContent = '';
+    setTimeout(() => { msg.textContent = ''; driveLogToggleForm(); }, 1200);
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent='エラー: '+e.message; }
+};
+
+// ── 削除 ──
+window.driveLogDelete = async function(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  if (window.mdb) await window.mdb.ref(DLOG_DB_KEY + '/' + id).remove();
+};
+
+// ── PDF印刷 ──
+window.driveLogPrint = function() {
+  const prefix  = _dlogYear + '-' + String(_dlogMonth + 1).padStart(2, '0');
+  const recs    = _dlogRecords.filter(r => r.date && r.date.startsWith(prefix))
+                              .sort((a, b) => a.date.localeCompare(b.date));
+  const count   = recs.length;
+  const dist    = recs.reduce((s, r) => s + (Number(r.dist)||0), 0);
+  const minutes = recs.reduce((s, r) => s + (Number(r.duration)||0), 0);
+  const mLabel  = _dlogYear + '年' + (_dlogMonth + 1) + '月';
+
+  const rows = recs.map((r, i) => {
+    const d   = new Date(r.date + 'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+    const dur = r.duration ? (r.duration >= 60 ? Math.floor(r.duration/60) + 'h' + (r.duration%60?r.duration%60+'m':'') : r.duration + '分') : '—';
+    const alcCell = r.alcStatus
+      ? r.alcStatus + (r.alcVol ? '<br><span style="font-size:7pt;color:#888;">' + r.alcVol + 'mL' + (r.alcPct?'/'+r.alcPct+'%':'') + (r.alcTime?' '+r.alcTime:'') + '</span>' : '')
+      : '—';
+    const alcColor = r.alcStatus === '飲酒なし' ? '#2a6e2a' : r.alcStatus === '前日飲酒' ? '#8a5c00' : r.alcStatus === '当日飲酒' ? '#8a0000' : '#666';
+    return '<tr style="border-bottom:1px solid #ddd;">'
+      + '<td style="padding:5px 8px;text-align:center;">' + (i+1) + '</td>'
+      + '<td style="padding:5px 8px;">' + r.date.replace(/^\d{4}-/, '').replace('-', '/') + '（' + dow + '）</td>'
+      + '<td style="padding:5px 8px;">' + (r.startTime || '') + (r.endTime ? '〜' + r.endTime : '') + '</td>'
+      + '<td style="padding:5px 8px;">' + dur + '</td>'
+      + '<td style="padding:5px 8px;">' + (r.from || '') + '</td>'
+      + '<td style="padding:5px 8px;">' + (r.to || '') + '</td>'
+      + '<td style="padding:5px 8px;text-align:right;">' + (r.dist ? Number(r.dist).toFixed(1) : '—') + '</td>'
+      + '<td style="padding:5px 8px;">' + (r.purpose || '') + '</td>'
+      + '<td style="padding:5px 8px;color:' + alcColor + ';font-weight:' + (r.alcStatus && r.alcStatus !== '飲酒なし' ? '700' : '400') + ';">' + alcCell + '</td>'
+      + '<td style="padding:5px 8px;">' + (r.memo || '') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="UTF-8">
+<title>${mLabel} 運転記録表</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Noto Sans JP','Hiragino Sans',sans-serif; font-size:10pt; color:#000; padding:15mm 12mm; background:#fff; }
+  h1 { font-size:15pt; font-weight:700; margin-bottom:6px; letter-spacing:0.05em; }
+  .subtitle { font-size:9pt; color:#555; margin-bottom:14px; }
+  .summary { display:flex; gap:24px; margin-bottom:16px; padding:8px 12px; background:#f8f8f8; border:1px solid #ddd; border-radius:4px; }
+  .summary-item { text-align:center; }
+  .summary-item .label { font-size:7.5pt; color:#666; }
+  .summary-item .value { font-size:13pt; font-weight:700; color:#333; }
+  table { width:100%; border-collapse:collapse; font-size:8.5pt; }
+  thead { background:#1a1a1a; color:#fff; }
+  thead th { padding:6px 8px; text-align:left; font-weight:500; font-size:8pt; }
+  tbody tr:nth-child(even) { background:#f5f5f5; }
+  tfoot { background:#f0f0f0; font-weight:700; }
+  tfoot td { padding:6px 8px; border-top:2px solid #999; }
+  .footer { margin-top:12px; font-size:7.5pt; color:#999; text-align:right; }
+  @media print {
+    @page { size:A4 landscape; margin:12mm; }
+  }
+</style>
+</head><body>
+<h1>🚗 運転記録表　${mLabel}</h1>
+<div class="subtitle">出力日時：${new Date().toLocaleString('ja-JP')}</div>
+<div class="summary">
+  <div class="summary-item"><div class="label">運転回数</div><div class="value">${count} 回</div></div>
+  <div class="summary-item"><div class="label">総走行距離</div><div class="value">${dist.toFixed(1)} km</div></div>
+  <div class="summary-item"><div class="label">総運転時間</div><div class="value">${minutes >= 60 ? (minutes/60).toFixed(1) + 'h' : minutes + '分'}</div></div>
+</div>
+<table>
+  <thead>
+    <tr>
+      <th style="width:30px;">#</th>
+      <th style="width:80px;">日付</th>
+      <th style="width:90px;">時刻</th>
+      <th style="width:50px;">時間</th>
+      <th style="width:80px;">出発地</th>
+      <th style="width:100px;">目的地</th>
+      <th style="width:50px;text-align:right;">距離(km)</th>
+      <th style="width:60px;">目的</th>
+      <th style="width:80px;">飲酒確認</th>
+      <th>メモ</th>
+    </tr>
+  </thead>
+  <tbody>${rows || '<tr><td colspan="10" style="padding:12px;text-align:center;color:#999;">記録がありません</td></tr>'}</tbody>
+  <tfoot>
+    <tr>
+      <td colspan="6" style="text-align:right;">合計</td>
+      <td style="text-align:right;">${dist.toFixed(1)}</td>
+      <td colspan="3">${count}件 / ${minutes >= 60 ? (minutes/60).toFixed(1)+'h' : minutes+'分'}</td>
+    </tr>
+  </tfoot>
+</table>
+<div class="footer">※ この記録表はアプリから自動生成されました</div>
+<script>window.onload=()=>{window.print();}<\/script>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=650');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
 };
 
 // ════ 通勤モード ════
