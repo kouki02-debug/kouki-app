@@ -113,6 +113,12 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 /* 運転記録 */
 .dlog-purpose-btn { padding:6px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); font-size:0.75rem; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans JP',sans-serif; }
 .dlog-purpose-btn.selected { background:rgba(200,169,110,0.15); border-color:var(--accent); color:var(--accent); font-weight:700; }
+/* 車体点検 */
+.insp-type-btn { padding:6px 10px; background:var(--surface2); border:1px solid var(--border2); border-radius:8px; color:var(--muted2); font-size:0.75rem; cursor:pointer; transition:all 0.15s; font-family:'Noto Sans JP',sans-serif; }
+.insp-type-btn.selected { background:rgba(200,169,110,0.15); border-color:var(--accent); color:var(--accent); font-weight:700; }
+.insp-check-row { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:6px; background:var(--surface2); }
+.insp-check-row label { flex:1; font-size:0.8rem; color:var(--text); cursor:pointer; }
+.insp-check-row select { background:var(--surface); border:1px solid var(--border2); border-radius:6px; padding:2px 6px; font-size:0.72rem; color:var(--text); outline:none; }
 /* 印刷専用スタイル */
 @media print {
   body > * { display:none !important; }
@@ -725,6 +731,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="wtab" id="dtab-commute" onclick="switchDriveTab('commute')">🚌 通勤</button>
     <button class="wtab" id="dtab-music" onclick="switchDriveTab('music')">🎵 音楽</button>
     <button class="wtab" id="dtab-log" onclick="switchDriveTab('log')">📋 記録</button>
+    <button class="wtab" id="dtab-inspection" onclick="switchDriveTab('inspection')">🔧 点検</button>
     <button class="wtab" id="dtab-settings" onclick="switchDriveTab('settings')">⚙️ 設定</button>
   </div>
 
@@ -1010,9 +1017,27 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
             <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">目的地</div>
             <input type="text" id="dlog-to" placeholder="例：〇〇病院、川越駅" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
           </div>
-          <div>
-            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">走行距離（km）</div>
-            <input type="number" id="dlog-dist" placeholder="例：12.5" min="0" step="0.1" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+          <!-- 航続距離→走行距離自動算出 -->
+          <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:12px;">
+            <div style="font-size:0.78rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">⛽ 航続距離（走行距離を自動算出）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">出発前の航続距離（km）</div>
+                <input type="number" id="dlog-range-before" placeholder="例：320" min="0" step="1"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;"
+                  oninput="driveLogCalcDist()">
+              </div>
+              <div>
+                <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">到着後の航続距離（km）</div>
+                <input type="number" id="dlog-range-after" placeholder="例：295" min="0" step="1"
+                  style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;"
+                  oninput="driveLogCalcDist()">
+              </div>
+            </div>
+            <div id="dlog-dist-display" style="text-align:center;font-size:0.82rem;color:#5B8DD9;min-height:18px;margin-bottom:6px;"></div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:3px;">走行距離（km）※自動入力されます</div>
+            <input type="number" id="dlog-dist" placeholder="航続距離から自動計算" min="0" step="0.1"
+              style="width:100%;background:var(--surface2);border:1px solid rgba(91,141,217,0.3);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.9rem;outline:none;">
           </div>
           <div>
             <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">運転目的</div>
@@ -1080,6 +1105,144 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <!-- 記録一覧 -->
     <div class="sec-title" style="margin-bottom:10px;">📋 今月の運転記録</div>
     <div id="dlog-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+  </div>
+
+  <!-- ═══ 車体検査記録タブ ═══ -->
+  <div id="dsec-inspection" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+    <!-- ヘッダー -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button onclick="inspChangeMonth(-1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">‹</button>
+        <span id="insp-month-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--text);font-weight:700;min-width:80px;text-align:center;"></span>
+        <button onclick="inspChangeMonth(1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">›</button>
+      </div>
+      <button onclick="inspPrint()"
+        style="padding:8px 14px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.85rem;cursor:pointer;font-weight:700;">
+        📄 PDF印刷
+      </button>
+    </div>
+
+    <!-- 記録追加ボタン -->
+    <button onclick="inspToggleForm()" id="insp-add-btn"
+      style="width:100%;padding:12px;background:rgba(200,169,110,0.08);border:1px dashed var(--accent);border-radius:var(--radius);color:var(--accent);font-family:'Shippori Mincho',serif;font-size:0.9rem;cursor:pointer;margin-bottom:14px;transition:all 0.2s;">
+      ＋ 車体点検を記録する
+    </button>
+
+    <!-- 点検フォーム -->
+    <div id="insp-form" style="display:none;">
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:var(--accent);margin-bottom:12px;">🔧 車体点検記録</div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+
+          <!-- 日付・走行距離 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">点検日</div>
+              <input type="date" id="insp-date" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">走行距離（km）</div>
+              <input type="number" id="insp-odometer" placeholder="例：45000" min="0"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+            </div>
+          </div>
+
+          <!-- 点検区分 -->
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">点検区分</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <button class="insp-type-btn" data-val="日常点検" onclick="inspSelectType(this)">📅 日常点検</button>
+              <button class="insp-type-btn" data-val="3ヶ月点検" onclick="inspSelectType(this)">🔄 3ヶ月点検</button>
+              <button class="insp-type-btn" data-val="6ヶ月点検" onclick="inspSelectType(this)">🔄 6ヶ月点検</button>
+              <button class="insp-type-btn" data-val="12ヶ月点検" onclick="inspSelectType(this)">📋 12ヶ月点検</button>
+              <button class="insp-type-btn" data-val="車検" onclick="inspSelectType(this)">🏆 車検</button>
+            </div>
+          </div>
+
+          <!-- ▼ 国が定める車両点検チェックリスト ▼ -->
+          <div style="font-size:0.78rem;color:var(--accent);font-weight:700;margin-top:4px;padding-bottom:4px;border-bottom:1px solid var(--border);">🔍 点検チェックリスト（国土交通省 日常点検基準）</div>
+
+          <!-- エンジンルーム -->
+          <div>
+            <div style="font-size:0.72rem;color:#E8B84B;font-weight:700;margin-bottom:6px;">🔧 エンジンルーム</div>
+            <div style="display:flex;flex-direction:column;gap:4px;" id="insp-checks-engine"></div>
+          </div>
+
+          <!-- 足回り・ブレーキ -->
+          <div>
+            <div style="font-size:0.72rem;color:#5B8DD9;font-weight:700;margin-bottom:6px;">🛞 足回り・ブレーキ</div>
+            <div style="display:flex;flex-direction:column;gap:4px;" id="insp-checks-brake"></div>
+          </div>
+
+          <!-- 灯火類 -->
+          <div>
+            <div style="font-size:0.72rem;color:#7A9E7E;font-weight:700;margin-bottom:6px;">💡 灯火類</div>
+            <div style="display:flex;flex-direction:column;gap:4px;" id="insp-checks-light"></div>
+          </div>
+
+          <!-- 外観 -->
+          <div>
+            <div style="font-size:0.72rem;color:#ff69b4;font-weight:700;margin-bottom:6px;">🚘 外観・その他</div>
+            <div style="display:flex;flex-direction:column;gap:4px;" id="insp-checks-exterior"></div>
+          </div>
+
+          <!-- ガソリン・洗車 -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">⛽ ガソリン給油</div>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <input type="number" id="insp-fuel-liters" placeholder="リットル" min="0" step="0.1"
+                  style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.85rem;outline:none;">
+                <span style="font-size:0.75rem;color:var(--muted2);">L</span>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🚿 洗車</div>
+              <select id="insp-wash"
+                style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;color:var(--text);font-size:0.85rem;outline:none;">
+                <option value="">なし</option>
+                <option value="手洗い洗車">手洗い洗車</option>
+                <option value="機械洗車">機械洗車</option>
+                <option value="簡易清掃">簡易清掃</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 傷・異常の記録 -->
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🔴 傷・異常の記録</div>
+            <textarea id="insp-damage" rows="3" placeholder="発見した傷、異常箇所を記入してください。場所・大きさ・状態など"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;resize:none;line-height:1.5;"></textarea>
+          </div>
+
+          <!-- 整備・修理内容 -->
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">🔩 整備・修理内容</div>
+            <textarea id="insp-repair" rows="2" placeholder="実施した整備や修理を記入してください"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;resize:none;line-height:1.5;"></textarea>
+          </div>
+
+          <!-- 次回点検予定 -->
+          <div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:4px;">📅 次回点検予定日（任意）</div>
+            <input type="date" id="insp-next"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;">
+          </div>
+
+          <!-- 保存 -->
+          <div style="display:flex;gap:8px;">
+            <button onclick="inspSave()" style="flex:1;padding:11px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;cursor:pointer;font-weight:700;">💾 保存</button>
+            <button onclick="inspToggleForm()" style="padding:11px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;color:var(--muted2);font-size:0.88rem;cursor:pointer;">キャンセル</button>
+          </div>
+          <div id="insp-save-msg" style="font-size:0.78rem;text-align:center;min-height:16px;color:var(--green);"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 記録一覧 -->
+    <div class="sec-title" style="margin-bottom:10px;">🔧 点検記録一覧</div>
+    <div id="insp-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
   </div>
 
 </div>
@@ -3017,7 +3180,7 @@ function updatePassengerView(state) {
 
 // ════ 運転タブ切り替え ════
 window.switchDriveTab = function(tab) {
-  ['driver','commute','music','log','settings'].forEach(t => {
+  ['driver','commute','music','log','inspection','settings'].forEach(t => {
     const sec = document.getElementById('dsec-'+t);
     const btn = document.getElementById('dtab-'+t);
     if (sec) sec.style.display = t === tab ? 'block' : 'none';
@@ -3027,6 +3190,7 @@ window.switchDriveTab = function(tab) {
   if (tab === 'commute') setTimeout(initCommuteMap, 100);
   if (tab === 'music') initMusicTab();
   if (tab === 'log') initDriveLog();
+  if (tab === 'inspection') initInspection();
   if (tab === 'settings') initDriveVoiceSelect();
 };
 
@@ -3162,6 +3326,26 @@ window.driveLogCalcTime = function() {
   disp.textContent = min > 0 ? '⏱ 運転時間：' + (min >= 60 ? Math.floor(min/60) + '時間' + (min%60?min%60+'分':'') : min + '分') : '';
 };
 
+// 航続距離から走行距離を自動算出
+window.driveLogCalcDist = function() {
+  const before = parseFloat(document.getElementById('dlog-range-before')?.value);
+  const after  = parseFloat(document.getElementById('dlog-range-after')?.value);
+  const disp   = document.getElementById('dlog-dist-display');
+  const distEl = document.getElementById('dlog-dist');
+  if (!isNaN(before) && !isNaN(after)) {
+    const diff = before - after;
+    if (diff >= 0) {
+      if (disp) disp.textContent = '🚗 走行距離：' + diff.toFixed(1) + ' km';
+      if (distEl) distEl.value = diff.toFixed(1);
+    } else {
+      if (disp) disp.textContent = '⚠️ 到着後の航続距離が出発前より大きい値です';
+      if (distEl) distEl.value = '';
+    }
+  } else {
+    if (disp) disp.textContent = '';
+  }
+};
+
 window.driveLogSelectPurpose = function(btn) {
   document.querySelectorAll('.dlog-purpose-btn').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -3184,6 +3368,8 @@ window.driveLogSave = async function() {
   const alcVol   = document.getElementById('dlog-alc-vol')?.value;
   const alcPct   = document.getElementById('dlog-alc-pct')?.value;
   const alcStatus = document.getElementById('dlog-alc-status')?.value;
+  const rangeBefore = document.getElementById('dlog-range-before')?.value;
+  const rangeAfter  = document.getElementById('dlog-range-after')?.value;
   const msg      = document.getElementById('dlog-save-msg');
 
   if (!date) { msg.style.color='var(--red)'; msg.textContent='日付を選択してください'; return; }
@@ -3213,13 +3399,15 @@ window.driveLogSave = async function() {
   if (alcTime)   record.alcTime   = alcTime;
   if (alcVol)    record.alcVol    = Number(alcVol);
   if (alcPct)    record.alcPct    = Number(alcPct);
+  if (rangeBefore) record.rangeBefore = Number(rangeBefore);
+  if (rangeAfter)  record.rangeAfter  = Number(rangeAfter);
 
   try {
     await window.mdb.ref(DLOG_DB_KEY + '/' + id).set(record);
     msg.style.color='var(--green)'; msg.textContent='✅ 保存しました';
     // フォームリセット
     ['dlog-start-time','dlog-end-time','dlog-from','dlog-to','dlog-dist','dlog-purpose-custom','dlog-memo',
-     'dlog-alc-time','dlog-alc-vol','dlog-alc-pct'].forEach(id2 => {
+     'dlog-alc-time','dlog-alc-vol','dlog-alc-pct','dlog-range-before','dlog-range-after'].forEach(id2 => {
       const el = document.getElementById(id2); if (el) el.value = '';
     });
     const alcSel = document.getElementById('dlog-alc-status');
@@ -3330,6 +3518,289 @@ window.driveLogPrint = function() {
 </body></html>`;
 
   const w = window.open('', '_blank', 'width=900,height=650');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
+};
+
+// ════ 車体検査記録 ════
+const INSP_DB_KEY = 'kouki-app/inspection';
+let _inspRecords = [];
+let _inspLoaded  = false;
+let _inspYear, _inspMonth;
+let _inspFormOpen = false;
+let _inspType = '';
+
+(function() {
+  const n = new Date();
+  _inspYear  = n.getFullYear();
+  _inspMonth = n.getMonth();
+})();
+
+// 点検項目定義（国土交通省 日常点検基準に準拠）
+const INSP_ITEMS = {
+  engine: [
+    { id:'oil',      label:'エンジンオイル量・汚れ' },
+    { id:'coolant',  label:'冷却水（クーラント）量' },
+    { id:'brake_f',  label:'ブレーキ液量' },
+    { id:'battery',  label:'バッテリー液量・端子' },
+    { id:'belt',     label:'ファンベルトの張り・損傷' },
+    { id:'airfilter', label:'エアフィルターの汚れ' },
+  ],
+  brake: [
+    { id:'brake_pad',   label:'ブレーキパッドの摩耗' },
+    { id:'brake_op',    label:'ブレーキの効き・踏み代' },
+    { id:'parking',     label:'パーキングブレーキの効き' },
+    { id:'tire_pres',   label:'タイヤ空気圧' },
+    { id:'tire_wear',   label:'タイヤの摩耗・損傷・亀裂' },
+    { id:'wheel_bolt',  label:'ホイールボルト・ナット' },
+  ],
+  light: [
+    { id:'head',     label:'ヘッドライト（ハイ/ロー）' },
+    { id:'tail',     label:'テールランプ' },
+    { id:'brake_l',  label:'ブレーキランプ' },
+    { id:'turn',     label:'ウインカー（前後左右）' },
+    { id:'hazard',   label:'ハザードランプ' },
+    { id:'reverse',  label:'バックランプ' },
+    { id:'fog',      label:'フォグランプ（装備時）' },
+  ],
+  exterior: [
+    { id:'wiper',    label:'ワイパーブレード・液量' },
+    { id:'horn',     label:'ホーンの鳴り' },
+    { id:'mirror',   label:'ミラーの調整・破損' },
+    { id:'glass',    label:'フロント/リアガラスの状態' },
+    { id:'door',     label:'ドア・ボンネットのロック' },
+    { id:'exhaust',  label:'排気ガスの色・異臭' },
+  ],
+};
+
+const INSP_RESULT_OPTS = [
+  { val:'良好', color:'#7A9E7E' },
+  { val:'要注意', color:'#E8B84B' },
+  { val:'要修理', color:'#c06060' },
+  { val:'対象外', color:'var(--muted)' },
+];
+
+function initInspection() {
+  renderInspChecklist();
+  renderInspList();
+  const di = document.getElementById('insp-date');
+  if (di && !di.value) di.value = toDateStr(new Date());
+  if (!_inspLoaded) loadInspRecords();
+}
+
+function renderInspChecklist() {
+  Object.entries(INSP_ITEMS).forEach(([group, items]) => {
+    const el = document.getElementById('insp-checks-' + group);
+    if (!el) return;
+    el.innerHTML = '';
+    items.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'insp-check-row';
+      row.innerHTML = '<label for="insp-' + item.id + '">' + item.label + '</label>'
+        + '<select id="insp-' + item.id + '">'
+        + INSP_RESULT_OPTS.map(o => '<option value="' + o.val + '">' + o.val + '</option>').join('')
+        + '</select>';
+      el.appendChild(row);
+    });
+  });
+}
+
+function loadInspRecords() {
+  if (!window.mdb) { setTimeout(loadInspRecords, 800); return; }
+  window.mdb.ref(INSP_DB_KEY).on('value', snap => {
+    const data = snap.val();
+    _inspRecords = data
+      ? Object.entries(data).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.date.localeCompare(a.date))
+      : [];
+    _inspLoaded = true;
+    renderInspList();
+  });
+}
+
+window.inspChangeMonth = function(dir) {
+  _inspMonth += dir;
+  if (_inspMonth > 11) { _inspMonth = 0; _inspYear++; }
+  if (_inspMonth < 0)  { _inspMonth = 11; _inspYear--; }
+  renderInspList();
+};
+
+function renderInspList() {
+  const label = document.getElementById('insp-month-label');
+  if (label) label.textContent = _inspYear + '年' + (_inspMonth + 1) + '月';
+
+  const list = document.getElementById('insp-list');
+  if (!list) return;
+  const prefix = _inspYear + '-' + String(_inspMonth + 1).padStart(2, '0');
+  const recs = _inspRecords.filter(r => r.date && r.date.startsWith(prefix));
+
+  if (!recs.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">🔧</span>点検記録がありません</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  recs.forEach(rec => {
+    const d   = new Date(rec.date + 'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+
+    // チェック結果サマリー
+    const allChecks = Object.values(INSP_ITEMS).flat();
+    let good = 0, warn = 0, bad = 0;
+    allChecks.forEach(item => {
+      const v = rec.checks?.[item.id];
+      if (v === '良好') good++;
+      else if (v === '要注意') warn++;
+      else if (v === '要修理') bad++;
+    });
+
+    const div = document.createElement('div');
+    div.style.cssText = 'background:var(--surface);border:1px solid var(--border);border-left:3px solid ' + (bad > 0 ? '#c06060' : warn > 0 ? '#E8B84B' : '#7A9E7E') + ';border-radius:10px;padding:12px 14px;';
+    div.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+      + '<div style="display:flex;align-items:center;gap:8px;">'
+      + '<span style="font-size:0.82rem;color:var(--muted2);font-family:\'DM Mono\',monospace;">' + (d.getMonth()+1) + '/' + d.getDate() + '（' + dow + '）</span>'
+      + (rec.type ? '<span style="font-size:0.72rem;background:rgba(200,169,110,0.1);color:var(--accent);border:1px solid rgba(200,169,110,0.3);border-radius:8px;padding:1px 7px;">' + esc(rec.type) + '</span>' : '')
+      + (rec.odometer ? '<span style="font-size:0.72rem;color:var(--muted2);">📍' + Number(rec.odometer).toLocaleString() + 'km</span>' : '')
+      + '</div>'
+      + '<button onclick="inspDelete(\'' + rec.id + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.82rem;padding:2px 6px;">✕</button>'
+      + '</div>'
+      // チェック結果バッジ
+      + '<div style="display:flex;gap:5px;margin-bottom:6px;">'
+      + (good > 0 ? '<span style="font-size:0.68rem;background:rgba(122,158,126,0.12);color:#7A9E7E;border:1px solid #7A9E7E44;border-radius:8px;padding:1px 7px;">✅ 良好 ' + good + '件</span>' : '')
+      + (warn > 0 ? '<span style="font-size:0.68rem;background:rgba(232,184,75,0.12);color:#E8B84B;border:1px solid #E8B84B44;border-radius:8px;padding:1px 7px;">⚠️ 要注意 ' + warn + '件</span>' : '')
+      + (bad  > 0 ? '<span style="font-size:0.68rem;background:rgba(192,96,96,0.12);color:#c06060;border:1px solid #c0606044;border-radius:8px;padding:1px 7px;">🔴 要修理 ' + bad + '件</span>' : '')
+      + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;">'
+      + (rec.fuelLiters ? '<span style="font-size:0.72rem;color:var(--muted2);">⛽ ' + rec.fuelLiters + 'L給油</span>' : '')
+      + (rec.wash ? '<span style="font-size:0.72rem;color:var(--muted2);">🚿 ' + esc(rec.wash) + '</span>' : '')
+      + (rec.damage ? '<span style="font-size:0.72rem;color:#c06060;">🔴 ' + esc(rec.damage).slice(0, 20) + (rec.damage.length > 20 ? '…' : '') + '</span>' : '')
+      + (rec.nextDate ? '<span style="font-size:0.72rem;color:#5B8DD9;">📅 次回:' + rec.nextDate + '</span>' : '')
+      + '</div>';
+    list.appendChild(div);
+  });
+}
+
+window.inspToggleForm = function() {
+  _inspFormOpen = !_inspFormOpen;
+  const form = document.getElementById('insp-form');
+  const btn  = document.getElementById('insp-add-btn');
+  if (form) form.style.display = _inspFormOpen ? 'block' : 'none';
+  if (btn)  btn.textContent = _inspFormOpen ? '✕ 閉じる' : '＋ 車体点検を記録する';
+};
+
+window.inspSelectType = function(btn) {
+  document.querySelectorAll('.insp-type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  _inspType = btn.dataset.val;
+};
+
+window.inspSave = async function() {
+  const date     = document.getElementById('insp-date')?.value;
+  const odometer = document.getElementById('insp-odometer')?.value;
+  const fuelLiters = document.getElementById('insp-fuel-liters')?.value;
+  const wash     = document.getElementById('insp-wash')?.value;
+  const damage   = document.getElementById('insp-damage')?.value.trim();
+  const repair   = document.getElementById('insp-repair')?.value.trim();
+  const nextDate = document.getElementById('insp-next')?.value;
+  const msg      = document.getElementById('insp-save-msg');
+
+  if (!date) { msg.style.color='var(--red)'; msg.textContent='点検日を選択してください'; return; }
+  if (!window.mdb) { msg.style.color='var(--red)'; msg.textContent='Firebase未接続'; return; }
+
+  // チェック結果を収集
+  const checks = {};
+  Object.values(INSP_ITEMS).flat().forEach(item => {
+    const el = document.getElementById('insp-' + item.id);
+    if (el) checks[item.id] = el.value;
+  });
+
+  const id = Date.now().toString() + '_' + Math.random().toString(36).slice(2, 5);
+  const record = { date, checks, ts: Date.now() };
+  if (_inspType)   record.type      = _inspType;
+  if (odometer)    record.odometer  = Number(odometer);
+  if (fuelLiters)  record.fuelLiters = Number(fuelLiters);
+  if (wash)        record.wash      = wash;
+  if (damage)      record.damage    = damage;
+  if (repair)      record.repair    = repair;
+  if (nextDate)    record.nextDate  = nextDate;
+
+  try {
+    await window.mdb.ref(INSP_DB_KEY + '/' + id).set(record);
+    msg.style.color='var(--green)'; msg.textContent='✅ 保存しました';
+    setTimeout(() => { msg.textContent = ''; inspToggleForm(); }, 1200);
+  } catch(e) { msg.style.color='var(--red)'; msg.textContent='エラー: '+e.message; }
+};
+
+window.inspDelete = async function(id) {
+  if (!confirm('この点検記録を削除しますか？')) return;
+  if (window.mdb) await window.mdb.ref(INSP_DB_KEY + '/' + id).remove();
+};
+
+// ── 車体検査 PDF印刷 ──
+window.inspPrint = function() {
+  const prefix = _inspYear + '-' + String(_inspMonth + 1).padStart(2, '0');
+  const recs   = _inspRecords.filter(r => r.date && r.date.startsWith(prefix)).sort((a,b) => a.date.localeCompare(b.date));
+  const mLabel = _inspYear + '年' + (_inspMonth + 1) + '月';
+  const allItems = Object.values(INSP_ITEMS).flat();
+
+  const resultIcon = v => v === '良好' ? '✅' : v === '要注意' ? '⚠️' : v === '要修理' ? '🔴' : v === '対象外' ? '—' : '';
+
+  const rows = recs.map((r, i) => {
+    const d   = new Date(r.date + 'T00:00:00');
+    const dow = ['日','月','火','水','木','金','土'][d.getDay()];
+    const checkCols = allItems.map(item => {
+      const v = r.checks?.[item.id] || '—';
+      const color = v==='良好'?'#2a6e2a':v==='要注意'?'#8a5c00':v==='要修理'?'#8a0000':'#888';
+      return '<td style="padding:3px 5px;text-align:center;font-size:7.5pt;color:' + color + ';">' + resultIcon(v) + '</td>';
+    }).join('');
+    return '<tr style="border-bottom:1px solid #eee;">'
+      + '<td style="padding:3px 6px;font-size:8pt;">' + (i+1) + '</td>'
+      + '<td style="padding:3px 6px;font-size:8pt;">' + r.date.replace(/^\d{4}-/,'').replace('-','/') + '（' + dow + '）</td>'
+      + '<td style="padding:3px 6px;font-size:7.5pt;">' + (r.type||'') + '</td>'
+      + '<td style="padding:3px 6px;font-size:7.5pt;text-align:right;">' + (r.odometer ? r.odometer.toLocaleString() : '') + '</td>'
+      + checkCols
+      + '<td style="padding:3px 6px;font-size:7.5pt;">' + (r.fuelLiters ? r.fuelLiters+'L' : '') + '</td>'
+      + '<td style="padding:3px 6px;font-size:7.5pt;">' + (r.wash||'') + '</td>'
+      + '<td style="padding:3px 6px;font-size:7pt;color:#c00;">' + (r.damage||'') + '</td>'
+      + '<td style="padding:3px 6px;font-size:7pt;">' + (r.repair||'') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  const headerCols = allItems.map(item =>
+    '<th style="padding:3px 4px;font-size:6.5pt;font-weight:500;writing-mode:vertical-rl;white-space:nowrap;max-height:60px;">' + item.label + '</th>'
+  ).join('');
+
+  const html = '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>' + mLabel + ' 車体検査記録</title>'
+    + '<style>*{box-sizing:border-box;margin:0;padding:0;}'
+    + 'body{font-family:\'Noto Sans JP\',\'Hiragino Sans\',sans-serif;font-size:9pt;color:#000;padding:10mm 8mm;background:#fff;}'
+    + 'h1{font-size:13pt;font-weight:700;margin-bottom:4px;}  .subtitle{font-size:8pt;color:#555;margin-bottom:10px;}'
+    + 'table{width:100%;border-collapse:collapse;}'
+    + 'thead{background:#1a1a1a;color:#fff;}'
+    + 'thead th{padding:4px;text-align:left;font-size:7pt;}'
+    + 'tbody tr:nth-child(even){background:#f7f7f7;}'
+    + '.footer{margin-top:10px;font-size:7pt;color:#999;text-align:right;}'
+    + '@media print{@page{size:A3 landscape;margin:8mm;}}'
+    + '</style></head><body>'
+    + '<h1>🔧 車体検査記録　' + mLabel + '</h1>'
+    + '<div class="subtitle">出力日時：' + new Date().toLocaleString('ja-JP') + '　合計 ' + recs.length + '件</div>'
+    + '<table><thead><tr>'
+    + '<th style="width:22px;">#</th>'
+    + '<th style="width:70px;">日付</th>'
+    + '<th style="width:55px;">区分</th>'
+    + '<th style="width:55px;text-align:right;">距離(km)</th>'
+    + headerCols
+    + '<th style="width:40px;">給油</th>'
+    + '<th style="width:45px;">洗車</th>'
+    + '<th>傷・異常</th>'
+    + '<th>整備内容</th>'
+    + '</tr></thead>'
+    + '<tbody>' + (rows || '<tr><td colspan="' + (allItems.length + 8) + '" style="padding:10px;text-align:center;color:#999;">記録がありません</td></tr>') + '</tbody>'
+    + '</table>'
+    + '<div class="footer">✅良好 ⚠️要注意 🔴要修理</div>'
+    + '<script>window.onload=()=>{window.print();}<\/script>'
+    + '</body></html>';
+
+  const w = window.open('', '_blank', 'width=1100,height=700');
   if (w) { w.document.write(html); w.document.close(); }
   else alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
 };
