@@ -704,6 +704,25 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div id="diary-pass-msg" style="font-size:0.72rem;color:var(--green);margin-top:6px;min-height:14px;"></div>
     </div>
 
+    <!-- 週次レポートPDFアップロード -->
+    <div class="card" style="margin-top:12px;background:rgba(91,141,217,0.03);border:1px solid rgba(91,141,217,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#5B8DD9;">📄 週次レポートPDF</div>
+        <button onclick="document.getElementById('weekly-pdf-input').click()"
+          style="padding:6px 12px;background:rgba(91,141,217,0.12);border:1px solid rgba(91,141,217,0.3);border-radius:20px;color:#5B8DD9;font-size:0.75rem;cursor:pointer;white-space:nowrap;">
+          ＋ アップロード
+        </button>
+        <input type="file" id="weekly-pdf-input" accept="application/pdf" multiple style="display:none"
+          onchange="loveWeeklyUpload(this)">
+      </div>
+      <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;line-height:1.5;">
+        週次レポートをアップロードすると、内容が発展記録タブに自動反映されます。
+      </div>
+      <!-- アップロード済みリスト -->
+      <div id="weekly-pdf-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;"></div>
+      <div id="weekly-pdf-status" style="font-size:0.75rem;text-align:center;min-height:16px;color:var(--muted2);"></div>
+    </div>
+
   </div>
 </div>
 
@@ -7167,6 +7186,24 @@ let _loveProgress = null;
 
 function loveSwitchTab_load() {
   _loveProgress = loadLoveProgress();
+  // Firebase から週次PDFのテキストを取得してから反映
+  if (window.mdb && !_weeklyPdfs.length) {
+    window.mdb.ref(WEEKLY_PDF_DB_KEY).once('value', snap => {
+      const data = snap.val();
+      if (data) {
+        _weeklyPdfs = Object.entries(data).map(([id,v]) => ({id,...v}))
+          .sort((a,b) => b.date.localeCompare(a.date));
+      }
+      _doRenderProgress();
+    }).catch(() => _doRenderProgress());
+  } else {
+    loadWeeklyPdfs();
+    _doRenderProgress();
+  }
+}
+
+function _doRenderProgress() {
+  loveReflectAllToProgress();
   renderLoveStages();
   renderLoveGauge();
   renderLoveRoadmap();
@@ -7728,6 +7765,7 @@ function loveDiaryInit() {
     _loveDiaryLoad();
     loveDiaryRenderMonth();
     loveDiaryRenderList();
+    renderWeeklyPdfList();
     const di = document.getElementById('diary-date');
     if (di && !di.value) di.value = toDateStr(new Date());
   });
@@ -7837,10 +7875,8 @@ window.loveDiarySave = async function() {
     msg.style.color='var(--green)'; msg.textContent='✅ 記録しました';
     setTimeout(() => {
       loveDiaryToggleForm();
-      // 発展記録タブが開いていれば最近の動きを更新
-      if (document.getElementById('lsec-progress')?.style.display !== 'none') {
-        renderLoveRecentDiary();
-      }
+      // 記録表の内容を発展記録に反映
+      loveReflectAllToProgress();
     }, 1200);
   } catch(e) { msg.style.color='var(--red)'; msg.textContent='エラー: '+e.message; }
 };
@@ -7916,6 +7952,264 @@ function loveDiaryRenderList() {
       + (rec.memo     ? '<div style="font-size:0.75rem;color:var(--muted2);line-height:1.5;margin-top:4px;padding-top:6px;border-top:1px solid var(--border);">📝 ' + esc(rec.memo) + '</div>' : '');
     list.appendChild(div);
   });
+}
+
+// ════ 週次レポートPDF管理 ════
+const WEEKLY_PDF_DB_KEY  = 'kouki-app/love_weekly_pdfs';
+const WEEKLY_PDF_LS      = 'kouki_love_weekly_pdfs';
+const WEEKLY_STORAGE_DIR = 'love_weekly/';
+
+let _weeklyPdfs = []; // [{id, name, date, text, uploadedAt}]
+
+function loadWeeklyPdfs() {
+  try {
+    const s = localStorage.getItem(WEEKLY_PDF_LS);
+    _weeklyPdfs = s ? JSON.parse(s) : [];
+  } catch { _weeklyPdfs = []; }
+}
+
+function saveWeeklyPdfs() {
+  // テキストは長いのでlocalStorageはメタのみ
+  const meta = _weeklyPdfs.map(p => ({ id: p.id, name: p.name, date: p.date, uploadedAt: p.uploadedAt, hasText: !!p.text }));
+  localStorage.setItem(WEEKLY_PDF_LS, JSON.stringify(meta));
+  if (window.mdb) {
+    const data = {};
+    _weeklyPdfs.forEach(p => { data[p.id] = { name: p.name, date: p.date, uploadedAt: p.uploadedAt, text: p.text || '' }; });
+    window.mdb.ref(WEEKLY_PDF_DB_KEY).set(data).catch(()=>{});
+  }
+}
+
+// PDFからテキストを抽出（pdf.jsを使う）
+async function extractPdfText(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        if (typeof pdfjsLib === 'undefined') {
+          // pdf.js未ロードならファイル名だけ返す
+          resolve('');
+          return;
+        }
+        const pdf = await pdfjsLib.getDocument({ data: new Uint8Array(e.target.result) }).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          fullText += content.items.map(item => item.str).join(' ') + '\n';
+        }
+        resolve(fullText.trim());
+      } catch { resolve(''); }
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+window.loveWeeklyUpload = async function(input) {
+  if (!input.files.length) return;
+  const status = document.getElementById('weekly-pdf-status');
+  if (status) { status.style.color='var(--muted2)'; status.textContent='📄 アップロード中...'; }
+
+  loadWeeklyPdfs();
+
+  for (const file of Array.from(input.files)) {
+    const id   = Date.now().toString() + '_' + Math.random().toString(36).slice(2,5);
+    const name = file.name;
+    // アップロード日から週次レポートの基準日を推定
+    const dateMatch = name.match(/(\d{4})[-_]?(\d{2})[-_]?(\d{2})/);
+    const date = dateMatch ? `${dateMatch[1]}-${dateMatch[2]}-${dateMatch[3]}` : toDateStr(new Date());
+
+    // テキスト抽出
+    const text = await extractPdfText(file);
+
+    // Firebase Storageにアップロード
+    let storageUrl = '';
+    if (window.mfs) {
+      try {
+        const ref = window.mfs.ref(WEEKLY_STORAGE_DIR + id + '.pdf');
+        await ref.put(file);
+        storageUrl = await ref.getDownloadURL();
+      } catch(e) { console.warn('Storage upload failed', e); }
+    }
+
+    const record = { id, name, date, text, uploadedAt: Date.now(), storageUrl };
+    _weeklyPdfs.push(record);
+  }
+
+  // 日付降順でソート
+  _weeklyPdfs.sort((a,b) => b.date.localeCompare(a.date));
+  saveWeeklyPdfs();
+  renderWeeklyPdfList();
+  // 発展記録に反映
+  loveReflectAllToProgress();
+  if (status) { status.style.color='var(--green)'; status.textContent='✅ アップロードしました'; setTimeout(()=>{ status.textContent=''; },2500); }
+  input.value = '';
+};
+
+function renderWeeklyPdfList() {
+  const el = document.getElementById('weekly-pdf-list');
+  if (!el) return;
+  loadWeeklyPdfs();
+  if (!_weeklyPdfs.length) {
+    el.innerHTML = '<div style="font-size:0.78rem;color:var(--muted2);text-align:center;padding:8px;">まだアップロードされていません</div>';
+    return;
+  }
+  el.innerHTML = _weeklyPdfs.map(p => {
+    const d = new Date(p.uploadedAt);
+    const dateStr = p.date ? p.date.replace(/-/g,'/') : '';
+    return '<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;">'
+      + '<span style="font-size:0.88rem;">📄</span>'
+      + '<div style="flex:1;min-width:0;">'
+      + '<div style="font-size:0.78rem;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(p.name) + '</div>'
+      + (dateStr ? '<div style="font-size:0.65rem;color:var(--muted2);">対象期間基準: ' + dateStr + '</div>' : '')
+      + '</div>'
+      + (p.storageUrl ? '<a href="' + p.storageUrl + '" target="_blank" style="font-size:0.7rem;color:#5B8DD9;text-decoration:none;white-space:nowrap;">開く</a>' : '')
+      + '<button onclick="loveWeeklyDelete(\'' + p.id + '\')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.82rem;padding:2px 5px;">✕</button>'
+      + '</div>';
+  }).join('');
+}
+
+window.loveWeeklyDelete = function(id) {
+  if (!confirm('このPDFを削除しますか？')) return;
+  loadWeeklyPdfs();
+  _weeklyPdfs = _weeklyPdfs.filter(p => p.id !== id);
+  saveWeeklyPdfs();
+  renderWeeklyPdfList();
+  loveReflectAllToProgress();
+};
+
+// ── 発展記録への一括自動反映 ──
+function loveReflectAllToProgress() {
+  if (!_loveProgress) _loveProgress = loadLoveProgress();
+  loadWeeklyPdfs();
+
+  // 記録表データを取得
+  let diaryRecs = [];
+  try { diaryRecs = JSON.parse(localStorage.getItem(LOVE_DIARY_LS) || '[]'); } catch {}
+
+  // PDFのテキストを結合
+  const allPdfText = _weeklyPdfs.map(p => p.text || '').join('\n\n');
+
+  // ── ステージ自動推定 ──
+  _loveProgress.stages = autoInferStages(diaryRecs, allPdfText, _loveProgress.stages);
+
+  // ── 相性評価の自動更新 ──
+  _loveProgress.factors = autoInferFactors(diaryRecs, allPdfText, _loveProgress.factors);
+
+  // ── 週次レポートサマリーをnoteに反映 ──
+  if (allPdfText) {
+    const latestPdf = _weeklyPdfs[0];
+    if (latestPdf) {
+      const summary = extractWeeklySummary(latestPdf.text);
+      if (summary) _loveProgress.note = summary + '\n（最終更新: ' + latestPdf.name + '）';
+    }
+  }
+
+  saveLoveProgress();
+
+  // 発展記録タブが開いていれば再描画
+  const progressSec = document.getElementById('lsec-progress');
+  if (progressSec && progressSec.style.display !== 'none') {
+    renderLoveStages();
+    renderLoveGauge();
+    renderLoveRoadmap();
+    renderLoveChart();
+    renderLoveAdvice();
+    renderLoveRecentDiary();
+  }
+}
+
+// ステージ自動推定ロジック
+function autoInferStages(diaryRecs, pdfText, currentStages) {
+  const stages = JSON.parse(JSON.stringify(currentStages || {}));
+  const text   = (diaryRecs.map(r => (r.content||'')+(r.reaction||'')).join(' ') + ' ' + pdfText).toLowerCase();
+
+  // 各ステージの達成判定キーワード
+  const STAGE_KEYWORDS = {
+    s1: ['挨拶','視線','手を振','笑顔','認知','目が合'],
+    s2: ['会話','話しかけ','トーク','雑談','笑い','冗談','キャッチボール'],
+    s3: ['相手から','発信','声かけ','休憩','不在を気に','日常化','定着'],
+    s4: ['連絡先','ライン交換','line','プライベート','誘い','デート'],
+    s5: ['告白','付き合','交際','了承','成立'],
+  };
+
+  // 記録表の接触日数から推定
+  const contactDays = diaryRecs.filter(r => r.contact && r.contact !== 'なし').length;
+  const selfInitiated = diaryRecs.filter(r => r.contact === 'あり（相手から）' || r.contact === 'あり（双方）').length;
+
+  LOVE_STAGES.forEach(stage => {
+    const keywords = STAGE_KEYWORDS[stage.id] || [];
+    const hit = keywords.some(kw => text.includes(kw));
+    // 既に手動で設定されたものは保持、未設定のものだけ推定
+    if (!stages[stage.id]) stages[stage.id] = { done: false, date: '', score: 0, memo: '' };
+
+    if (!stages[stage.id].done && hit) {
+      // 自動で達成マーク
+      stages[stage.id].done = true;
+      // 日付は記録表の最古の該当日 or PDFが最新
+      const relatedRec = diaryRecs.find(r => keywords.some(kw => ((r.content||'')+(r.reaction||'')).toLowerCase().includes(kw)));
+      stages[stage.id].date = relatedRec ? relatedRec.date : toDateStr(new Date());
+      stages[stage.id].score = stages[stage.id].score || 3;
+      stages[stage.id].memo  = stages[stage.id].memo || '（記録表・週次レポートから自動反映）';
+    }
+  });
+
+  // 記録表の実績から追加補正
+  if (contactDays >= 3 && !stages.s2?.score) {
+    if (stages.s2) { stages.s2.done = true; stages.s2.score = Math.min(5, Math.round(contactDays/3)); }
+  }
+  if (selfInitiated >= 2 && stages.s3 && !stages.s3.done) {
+    stages.s3.done = true;
+    stages.s3.date = stages.s3.date || toDateStr(new Date());
+    stages.s3.score = 3;
+    stages.s3.memo = '（相手発信を複数確認・自動反映）';
+  }
+
+  return stages;
+}
+
+// 相性評価の自動更新
+function autoInferFactors(diaryRecs, pdfText, currentFactors) {
+  const factors = JSON.parse(JSON.stringify(currentFactors || {}));
+  const allText = diaryRecs.map(r => (r.content||'')+(r.reaction||'')).join(' ') + ' ' + pdfText;
+
+  // 記録表のデータから各指標を計算
+  const total = diaryRecs.length;
+  if (!total) return factors;
+
+  // 接触日数でgreetを更新
+  const greetCount = diaryRecs.filter(r => r.contact && r.contact !== 'なし').length;
+  if (greetCount > 0) factors.greet = Math.min(5, Math.max(factors.greet||0, Math.ceil(greetCount/total*5)));
+
+  // 相手発信でinitiateを更新
+  const initCount = diaryRecs.filter(r => r.contact === 'あり（相手から）' || r.contact === 'あり（双方）').length;
+  if (initCount > 0) factors.initiate = Math.min(5, Math.max(factors.initiate||0, Math.ceil(initCount/total*6)));
+
+  // 平均星評価でspecialを参考更新
+  const starRecs = diaryRecs.filter(r => r.star);
+  if (starRecs.length) {
+    const avg = starRecs.reduce((s,r)=>s+r.star,0)/starRecs.length;
+    factors.special = Math.min(5, Math.max(factors.special||0, Math.round(avg)));
+  }
+
+  return factors;
+}
+
+// PDFテキストからサマリーを抽出
+function extractWeeklySummary(text) {
+  if (!text) return '';
+  // 「総合結論」「本質」「方針」などのキーワード周辺を抽出
+  const patterns = [
+    /総合結論[：:　]?\s*(.{0,200})/,
+    /今週の本質[：:　]?\s*(.{0,200})/,
+    /方針[：:　]?\s*(.{0,200})/,
+    /一言でまとめ[^\n]*\n(.{0,200})/,
+  ];
+  for (const pat of patterns) {
+    const m = text.match(pat);
+    if (m && m[1]) return m[1].replace(/\s+/g,' ').trim().slice(0,150);
+  }
+  // 取れなければ先頭150字
+  return text.slice(0,150).replace(/\s+/g,' ');
 }
 
 // ════ 出発前チェックリスト ════
