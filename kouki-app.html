@@ -359,6 +359,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab" onclick="switchTab('alcohol')" id="tab-alcohol">🍺 記録</button>
     <button class="tab" onclick="switchTab('health')" id="tab-health">❤️ 健康</button>
     <button class="tab" onclick="switchTab('kakeibo')" id="tab-kakeibo">💰 家計</button>
+    <button class="tab" onclick="switchTab('ledger')" id="tab-ledger">📋 帳票</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 設定</button>
   </div>
@@ -416,13 +417,30 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div id="cal-today-card" class="card" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(200,169,110,0.08),rgba(91,141,217,0.05));border:1px solid rgba(200,169,110,0.25);">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
           <div style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--accent);" id="cal-today-date"></div>
-          <button onclick="calTodayInit()" style="background:none;border:none;color:var(--muted2);font-size:0.78rem;cursor:pointer;">🔄</button>
+          <div style="display:flex;gap:6px;">
+            <button onclick="calSyncAll()" style="padding:4px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:14px;color:#5B8DD9;font-size:0.7rem;cursor:pointer;">🔄 全同期</button>
+            <button onclick="calTodayInit()" style="background:none;border:none;color:var(--muted2);font-size:0.78rem;cursor:pointer;">↺</button>
+          </div>
         </div>
         <div id="cal-today-shift" style="font-size:0.88rem;color:var(--text);line-height:1.8;"></div>
         <div id="cal-today-free" style="margin-top:10px;padding:8px 12px;background:rgba(122,158,126,0.08);border:1px solid rgba(122,158,126,0.2);border-radius:8px;font-size:0.82rem;color:#7A9E7E;"></div>
         <div id="cal-today-events" style="margin-top:10px;font-size:0.82rem;color:var(--text);line-height:1.8;"></div>
-        <!-- 睡眠推奨（翌日早番の場合に表示） -->
         <div id="cal-sleep-rec" style="display:none;margin-top:10px;padding:8px 12px;background:rgba(148,92,192,0.08);border:1px solid rgba(148,92,192,0.25);border-radius:8px;font-size:0.82rem;color:#9E6FD0;line-height:1.6;"></div>
+      </div>
+
+      <!-- 24時間スケジュール -->
+      <div class="card" style="margin-bottom:14px;padding:0;overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 10px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);">🕐 今日の24時間</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <span style="font-size:0.6rem;padding:1px 6px;border-radius:6px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;">仕事</span>
+            <span style="font-size:0.6rem;padding:1px 6px;border-radius:6px;background:#ede7f6;color:#4527a0;border:1px solid #9575cd;">😴就寝</span>
+            <span style="font-size:0.6rem;padding:1px 6px;border-radius:6px;background:#fff8e1;color:#8a6000;border:1px solid #f0c040;">①個人</span>
+            <span style="font-size:0.6rem;padding:1px 6px;border-radius:6px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;">②</span>
+            <span style="font-size:0.6rem;padding:1px 6px;border-radius:6px;background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;">③</span>
+          </div>
+        </div>
+        <div id="today-24h-grid" style="overflow-x:auto;background:#ffffff;padding:0 0 8px;"></div>
       </div>
 
       <!-- 今週カード -->
@@ -776,45 +794,79 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   <!-- ═══ 発展記録タブ ═══ -->
   <div id="lsec-progress" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
 
-    <!-- 合い言葉バナー -->
-    <div style="background:linear-gradient(135deg,rgba(255,105,180,0.08),rgba(232,184,75,0.06));border:1px solid rgba(255,105,180,0.2);border-radius:12px;padding:12px 14px;margin-bottom:14px;text-align:center;">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.82rem;color:#ff69b4;letter-spacing:0.08em;line-height:1.8;">
+    <!-- ヘッダーバナー：恋愛名称 + Seasonタイトル -->
+    <div style="background:linear-gradient(135deg,rgba(255,105,180,0.12),rgba(232,184,75,0.08),rgba(91,141,217,0.06));border:1px solid rgba(255,105,180,0.25);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div>
+          <div style="font-size:0.62rem;color:var(--muted2);letter-spacing:0.1em;margin-bottom:2px;">LOVE PROJECT</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:1.15rem;color:#ff69b4;font-weight:700;letter-spacing:0.04em;">Gradual Connection</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:0.6rem;color:var(--muted2);letter-spacing:0.08em;margin-bottom:2px;">2026 SPRING SEASON</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.82rem;color:#E8B84B;letter-spacing:0.06em;">Spring Bloom Link</div>
+        </div>
+      </div>
+      <div style="height:1px;background:linear-gradient(90deg,rgba(255,105,180,0.3),rgba(232,184,75,0.3),transparent);margin:8px 0;"></div>
+      <div style="font-size:0.68rem;color:var(--muted2);line-height:1.7;display:flex;gap:16px;flex-wrap:wrap;">
+        <span>📌 段階的に距離が縮まり、積み上げで関係が育つ</span>
+        <span>🌸 春の時期に関係がゆっくり花開く前期テーマ</span>
+      </div>
+      <div style="margin-top:8px;font-family:'Shippori Mincho',serif;font-size:0.75rem;color:rgba(255,105,180,0.7);text-align:center;letter-spacing:0.12em;">
         「偶然ではなく、設計で生きる。」
       </div>
     </div>
 
-    <!-- 4月以降の方針カード（2026/4/2 週次レポート反映） -->
-    <div class="card" style="margin-bottom:14px;background:rgba(91,141,217,0.04);border:1px solid rgba(91,141,217,0.18);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#5B8DD9;">📋 来週の運用方針</div>
-        <span style="font-size:0.65rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.3);border-radius:8px;padding:2px 7px;">2026/4/2 週次レポートより</span>
-      </div>
-      <div style="font-size:0.8rem;color:var(--text);line-height:1.9;">
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;">
-          <span style="color:#5B8DD9;flex-shrink:0;margin-top:1px;">▸</span>
-          <span>挨拶は今週の延長線で継続。<b>「おはよう」「お疲れ様」は敬語に戻さず</b>自然な温度を優先</span>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;">
-          <span style="color:#5B8DD9;flex-shrink:0;margin-top:1px;">▸</span>
-          <span>趣味・休み・食べ物など<b>プライベートの入口会話を1テーマだけ</b>入れる。質問だけで終わらせず自分の話も添える</span>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;">
-          <span style="color:#5B8DD9;flex-shrink:0;margin-top:1px;">▸</span>
-          <span>相手が話題を広げるか・質問を返してくるか・来週も接触維持を意識した言動があるかを確認</span>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:4px;">
-          <span style="color:#5B8DD9;flex-shrink:0;margin-top:1px;">▸</span>
-          <span>名前を<b>1回自然に入れられれば理想</b>（苗字呼び）</span>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:8px;">
-          <span style="color:#E8B84B;flex-shrink:0;margin-top:1px;">⏰</span>
-          <span><b>4/16が判定ライン：</b>材料が増えればS4挑戦、難しければS3維持（S3未満には落とさない）</span>
+    <!-- 今期方針カード（Spring Bloom Link / PDFプレリリース反映） -->
+    <div class="card" style="margin-bottom:14px;background:rgba(91,141,217,0.04);border:1px solid rgba(91,141,217,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;">🌸 今期運用方針</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
+          <span style="font-size:0.6rem;background:rgba(232,184,75,0.12);color:#E8B84B;border:1px solid rgba(232,184,75,0.3);border-radius:6px;padding:1px 7px;">Spring Bloom Link</span>
+          <span style="font-size:0.6rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.25);border-radius:6px;padding:1px 7px;">2026前期</span>
         </div>
       </div>
-      <!-- 相手視点メモ -->
+
+      <!-- 期間別方針テーブル -->
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:8px;">
+          <span style="font-size:0.68rem;background:#7A9E7E;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">4月前半</span>
+          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">日常会話を自然に継続。趣味・休み・食べ物などの<b>軽い入口会話</b>を試す</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.2);border-radius:8px;">
+          <span style="font-size:0.68rem;background:#E8B84B;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">4月中旬</span>
+          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">相手の反応を見て、<b>今期中に一段上げられるかを判断</b>する。4/16が判定ライン</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(91,141,217,0.05);border:1px solid rgba(91,141,217,0.18);border-radius:8px;">
+          <span style="font-size:0.68rem;background:#5B8DD9;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">難しい場合</span>
+          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">無理に押し上げず、<b>今ある良好な関係を崩さず維持</b>する</span>
+        </div>
+      </div>
+
+      <!-- 評価軸 -->
+      <div style="background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.15);border-radius:8px;padding:8px 12px;">
+        <div style="font-size:0.68rem;color:#ff69b4;margin-bottom:6px;">📐 今期評価軸</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">🌿 自然さ</span>
+          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">💬 相手発信</span>
+          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">📖 会話の広がり</span>
+          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">🔗 接点継続への意識</span>
+        </div>
+      </div>
+
+      <!-- 週次方針（直近） -->
+      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <div style="font-size:0.68rem;color:#5B8DD9;margin-bottom:6px;">📋 直近の行動方針（2026/4/2 週次レポートより）</div>
+        <div style="font-size:0.76rem;color:var(--text);line-height:1.8;">
+          <div>▸ 挨拶はタメ語の温度感で継続。<b>敬語に戻さず</b></div>
+          <div>▸ プライベート入口会話を<b>1テーマだけ</b>（自分の話も添える）</div>
+          <div>▸ 名前を<b>1回自然に</b>（苗字呼び）</div>
+        </div>
+      </div>
+
+      <!-- 相手視点 -->
       <div style="margin-top:10px;padding:8px 12px;background:rgba(255,105,180,0.06);border:1px solid rgba(255,105,180,0.15);border-radius:8px;">
-        <div style="font-size:0.68rem;color:#ff69b4;margin-bottom:3px;">💭 相手視点（週次レポートより）</div>
-        <div style="font-size:0.75rem;color:var(--text);line-height:1.7;font-style:italic;">「この人とは気軽に挨拶できるし、会ったら自然に話せる。前に話したことも覚えておける。来週もまた普通に話す流れがある」</div>
+        <div style="font-size:0.65rem;color:#ff69b4;margin-bottom:3px;">💭 相手視点推定</div>
+        <div style="font-size:0.74rem;color:var(--text);line-height:1.7;font-style:italic;">「この人とは気軽に挨拶できるし、会ったら自然に話せる。前に話したことも覚えておける。来週もまた普通に話す流れがある」</div>
       </div>
     </div>
 
@@ -826,7 +878,10 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
     <!-- タイトル＋相手の名前 -->
     <div class="card" style="margin-bottom:14px;">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:#ff69b4;margin-bottom:10px;">💌 恋愛発展記録</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:#ff69b4;">💌 恋愛発展記録</div>
+        <div style="font-size:0.65rem;color:var(--muted2);">Gradual Connection</div>
+      </div>
       <div style="display:flex;gap:8px;align-items:center;">
         <div style="font-size:0.72rem;color:var(--muted2);white-space:nowrap;">お相手</div>
         <input type="text" id="love-target-name" placeholder="名前またはニックネーム（任意）" maxlength="20"
@@ -2606,6 +2661,178 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   </div>
 </div>
 
+<!-- ══════════════════════════════════════
+     帳票パネル
+══════════════════════════════════════ -->
+<div class="panel" id="ledger-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+  <!-- サブタブバー -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;">
+    <button class="wtab active" id="ltab-docs" onclick="switchLedgerTab('docs')">📄 帳票一覧</button>
+    <button class="wtab" id="ltab-remittance" onclick="switchLedgerTab('remittance')">🏠 実家納金</button>
+  </div>
+
+  <!-- ═══ 帳票一覧タブ ═══ -->
+  <div id="lsec-docs" style="padding:16px;display:block;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:var(--accent);margin-bottom:14px;">📄 帳票の作成</div>
+
+    <!-- 帳票カードグリッド -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+      <!-- 送金記録票 -->
+      <div class="card" style="cursor:pointer;border:1px solid rgba(200,169,110,0.25);transition:all 0.2s;" onclick="ledgerOpen('remit')">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">📨</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);text-align:center;">送金記録票</div>
+        <div style="font-size:0.65rem;color:var(--muted2);text-align:center;margin-top:4px;">実家・家族への送金</div>
+      </div>
+
+      <!-- 支払い証明書 -->
+      <div class="card" style="cursor:pointer;border:1px solid rgba(91,141,217,0.25);transition:all 0.2s;" onclick="ledgerOpen('payment')">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">🧾</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#5B8DD9;text-align:center;">支払い証明書</div>
+        <div style="font-size:0.65rem;color:var(--muted2);text-align:center;margin-top:4px;">各種支払いの記録</div>
+      </div>
+
+      <!-- 月次収支報告書 -->
+      <div class="card" style="cursor:pointer;border:1px solid rgba(122,158,126,0.25);transition:all 0.2s;" onclick="ledgerOpen('monthly')">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">📊</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#7A9E7E;text-align:center;">月次収支報告書</div>
+        <div style="font-size:0.65rem;color:var(--muted2);text-align:center;margin-top:4px;">月の収入・支出まとめ</div>
+      </div>
+
+      <!-- 車両費用明細 -->
+      <div class="card" style="cursor:pointer;border:1px solid rgba(232,184,75,0.25);transition:all 0.2s;" onclick="ledgerOpen('vehicle')">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">🚗</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#E8B84B;text-align:center;">車両費用明細</div>
+        <div style="font-size:0.65rem;color:var(--muted2);text-align:center;margin-top:4px;">ローン・保険・維持費</div>
+      </div>
+
+      <!-- メモ帳票（自由書式） -->
+      <div class="card" style="cursor:pointer;border:1px solid rgba(148,92,192,0.25);transition:all 0.2s;grid-column:span 2;" onclick="ledgerOpen('free')">
+        <div style="font-size:1.5rem;text-align:center;margin-bottom:8px;">📝</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#9E6FD0;text-align:center;">自由書式メモ帳票</div>
+        <div style="font-size:0.65rem;color:var(--muted2);text-align:center;margin-top:4px;">任意のタイトル・内容で帳票を作成</div>
+      </div>
+    </div>
+
+    <!-- 作成フォームエリア -->
+    <div id="ledger-form-area" style="margin-top:16px;"></div>
+  </div>
+
+  <!-- ═══ 実家納金タブ ═══ -->
+  <div id="lsec-remittance" style="padding:16px;display:none;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:var(--accent);margin-bottom:14px;">🏠 実家納金</div>
+
+    <!-- 振込先情報 -->
+    <div class="card" style="margin-bottom:14px;border:1px solid rgba(200,169,110,0.25);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);margin-bottom:12px;">🏦 振込先情報</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">銀行名</div>
+          <input type="text" id="rm-bank" placeholder="例：ゆうちょ銀行" maxlength="30"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">支店名</div>
+          <input type="text" id="rm-branch" placeholder="例：〇〇支店" maxlength="30"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">口座種別</div>
+            <select id="rm-actype" style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.88rem;outline:none;" onchange="rmSave()">
+              <option value="普通">普通</option>
+              <option value="当座">当座</option>
+              <option value="貯蓄">貯蓄</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">口座番号</div>
+            <input type="text" id="rm-acno" placeholder="例：1234567" maxlength="20"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.9rem;outline:none;font-family:'DM Mono',monospace;"
+              oninput="rmSave()">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">口座名義（カタカナ）</div>
+          <input type="text" id="rm-acname" placeholder="例：アリマ タロウ" maxlength="30"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+      </div>
+    </div>
+
+    <!-- 送金情報入力 -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);margin-bottom:12px;">💴 送金情報</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">送金年月</div>
+            <input type="month" id="rm-month"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.88rem;outline:none;"
+              oninput="rmSave()">
+          </div>
+          <div>
+            <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">送金日</div>
+            <input type="date" id="rm-date"
+              style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.88rem;outline:none;"
+              oninput="rmSave()">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">送金金額（円）</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="color:var(--muted2);font-size:0.9rem;">¥</span>
+            <input type="number" id="rm-amount" placeholder="例：30000" min="0"
+              style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:1rem;outline:none;font-family:'DM Mono',monospace;"
+              oninput="rmSave()">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">振込時刻（任意）</div>
+          <input type="time" id="rm-time"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.88rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">備考・用途</div>
+          <input type="text" id="rm-note" placeholder="例：4月分 生活費" maxlength="50"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+        <div>
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">送金者名</div>
+          <input type="text" id="rm-sender" placeholder="例：有馬功稀" maxlength="20"
+            style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.88rem;outline:none;"
+            oninput="rmSave()">
+        </div>
+      </div>
+    </div>
+
+    <!-- 送金記録 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(122,158,126,0.04);border:1px solid rgba(122,158,126,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#7A9E7E;">📋 送金記録</div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="rmAddRecord()" style="padding:6px 13px;background:#7A9E7E;border:none;border-radius:16px;color:white;font-size:0.75rem;cursor:pointer;font-family:'Shippori Mincho',serif;">＋ 記録追加</button>
+          <button onclick="rmClearForm()" style="padding:6px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:16px;color:var(--muted2);font-size:0.73rem;cursor:pointer;">クリア</button>
+        </div>
+      </div>
+      <div id="rm-records" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <!-- PDFボタン -->
+    <button onclick="rmPrintPDF()" style="width:100%;padding:13px;background:var(--accent);border:none;border-radius:12px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.95rem;font-weight:700;cursor:pointer;letter-spacing:0.04em;">
+      📄 送金証明書をPDFで作成
+    </button>
+    <div style="font-size:0.68rem;color:var(--muted2);text-align:center;margin-top:6px;">新しいウィンドウで白背景のPDF用ページが開きます</div>
+  </div>
+
+</div>
+
 <div class="panel" id="settings-panel" style="padding:20px 16px;">
 
   <!-- プロフィール設定（運勢計算用） -->
@@ -2871,11 +3098,26 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
         <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#4A2C1A">カテゴリ別　予算 vs 実績</div>
         <div style="display:flex;gap:6px">
           <button onclick="toggleCatMemo()" id="cat-memo-toggle-btn" style="font-size:0.72rem;padding:4px 10px;background:#F5E6D0;border:2px solid #D4956A;border-radius:8px;color:#D4956A;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">✏️ メモ</button>
-          <button onclick="printMonthly()" style="font-size:0.72rem;padding:4px 10px;background:#F5E6D0;border:2px solid #D4956A;border-radius:8px;color:#D4956A;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">🖨️ 印刷</button>
+          <button onclick="printMonthlyStatement()" style="font-size:0.72rem;padding:4px 10px;background:#5B8DD9;border:2px solid #5B8DD9;border-radius:8px;color:white;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">📄 決算書</button>
         </div>
       </div>
       <div id="bcat-rows"></div>
     </div>
+
+    <!-- 最終残高カード -->
+    <div style="background:linear-gradient(135deg,#7A9E7E22,#5B8DD922);border:2px solid #7A9E7E;border-radius:12px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:1.2rem">💰</span>
+        <span style="font-size:0.75rem;color:#9A8070;font-family:'Zen Maru Gothic',sans-serif">今月の最終残高（繰越対象）</span>
+      </div>
+      <div id="bsum-final-balance" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.6rem;font-weight:700;color:#7A9E7E">—</div>
+      <div style="font-size:0.7rem;color:#9A8070;margin-top:4px">繰越 + 月収 − 実績支出で自動算出</div>
+      <button onclick="applyFinalBalanceToNext()" id="carry-over-btn" style="display:none;margin-top:10px;width:100%;padding:9px;background:#7A9E7E;color:white;border:none;border-radius:10px;font-family:'Zen Maru Gothic',sans-serif;font-size:0.85rem;cursor:pointer;letter-spacing:0.03em">
+        📦 来月の「先月の残高」に反映する
+      </button>
+      <div id="carry-over-msg" style="font-size:0.72rem;text-align:center;margin-top:6px;min-height:14px;color:#7A9E7E;"></div>
+    </div>
+
     <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06)">
       <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#4A2C1A;margin-bottom:12px">予算 vs 実績グラフ</div>
       <canvas id="budget-chart" style="width:100%;max-height:220px"></canvas>
@@ -3425,6 +3667,9 @@ window.switchTab = function(n) {
   if (n === 'calendar') {
     switchCalTab('today');
   }
+
+  // 帳票タブ
+  if (n === 'ledger') { initLedgerTab(); }
 };
 
 function updateHeaderDate() {
@@ -7632,7 +7877,7 @@ const LOVE_DEFAULT_DATA = {
     special:  4,  // 2人だけの会話空間・「また来週で」という継続前提の締め・視線
     timing:   3,  // 4/16が判定ライン。来週は入口会話のチャレンジが焦点
   },
-  note: '職場の同僚（4歳年上・別部署・社交的）。関係定義：仲のいい同僚以上・親しい人寄り（S3後半〜S4手前）。週次成功率84%。来週の焦点：プライベート入口会話を1テーマ。4/16判定：材料が増えればS4挑戦、難しければS3維持。'
+  note: '【Gradual Connection / Spring Bloom Link】職場の同僚（4歳年上・別部署・社交的）。関係定義：仲のいい同僚以上・親しい人寄り（S3後半〜S4手前）。週次成功率84%。2026前期テーマ：Spring Bloom Link。今期方針：小さな接触の質を高める。軽い入口会話・苗字呼び・自分の話を添える。4/16判定：材料が増えればS4挑戦、難しければS3維持。'
 };
 
 let _loveProgress = null;
@@ -8125,20 +8370,26 @@ function renderLoveAdvice() {
       + '</div>'
       + '</div>';
   } else if (s3done) {
-    // 現在の実際の位置：S3後半〜S4手前（PDF 2026/4/2レポート反映）
+    // 現在の実際の位置：S3後半〜S4手前（Gradual Connection / Spring Bloom Link）
     adviceText =
-      '<b style="color:#ff69b4;">📍 現在地：S3後半〜S4手前</b>'
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:4px;">'
+      + '<b style="color:#ff69b4;">📍 現在地：S3後半〜S4手前</b>'
+      + '<div style="display:flex;gap:3px;flex-wrap:wrap;">'
+      + '<span style="font-size:0.6rem;background:rgba(255,105,180,0.1);color:#ff69b4;border:1px solid rgba(255,105,180,0.25);border-radius:5px;padding:1px 6px;">Gradual Connection</span>'
+      + '<span style="font-size:0.6rem;background:rgba(232,184,75,0.1);color:#E8B84B;border:1px solid rgba(232,184,75,0.25);border-radius:5px;padding:1px 6px;">Spring Bloom Link</span>'
+      + '</div>'
+      + '</div>'
       + '<div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;">「仲のいい同僚以上・親しい人寄り」。成功率：<b style="color:#ff69b4;">84%</b>（2026/4/2時点）</div>'
       + '<div style="font-size:0.82rem;line-height:1.9;color:var(--text);">'
-      + '✅ <b>今週確認できた強み</b><br>'
+      + '✅ <b>確認できた強み</b><br>'
       + '・相手から「おはよう！」タメ語・手のサイン（4/2）<br>'
       + '・「お久しぶり！」記憶保持・健診採血の話題・2人の空間（4/1）<br>'
       + '・週5接触中<b>4回が相手発信</b>・「また来週で」次週継続前提<br><br>'
       + '📌 <b>現在の課題</b><br>'
       + '・プライベート入口会話（趣味・休み・食べ物）がまだ<br>'
       + '・連絡先交換はまだ先<br><br>'
-      + '💡 <b>来週の方針（週次レポートより）</b><br>'
-      + '・挨拶の温度感を今週と同じで継続<br>'
+      + '🌸 <b>今期方針（Spring Bloom Link）</b><br>'
+      + '・挨拶の温度感を継続。敬語に戻さず<br>'
       + '・<b>プライベート入口を1テーマ</b>（自分の話も添える）<br>'
       + '・名前を1回自然に（苗字呼び）<br><br>'
       + '<div style="background:rgba(232,184,75,0.08);border:1px solid rgba(232,184,75,0.2);border-radius:8px;padding:8px 10px;font-size:0.78rem;color:#E8B84B;font-weight:700;">'
@@ -9158,7 +9409,10 @@ window.loveGenerateWeeklyReport = function() {
     </div>
 
     <div style="background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.15);border-radius:10px;padding:10px 12px;margin-top:8px;">
-      <div style="font-weight:700;color:#7A9E7E;font-size:0.82rem;margin-bottom:4px;">🎯 来週の方針（週次レポートより）</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div style="font-weight:700;color:#7A9E7E;font-size:0.82rem;">🌸 今期方針（Spring Bloom Link）</div>
+        <span style="font-size:0.6rem;background:rgba(232,184,75,0.12);color:#E8B84B;border:1px solid rgba(232,184,75,0.25);border-radius:5px;padding:1px 5px;">Gradual Connection</span>
+      </div>
       <div style="font-size:0.8rem;color:var(--text);line-height:1.7;">
         ・挨拶は今週の延長線で継続（タメ語を敬語に戻さない）<br>
         ・プライベート入口を<b>1テーマだけ</b>入れる（趣味・休み・食べ物）<br>
@@ -9791,15 +10045,17 @@ function calListRenderEvents() {
 
     evts.forEach(e => {
       const pr = CAL_PRIORITY[e.priority || 0];
-      // ① 個人・家族の「休日」「○終日OFF」「♦休暇期間」「リフレッシュ」はタグなしシンプル表示
-      const noTag = e.isOff || e.isRefresh
+      // 休日・終日OFF・休暇期間・リフレッシュ・誕生日はタグなしシンプル表示
+      const isBdayItem = e.isBirthday || e.title?.includes('誕生日');
+      const noTag = e.isOff || e.isRefresh || isBdayItem
         || e.title?.includes('終日OFF')
         || e.title?.includes('休暇期間')
         || e.title?.includes('リフレッシュ')
         || (e.title === '休日' && e.priority <= 1);
       if (noTag) {
+        const icon = isBdayItem ? '🎂' : '🏖️';
         html += '<div style="display:flex;align-items:center;gap:8px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.12);border-radius:8px;padding:6px 10px;margin-bottom:3px;">'
-          + '<span style="font-size:0.85rem;">🏖️</span>'
+          + '<span style="font-size:0.85rem;">'+icon+'</span>'
           + '<div style="flex:1;min-width:0;">'
           + '<div style="font-size:0.85rem;color:var(--muted2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(e.title) + '</div>'
           + '</div>'
@@ -10807,6 +11063,24 @@ function calTodayInit() {
   _renderUpcoming5();
 }
 
+// 全カレンダー同期更新（予定タブ全体）
+window.calSyncAll = async function() {
+  const btn = document.querySelector('[onclick="calSyncAll()"]');
+  if (btn) { btn.textContent = '⏳ 同期中...'; btn.disabled = true; }
+  await calListSync();
+  _renderTodayCard();
+  _renderWeekSummary();
+  _renderUpcoming5();
+  // 現在開いているタブも再描画
+  const activeTab = ['list','adjust','weekly','birthday','graph','4week','heatmap']
+    .find(t => document.getElementById('csec-'+t)?.style.display !== 'none');
+  if (activeTab === 'list')   calListRenderEvents();
+  if (activeTab === 'adjust') calAdjSimulate();
+  if (activeTab === 'weekly') calWeeklyRender();
+  if (activeTab === 'graph')  calGraphRender();
+  if (btn) { btn.textContent = '🔄 全同期'; btn.disabled = false; }
+};
+
 function _renderTodayCard() {
   const today = new Date();
   const todayStr = toDateStr(today);
@@ -10836,7 +11110,7 @@ function _renderTodayCard() {
   const freeEl = document.getElementById('cal-today-free');
   if (freeEl) {
     if (isOff) {
-      const freeH = SLEEP_HOUR - 8; // 8時起床想定
+      const freeH = SLEEP_HOUR - 8;
       freeEl.innerHTML = '⏰ 使える時間：<b>約'+freeH+'時間</b>（08:00〜'+SLEEP_HOUR+':00）';
     } else if (shift) {
       const end = shift.shiftEnd || 15;
@@ -10854,20 +11128,20 @@ function _renderTodayCard() {
     const tomorrowStr = toDateStr(tomorrow);
     const { shift: tomorrowShift } = getShiftInfo(tomorrowStr);
     if (tomorrowShift && tomorrowShift.shiftType === '早番') {
-      // 早番（06:00出勤）に6時間以上の睡眠を確保 → 00:00までに就寝
       const startH = parseInt((tomorrowShift.time || '06:00').split(':')[0], 10) || 6;
-      const needSleep = 6; // 最低6時間
-      const bedDeadline = startH - needSleep; // 6-6=0 → 0時=24時
+      const bedDeadline = startH - 6;
       const bedStr = bedDeadline <= 0 ? '深夜0時（24:00）' : bedDeadline + ':00';
       sleepEl.style.display = 'block';
-      sleepEl.innerHTML =
-        '🌙 <b>明日は早番（' + (tomorrowShift.time || '06:00〜') + '）</b><br>'
+      sleepEl.innerHTML = '🌙 <b>明日は早番（' + (tomorrowShift.time || '06:00〜') + '）</b><br>'
         + '6時間以上の睡眠を確保するため、<b>' + bedStr + 'までに就寝</b>が目安です。';
     } else {
       sleepEl.style.display = 'none';
     }
   }
-  const userEvts = evts.filter(e => e.priority > 0 && !e.isRefresh && !e.noThird && !e.isBirthday);
+
+  // 今日の予定リスト（タグなし条件に誕生日追加）
+  const evtEl = document.getElementById('cal-today-events');
+  const userEvts = evts.filter(e => e.priority > 0 && !e.isRefresh && !e.noThird);
   if (evtEl) {
     if (!userEvts.length) {
       evtEl.innerHTML = '<span style="font-size:0.78rem;color:var(--muted2);">他の予定なし</span>';
@@ -10875,15 +11149,14 @@ function _renderTodayCard() {
       const pr = CAL_PRIORITY;
       evtEl.innerHTML = userEvts.map(e => {
         const p = pr[e.priority] || pr[0];
-        // 休日・終日OFF・休暇期間・リフレッシュはタグなし
-        const noTag = e.isOff || e.isRefresh
-          || e.title?.includes('終日OFF')
-          || e.title?.includes('休暇期間')
-          || e.title?.includes('リフレッシュ')
+        const noTag = e.isOff || e.isRefresh || e.isBirthday
+          || e.title?.includes('終日OFF') || e.title?.includes('休暇期間')
+          || e.title?.includes('リフレッシュ') || e.title?.includes('誕生日')
           || (e.title === '休日' && e.priority <= 1);
         if (noTag) {
+          const icon = e.isBirthday || e.title?.includes('誕生日') ? '🎂' : '🏖️';
           return '<div style="display:flex;align-items:center;gap:6px;">'
-            + '<span style="font-size:0.82rem;">🏖️</span>'
+            + '<span style="font-size:0.82rem;">'+icon+'</span>'
             + '<span style="font-size:0.82rem;color:var(--muted2);">'+esc(e.title)+'</span>'
             + '</div>';
         }
@@ -10895,6 +11168,144 @@ function _renderTodayCard() {
       }).join('');
     }
   }
+
+  // ── 24時間スケジュールグリッド（全カレンダー反映） ──
+  _renderToday24h(todayStr);
+}
+
+// 今日の24時間スケジュール描画
+function _renderToday24h(todayStr) {
+  const el = document.getElementById('today-24h-grid');
+  if (!el) return;
+
+  // 全カレンダーデータ収集（extraData含む）
+  let all = [];
+  try { all = JSON.parse(localStorage.getItem(CAL_GCAL_LS) || '[]'); } catch {}
+  try {
+    const personal = JSON.parse(localStorage.getItem(CAL_PERSONAL_LS) || '[]');
+    all = [...all, ...personal];
+  } catch {}
+  // extraData（就寝・YouTube等）
+  if (typeof _weeklyLoadExtraData === 'function') {
+    all = [...all, ..._weeklyLoadExtraData()];
+  }
+
+  // 今日・前日（日跨ぎ分）のイベントを収集
+  const yesterday = new Date(todayStr + 'T00:00:00');
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yStr = toDateStr(yesterday);
+
+  const todayEvts = all.filter(e => e.date === todayStr && e.title !== '昼休憩' && e.title !== '休憩 60分固定');
+  const yEvts     = all.filter(e => e.date === yStr     && e.title !== '昼休憩' && e.title !== '休憩 60分固定');
+
+  const HOUR_H24 = 24; // 1時間の高さ(px)
+  const totalH   = HOUR_H24 * 24;
+  const timeW    = 32;
+  const now      = new Date();
+  const nowH     = now.getHours() + now.getMinutes() / 60;
+
+  // ブロック生成（時刻イベントのみ）
+  const blocks = [];
+
+  const addBlock = (e, offsetH) => {
+    if (!e.time || !/\d+:\d+/.test(e.time)) return;
+    const m = e.time.match(/(\d+):(\d+)[^0-9]+(\d+):(\d+)/);
+    if (!m) return;
+    let sH = parseInt(m[1]) + parseInt(m[2]) / 60 + offsetH;
+    let eH = parseInt(m[3]) + parseInt(m[4]) / 60 + offsetH;
+    if (eH < sH) eH += 24;
+    // 今日0〜24時の範囲に収める
+    sH = Math.max(0, sH);
+    eH = Math.min(24, eH);
+    if (eH <= sH) return;
+    blocks.push({ e, sH, eH });
+  };
+
+  // 前日イベント（日跨ぎ分、offsetH=-24で今日の時間軸に変換）
+  yEvts.forEach(e => addBlock(e, -24));
+  // 今日のイベント
+  todayEvts.forEach(e => addBlock(e, 0));
+
+  // 終日イベント
+  const alldayEvts = todayEvts.filter(e => !e.time && !e.startHour);
+
+  // 列重なり検出（簡易）
+  const assignCols = (blocks) => {
+    const cols = [];
+    blocks.forEach(b => {
+      let placed = false;
+      for (let ci = 0; ci < cols.length; ci++) {
+        if (cols[ci].every(prev => prev.eH <= b.sH || b.eH <= prev.sH)) {
+          cols[ci].push(b); b._col = ci; placed = true; break;
+        }
+      }
+      if (!placed) { b._col = cols.length; cols.push([b]); }
+    });
+    return cols.length || 1;
+  };
+  const numCols = assignCols(blocks);
+
+  let html = `<div style="display:flex;background:#ffffff;min-height:${totalH}px;">`;
+
+  // 時刻列
+  html += `<div style="width:${timeW}px;flex-shrink:0;border-right:1px solid #e0e0e0;position:relative;height:${totalH}px;background:#fafafa;">`;
+  for (let h = 0; h < 24; h++) {
+    const y = h * HOUR_H24;
+    html += `<div style="position:absolute;top:${y}px;left:0;right:0;border-top:1px solid ${h%3===0?'#ccc':'#f0f0f0'};"></div>
+      <div style="position:absolute;top:${y+1}px;right:2px;font-size:0.5rem;color:#999;font-family:monospace;line-height:1;">${String(h).padStart(2,'0')}</div>`;
+  }
+  html += `</div>`;
+
+  // イベント列
+  html += `<div style="flex:1;position:relative;height:${totalH}px;background:#ffffff;">`;
+
+  // 時間ライン
+  for (let h = 0; h < 24; h++) {
+    const y = h * HOUR_H24;
+    html += `<div style="position:absolute;top:${y}px;left:0;right:0;border-top:1px solid ${h%3===0?'#e0e0e0':'#f5f5f5'};z-index:0;"></div>`;
+  }
+
+  // 現在時刻ライン
+  if (nowH >= 0 && nowH < 24) {
+    const ny = nowH * HOUR_H24;
+    html += `<div style="position:absolute;top:${ny.toFixed(1)}px;left:0;right:0;border-top:2px solid #ff4081;z-index:5;">
+      <div style="position:absolute;left:0;top:-4px;width:7px;height:7px;border-radius:50%;background:#ff4081;"></div></div>`;
+  }
+
+  // 終日イベント（上部に帯）
+  if (alldayEvts.length) {
+    alldayEvts.forEach((e, i) => {
+      const col = _weeklyGetColorLight ? _weeklyGetColorLight(e) : {bg:'#fff8e1',border:'#ffd54f',text:'#8a6000'};
+      const isNoTag = e.isBirthday || e.title?.includes('誕生日') || e.isOff || e.isRefresh || e.title?.includes('終日OFF');
+      const label = isNoTag ? (e.isBirthday||e.title?.includes('誕生日')?'🎂 ':'🏖️ ') + e.title : e.title;
+      html += `<div style="position:absolute;top:${i*16}px;left:1px;right:1px;height:14px;background:${col.bg};border-left:3px solid ${col.border};padding:0 4px;font-size:0.55rem;color:${col.text};overflow:hidden;white-space:nowrap;z-index:2;">${esc(label)}</div>`;
+    });
+  }
+
+  // 時間指定ブロック
+  const colW = numCols > 1 ? Math.floor(100 / numCols) : 100;
+  blocks.forEach(b => {
+    const top  = b.sH * HOUR_H24;
+    const bH   = Math.max(12, (b.eH - b.sH) * HOUR_H24 - 1);
+    const col  = _weeklyGetColorLight ? _weeklyGetColorLight(b.e) : {bg:'#e8f5e9',border:'#66bb6a',text:'#1b5e20'};
+    const left = (b._col || 0) * colW;
+    const w    = colW;
+    const sStr = `${String(Math.floor(b.sH % 24)).padStart(2,'0')}:${String(Math.round((b.sH % 1)*60)).padStart(2,'0')}`;
+    const label = b.e.title.length > 14 ? b.e.title.slice(0,13)+'…' : b.e.title;
+    html += `<div style="position:absolute;top:${top.toFixed(1)}px;left:${left}%;width:${w}%;height:${bH.toFixed(1)}px;background:${col.bg};border:1px solid ${col.border};border-radius:3px;padding:1px 3px;overflow:hidden;z-index:3;box-sizing:border-box;" title="${b.e.title}">
+      <div style="font-size:0.5rem;color:${col.border};font-family:monospace;">${sStr}</div>
+      <div style="font-size:0.58rem;color:${col.text};line-height:1.2;font-weight:500;">${esc(label)}</div>
+    </div>`;
+  });
+
+  html += `</div></div>`;
+  el.innerHTML = html;
+
+  // 現在時刻にスクロール
+  setTimeout(() => {
+    const scrollY = Math.max(0, nowH * HOUR_H24 - 80);
+    el.parentElement?.scrollTo({ top: scrollY, behavior: 'smooth' });
+  }, 100);
 }
 
 function _renderWeekSummary() {
@@ -11404,14 +11815,16 @@ function calWeeklyRender() {
     rangeEl.textContent = (f.getMonth()+1)+'/'+f.getDate()+'（月）〜'+(l.getMonth()+1)+'/'+l.getDate()+'（日）';
   }
 
-  const allEvts = _weeklyCollectAllEvts(days[0].date, days[6].date)
+  // 前日も含めて取得（日跨ぎ就寝等のため）
+  const prevDay = new Date(monday); prevDay.setDate(monday.getDate() - 1);
+  const prevStr = toDateStr(prevDay);
+  const allEvts = _weeklyCollectAllEvts(prevStr, days[6].date)
     .filter(e => e.title !== '昼休憩' && e.title !== '休憩 60分固定');
 
   // 終日イベントと時間指定イベントを分離
   const isTimedEvent = e => {
     if (e.time && /\d+:\d+/.test(e.time)) return true;
     if (e.startHour !== undefined) return true;
-    // GcalのdateTimeイベント（startHourが変換済み）
     return false;
   };
 
@@ -11476,7 +11889,22 @@ function calWeeklyRender() {
   // 各日の列
   days.forEach((day, di) => {
     const isToday = day.date === today;
-    const dayEvts = allEvts.filter(e => e.date === day.date && isTimedEvent(e));
+    // 当日イベント + 前日の日跨ぎイベント（就寝など28:00超えのもの）
+    const prevDate = toDateStr(new Date(new Date(day.date + 'T00:00:00').setDate(new Date(day.date + 'T00:00:00').getDate() - 1)));
+    const prevDayTimedEvts = allEvts.filter(e => e.date === prevDate && isTimedEvent(e) && e.time).filter(e => {
+      // 終了時刻が24時超えのもの（日跨ぎ）
+      const m = e.time.match(/(\d+):(\d+)[^0-9]+(\d+):(\d+)/);
+      return m && parseInt(m[3]) >= 24;
+    }).map(e => {
+      // 時刻を前日基準（-24h）に変換してこの日の0時〜として表示
+      const m = e.time.match(/(\d+):(\d+)[^0-9]+(\d+):(\d+)/);
+      const newEnd = (parseInt(m[3]) - 24) + ':' + m[4];
+      return { ...e, _carryOver: true, time: '00:00〜' + newEnd };
+    });
+    const dayEvts = [
+      ...prevDayTimedEvts,
+      ...allEvts.filter(e => e.date === day.date && isTimedEvent(e))
+    ];
     const borderR = di < 6 ? '1px solid #ddd' : 'none';
     const bgCol   = isToday ? '#fffdf5' : '#ffffff';
 
@@ -11710,6 +12138,373 @@ window.calWeeklyPrint = function() {
   } else {
     alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
   }
+};
+
+// ════ 帳票タブ ════
+const LEDGER_LS  = 'kouki_ledger';
+const RM_LS      = 'kouki_remittance';
+
+function initLedgerTab() {
+  switchLedgerTab('docs');
+  rmLoadData();
+}
+
+window.switchLedgerTab = function(tab) {
+  ['docs','remittance'].forEach(t => {
+    const sec = document.getElementById('lsec-' + t);
+    const btn = document.getElementById('ltab-' + t);
+    if (sec) sec.style.display = t === tab ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
+  if (tab === 'remittance') rmLoadData();
+};
+
+// ─── 実家納金：データ保存・読み込み ───
+const RM_FIELDS = ['bank','branch','actype','acno','acname','month','date','time','amount','note','sender'];
+
+function rmSave() {
+  const data = {};
+  RM_FIELDS.forEach(f => {
+    const el = document.getElementById('rm-' + f);
+    if (el) data[f] = el.value;
+  });
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RM_LS) || '{}'); } catch {}
+  saved.form = data;
+  localStorage.setItem(RM_LS, JSON.stringify(saved));
+}
+
+function rmLoadData() {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RM_LS) || '{}'); } catch {}
+  const form = saved.form || {};
+  RM_FIELDS.forEach(f => {
+    const el = document.getElementById('rm-' + f);
+    if (el && form[f] !== undefined) el.value = form[f];
+  });
+  // 今月・今日のデフォルト値
+  const now = new Date();
+  const monthEl = document.getElementById('rm-month');
+  const dateEl  = document.getElementById('rm-date');
+  if (monthEl && !monthEl.value) monthEl.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  if (dateEl  && !dateEl.value)  dateEl.value  = toDateStr ? toDateStr(now) : now.toISOString().slice(0,10);
+  rmRenderRecords(saved.records || []);
+}
+
+function rmGetForm() {
+  const data = {};
+  RM_FIELDS.forEach(f => {
+    const el = document.getElementById('rm-' + f);
+    if (el) data[f] = el.value;
+  });
+  return data;
+}
+
+window.rmAddRecord = function() {
+  const form = rmGetForm();
+  if (!form.amount || !form.date) { alert('送金日と金額は必須です'); return; }
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RM_LS) || '{}'); } catch {}
+  const records = saved.records || [];
+  records.unshift({ ...form, id: Date.now().toString(), savedAt: new Date().toISOString() });
+  saved.records = records;
+  localStorage.setItem(RM_LS, JSON.stringify(saved));
+  rmRenderRecords(records);
+  showMToast ? showMToast('送金記録を追加しました') : alert('送金記録を追加しました');
+};
+
+window.rmDeleteRecord = function(id) {
+  if (!confirm('この記録を削除しますか？')) return;
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RM_LS) || '{}'); } catch {}
+  saved.records = (saved.records || []).filter(r => r.id !== id);
+  localStorage.setItem(RM_LS, JSON.stringify(saved));
+  rmRenderRecords(saved.records);
+};
+
+window.rmClearForm = function() {
+  ['date','time','amount','note'].forEach(f => {
+    const el = document.getElementById('rm-' + f);
+    if (el) el.value = '';
+  });
+  rmSave();
+};
+
+function rmRenderRecords(records) {
+  const el = document.getElementById('rm-records');
+  if (!el) return;
+  if (!records.length) {
+    el.innerHTML = '<div style="font-size:0.78rem;color:var(--muted2);text-align:center;padding:12px;">記録がありません</div>';
+    return;
+  }
+  el.innerHTML = records.map(r => {
+    const amt = r.amount ? `¥${Number(r.amount).toLocaleString()}` : '—';
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.82rem;color:var(--text);font-family:'DM Mono',monospace;font-weight:700;">${amt}</div>
+        <div style="font-size:0.7rem;color:var(--muted2);">${r.date||''}${r.time?' '+r.time:''} ${r.note?'／ '+r.note:''}</div>
+      </div>
+      <button onclick="rmDeleteRecord('${r.id}')" style="background:none;border:none;color:var(--muted);font-size:0.78rem;cursor:pointer;padding:3px 6px;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+// ─── 実家納金PDF（新ウィンドウ・白背景） ───
+window.rmPrintPDF = function() {
+  const form = rmGetForm();
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(RM_LS) || '{}'); } catch {}
+  const records = saved.records || [];
+
+  const fmt = v => v ? `¥${Number(v).toLocaleString()}` : '—';
+  const today = new Date().toLocaleDateString('ja-JP');
+  const monthLabel = form.month ? form.month.replace('-','年') + '月' : '—';
+
+  // 直近送金（フォームの情報）
+  const mainAmt = fmt(form.amount);
+  const mainDate = form.date || '—';
+  const mainTime = form.time || '';
+
+  // 送金記録テーブル
+  const recRows = records.slice(0, 20).map(r =>
+    `<tr>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;">${r.date||'—'}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;">${r.time||'—'}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;text-align:right;font-family:monospace;">${fmt(r.amount)}</td>
+      <td style="padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px;">${r.note||'—'}</td>
+    </tr>`
+  ).join('');
+
+  const totalSent = records.reduce((s, r) => s + (Number(r.amount) || 0), 0);
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>実家納金送金証明書 ${monthLabel}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#ffffff !important; color:#111111 !important; font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif; padding:12mm 14mm; }
+  h1 { font-size:18px; color:#4A2C1A; border-bottom:3px solid #C8973A; padding-bottom:8px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end; }
+  h2 { font-size:13px; color:#4A2C1A; border-left:4px solid #C8973A; padding-left:8px; margin:16px 0 8px; }
+  .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .info-card { background:#fdf8f2; border:1px solid #e8d5bc; border-radius:8px; padding:10px 14px; }
+  .info-label { font-size:10px; color:#9A8070; margin-bottom:3px; }
+  .info-value { font-size:14px; font-weight:700; color:#4A2C1A; }
+  .bank-box { background:#f0f7ff; border:2px solid #7B9FE0; border-radius:8px; padding:12px 14px; margin-bottom:16px; }
+  .bank-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:8px; }
+  .bank-item { }
+  .bank-lbl { font-size:10px; color:#5B8DD9; }
+  .bank-val { font-size:13px; font-weight:700; color:#1a3a70; font-family:monospace; }
+  .main-amt { background:#fff8f0; border:2px solid #C8973A; border-radius:10px; padding:14px 16px; margin-bottom:16px; text-align:center; }
+  .main-amt-label { font-size:11px; color:#9A8070; margin-bottom:4px; }
+  .main-amt-value { font-size:28px; font-weight:700; color:#C8973A; font-family:monospace; }
+  table { width:100%; border-collapse:collapse; }
+  th { background:#fdf3e8; padding:7px 10px; font-size:11px; color:#4A2C1A; text-align:left; border-bottom:2px solid #C8973A; }
+  th:not(:first-child):not(:nth-child(2)) { }
+  .total-row td { font-weight:700; border-top:2px solid #C8973A; padding:8px 10px; }
+  .sign-area { margin-top:20px; display:flex; justify-content:flex-end; gap:40px; }
+  .sign-box { border-top:1px solid #999; width:120px; padding-top:4px; font-size:11px; color:#555; text-align:center; }
+  .footer { margin-top:12px; font-size:9px; color:#aaa; text-align:right; border-top:1px solid #eee; padding-top:6px; }
+  .no-print { display:block; text-align:center; margin-top:14px; }
+  @media print {
+    .no-print { display:none !important; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { padding:8mm 10mm; }
+  }
+</style>
+</head>
+<body>
+<h1>
+  <span>実家納金　送金証明書</span>
+  <span style="font-size:12px;color:#9A8070;">${monthLabel} 分</span>
+</h1>
+
+<div class="main-amt">
+  <div class="main-amt-label">今回送金額</div>
+  <div class="main-amt-value">${mainAmt}</div>
+  <div style="font-size:11px;color:#9A8070;margin-top:4px;">送金日：${mainDate}${mainTime ? ' ' + mainTime : ''}</div>
+</div>
+
+<h2>振込先情報</h2>
+<div class="bank-box">
+  <div style="font-size:12px;font-weight:700;color:#1a3a70;margin-bottom:8px;">${form.bank||'—'} ${form.branch ? form.branch : ''}</div>
+  <div class="bank-grid">
+    <div class="bank-item"><div class="bank-lbl">口座種別</div><div class="bank-val">${form.actype||'普通'}</div></div>
+    <div class="bank-item"><div class="bank-lbl">口座番号</div><div class="bank-val">${form.acno||'—'}</div></div>
+    <div class="bank-item"><div class="bank-lbl">口座名義</div><div class="bank-val" style="font-size:11px;">${form.acname||'—'}</div></div>
+  </div>
+</div>
+
+<div class="info-grid">
+  <div class="info-card">
+    <div class="info-label">送金者</div>
+    <div class="info-value">${form.sender||'—'}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">備考・用途</div>
+    <div class="info-value">${form.note||'—'}</div>
+  </div>
+</div>
+
+${records.length > 0 ? `
+<h2>送金記録一覧（累計）</h2>
+<table>
+  <thead><tr>
+    <th>送金日</th><th>時刻</th><th style="text-align:right">金額</th><th>備考</th>
+  </tr></thead>
+  <tbody>${recRows}</tbody>
+  <tfoot><tr class="total-row">
+    <td colspan="2">累計合計</td>
+    <td style="text-align:right;font-family:monospace;">¥${totalSent.toLocaleString()}</td>
+    <td></td>
+  </tr></tfoot>
+</table>` : ''}
+
+<div class="sign-area">
+  <div class="sign-box">送金者確認</div>
+  <div class="sign-box">受領者確認</div>
+</div>
+
+<div class="footer">作成日：${today} ／ 有馬功稀 ／ kouki-app 実家納金</div>
+
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 24px;background:#C8973A;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
+  <button onclick="window.close()" style="padding:10px 16px;background:#eee;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;">✕ 閉じる</button>
+</div>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank', 'width=860,height=720,scrollbars=yes');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
+};
+
+// ─── 帳票一覧：各帳票フォームを開く ───
+window.ledgerOpen = function(type) {
+  const area = document.getElementById('ledger-form-area');
+  if (!area) return;
+
+  const templates = {
+    remit: { title:'送金記録票', color:'var(--accent)', icon:'📨', desc:'実家・家族への送金を記録・PDF化します', action: () => switchLedgerTab('remittance') },
+    payment: { title:'支払い証明書', color:'#5B8DD9', icon:'🧾', desc:'各種支払いの証明書を作成します' },
+    monthly: { title:'月次収支報告書', color:'#7A9E7E', icon:'📊', desc:'家計タブのデータから月次報告書を作成します', action: () => { switchTab('kakeibo'); setTimeout(()=>printMonthlyStatement?.(),300); } },
+    vehicle: { title:'車両費用明細', color:'#E8B84B', icon:'🚗', desc:'車両にかかる費用の明細書を作成します' },
+    free: { title:'自由書式帳票', color:'#9E6FD0', icon:'📝', desc:'タイトルと内容を自由に入力して帳票を作成します' },
+  };
+
+  const t = templates[type];
+  if (!t) return;
+
+  // 送金・月次は既存機能へ誘導
+  if (t.action) {
+    area.innerHTML = `<div class="card" style="border:1px solid ${t.color}33;background:${t.color}08;text-align:center;padding:16px;">
+      <div style="font-size:1.5rem;margin-bottom:6px;">${t.icon}</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:${t.color};">${t.title}</div>
+      <div style="font-size:0.75rem;color:var(--muted2);margin:8px 0;">${t.desc}</div>
+      <button onclick="(${t.action.toString()})()" style="padding:9px 20px;background:${t.color};border:none;border-radius:10px;color:${type==='monthly'?'white':'#0f0f0f'};font-family:'Shippori Mincho',serif;font-size:0.88rem;cursor:pointer;">→ 開く</button>
+    </div>`;
+    return;
+  }
+
+  // 自由書式 / 支払い / 車両
+  area.innerHTML = `<div class="card" style="border:1px solid ${t.color}33;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:${t.color};margin-bottom:12px;">${t.icon} ${t.title}</div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">タイトル</div>
+        <input type="text" id="lf-title" placeholder="${t.title}" maxlength="40"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">日付</div>
+        <input type="date" id="lf-date"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 10px;color:var(--text);font-size:0.88rem;outline:none;">
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">金額（任意）</div>
+        <input type="number" id="lf-amount" placeholder="0" min="0"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;font-family:'DM Mono',monospace;">
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">内容・備考</div>
+        <textarea id="lf-body" rows="4" placeholder="帳票の内容を入力..."
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.85rem;outline:none;resize:vertical;font-family:'Noto Sans JP',sans-serif;"></textarea>
+      </div>
+      <div>
+        <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:3px;">作成者名</div>
+        <input type="text" id="lf-author" placeholder="有馬功稀" maxlength="20"
+          style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:0.9rem;outline:none;">
+      </div>
+      <button onclick="ledgerPrint()" style="padding:11px;background:${t.color};border:none;border-radius:10px;color:${type==='payment'?'white':'#0f0f0f'};font-family:'Shippori Mincho',serif;font-size:0.9rem;font-weight:700;cursor:pointer;">
+        📄 PDFで作成・印刷
+      </button>
+    </div>
+  </div>`;
+
+  // 日付デフォルト
+  const di = document.getElementById('lf-date');
+  if (di) di.value = new Date().toISOString().slice(0,10);
+  const ti = document.getElementById('lf-title');
+  if (ti) ti.value = t.title;
+};
+
+window.ledgerPrint = function() {
+  const title  = document.getElementById('lf-title')?.value || '帳票';
+  const date   = document.getElementById('lf-date')?.value || new Date().toISOString().slice(0,10);
+  const amount = document.getElementById('lf-amount')?.value;
+  const body   = document.getElementById('lf-body')?.value || '';
+  const author = document.getElementById('lf-author')?.value || '有馬功稀';
+
+  const fmt = v => v ? `¥${Number(v).toLocaleString()}` : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>${title}</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#ffffff !important; color:#111 !important; font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif; padding:14mm 16mm; }
+  h1 { font-size:20px; color:#1a1a1a; border-bottom:3px solid #333; padding-bottom:10px; margin-bottom:18px; }
+  .meta { display:flex; justify-content:space-between; margin-bottom:16px; font-size:12px; color:#555; }
+  .amount-box { background:#f9f9f9; border:2px solid #333; border-radius:6px; padding:14px 18px; margin-bottom:18px; display:flex; align-items:center; gap:12px; }
+  .amount-label { font-size:12px; color:#555; }
+  .amount-value { font-size:26px; font-weight:700; font-family:monospace; color:#1a1a1a; }
+  .body-box { background:#fafafa; border:1px solid #ddd; border-radius:6px; padding:14px 16px; min-height:120px; font-size:13px; line-height:1.9; white-space:pre-wrap; margin-bottom:18px; }
+  .sign-area { display:flex; justify-content:flex-end; gap:36px; margin-top:24px; }
+  .sign-box { text-align:center; border-top:1px solid #999; width:110px; padding-top:4px; font-size:10px; color:#555; }
+  .footer { margin-top:12px; font-size:9px; color:#aaa; text-align:right; }
+  .no-print { text-align:center; margin-top:14px; }
+  @media print {
+    .no-print { display:none !important; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  }
+</style>
+</head>
+<body>
+<h1>${title}</h1>
+<div class="meta">
+  <span>作成日：${new Date(date).toLocaleDateString('ja-JP')}</span>
+  <span>作成者：${author}</span>
+</div>
+${amount ? `<div class="amount-box"><div class="amount-label">金額</div><div class="amount-value">${fmt(amount)}</div></div>` : ''}
+<div class="body-box">${body || '（内容なし）'}</div>
+<div class="sign-area">
+  <div class="sign-box">確認</div>
+  <div class="sign-box">承認</div>
+</div>
+<div class="footer">kouki-app 帳票 ／ ${new Date().toLocaleDateString('ja-JP')} 作成</div>
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 24px;background:#333;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
+  <button onclick="window.close()" style="padding:10px 16px;background:#eee;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;">✕ 閉じる</button>
+</div>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank', 'width=820,height=680,scrollbars=yes');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
 };
 
 // ════ 出発前チェックリスト ════
@@ -12890,6 +13685,175 @@ window.saveIncomeFromMonthly=function(){
 window.toggleCatMemo=function(){_catMemoVisible=!_catMemoVisible;const btn=document.getElementById('cat-memo-toggle-btn');if(btn)btn.textContent=_catMemoVisible?'📝 メモ非表示':'✏️ メモ入力';renderBudgetMonthly();};
 window.saveCatMemo=function(cat,val){const key=`${budgetYear}-${budgetMonth}-${cat}`;if(!val)delete _catMemos[key];else _catMemos[key]=val;localStorage.setItem(LS_CAT_MEMOS,JSON.stringify(_catMemos));};
 window.printMonthly=function(){document.title=`月次決算 ${budgetYear}年${budgetMonth+1}月`;window.print();document.title='功稀のページ';};
+
+// 来月の繰越に反映
+window.applyFinalBalanceToNext = function() {
+  const el  = document.getElementById('bsum-final-balance');
+  const msg = document.getElementById('carry-over-msg');
+  if (!el || el.dataset.value === '') return;
+  const finalBal = Number(el.dataset.value);
+  let nextY = budgetYear, nextM = budgetMonth + 1;
+  if (nextM > 11) { nextM = 0; nextY++; }
+  const nextKey = `${nextY}-${nextM}`;
+  _prevBalances[nextKey] = finalBal;
+  localStorage.setItem(LS_PREV_BALANCE, JSON.stringify(_prevBalances));
+  if (msg) {
+    msg.textContent = `✅ ${nextY}年${nextM+1}月の繰越に¥${finalBal.toLocaleString()}を設定しました`;
+    setTimeout(() => { if (msg) msg.textContent = ''; }, 3000);
+  }
+  showMToast(`${nextY}年${nextM+1}月に繰越¥${finalBal.toLocaleString()}を設定しました`);
+};
+
+// 決算書PDF（新ウィンドウ・白背景固定）
+window.printMonthlyStatement = function() {
+  const income      = Number(getBudgetForMonth(budgetYear, budgetMonth).income || 0);
+  const catBudgets  = getBudgetForMonth(budgetYear, budgetMonth).cats || {};
+  const cycleItems  = spendGetCycleItems(budgetYear, budgetMonth);
+  const start       = spendCycleStart(budgetYear, budgetMonth);
+  const end         = spendCycleEnd(budgetYear, budgetMonth);
+
+  const actuals = {};
+  Object.keys(CAT_LABELS).forEach(k => actuals[k] = 0);
+  cycleItems.forEach(i => { actuals[i.cat] = (actuals[i.cat] || 0) + Number(i.amount); });
+
+  const totalActual = cycleItems.reduce((s, i) => s + Number(i.amount), 0);
+  const prevKey     = `${budgetYear}-${budgetMonth}`;
+  const prevBal     = (_prevBalances[prevKey] !== undefined && _prevBalances[prevKey] !== null)
+    ? _prevBalances[prevKey] : null;
+  const finalBal    = income > 0 ? ((prevBal || 0) + income - totalActual) : null;
+
+  const fmt  = v  => `¥${Number(v).toLocaleString()}`;
+  const sign = v  => (v >= 0 ? '+' : '') + fmt(Math.abs(v));
+  const clr  = v  => v >= 0 ? '#2e7d32' : '#c62828';
+
+  // カテゴリ行
+  const catRows = Object.entries(CAT_LABELS)
+    .filter(([k]) => (actuals[k] || 0) > 0 || (catBudgets[k] || 0) > 0)
+    .map(([k, label]) => {
+      const act = actuals[k] || 0;
+      const bud = Number(catBudgets[k] || 0);
+      const diff = bud > 0 ? act - bud : null;
+      const pct  = bud > 0 ? Math.min((act / bud) * 100, 100).toFixed(0) : null;
+      const memoKey = `${budgetYear}-${budgetMonth}-${k}`;
+      const memo = _catMemos[memoKey] || '';
+      return `<tr>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;">
+          <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${CAT_COLORS[k]};margin-right:6px;vertical-align:middle;"></span>${label}
+          ${memo ? `<div style="font-size:10px;color:#888;margin-top:2px;">📝 ${memo}</div>` : ''}
+        </td>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;">${fmt(act)}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;color:#666;">${bud ? fmt(bud) : '—'}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;color:${diff !== null ? clr(diff) : '#999'};">${diff !== null ? (diff > 0 ? '▲' : '▼') + fmt(Math.abs(diff)) : '—'}</td>
+        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;">
+          ${pct !== null ? `<div style="background:#eee;border-radius:3px;height:8px;width:60px;display:inline-block;vertical-align:middle;overflow:hidden;">
+            <div style="height:100%;width:${pct}%;background:${CAT_COLORS[k]};border-radius:3px;"></div></div> ${pct}%` : '—'}
+        </td>
+      </tr>`;
+    }).join('');
+
+  // 支出明細（上位10件）
+  const topItems = [...cycleItems]
+    .sort((a, b) => Number(b.amount) - Number(a.amount))
+    .slice(0, 15);
+  const itemRows = topItems.map(i =>
+    `<tr>
+      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;">${i.day}日</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;">${i.name}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;color:#666;">${CAT_LABELS[i.cat] || i.cat}</td>
+      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;text-align:right;font-family:monospace;">${fmt(i.amount)}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>月次決算書 ${budgetYear}年${budgetMonth+1}月</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#fff !important; color:#111 !important; font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif; padding:12mm 14mm; font-size:13px; }
+  h1 { font-size:18px; color:#4A2C1A; border-bottom:3px solid #D4956A; padding-bottom:8px; margin-bottom:16px; }
+  h2 { font-size:13px; color:#4A2C1A; border-left:4px solid #D4956A; padding-left:8px; margin:16px 0 8px; }
+  .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+  .sum-card { background:#fdf8f2; border:1px solid #e8d5bc; border-radius:8px; padding:10px 12px; }
+  .sum-label { font-size:10px; color:#9A8070; margin-bottom:3px; }
+  .sum-value { font-size:16px; font-weight:700; color:#4A2C1A; font-family:monospace; }
+  .final-card { background:#f0f7f0; border:2px solid #7A9E7E; border-radius:8px; padding:12px 14px; margin-bottom:16px; }
+  .prev-card { background:#eff4fc; border:2px solid #7B9FE0; border-radius:8px; padding:10px 14px; margin-bottom:16px; }
+  table { width:100%; border-collapse:collapse; }
+  th { background:#fdf3e8; padding:7px 10px; font-size:11px; color:#4A2C1A; text-align:left; border-bottom:2px solid #D4956A; }
+  th:not(:first-child) { text-align:right; }
+  .footer { margin-top:14px; font-size:10px; color:#aaa; text-align:right; border-top:1px solid #eee; padding-top:6px; }
+  .no-print { display:block; text-align:center; margin-top:14px; }
+  @media print {
+    .no-print { display:none !important; }
+    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    body { padding:8mm 10mm; }
+  }
+</style>
+</head>
+<body>
+<h1>月次決算書　${budgetYear}年${budgetMonth+1}月（${start.getMonth()+1}/${start.getDate()}〜${end.getMonth()+1}/${end.getDate()}）</h1>
+
+<div class="summary-grid">
+  <div class="sum-card">
+    <div class="sum-label">💴 月収（手取り）</div>
+    <div class="sum-value" style="color:${income?'#4A2C1A':'#aaa'}">${income ? fmt(income) : '未設定'}</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">💸 実績支出合計</div>
+    <div class="sum-value" style="color:#C0675A">${fmt(totalActual)}</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">✨ 今月余剰／赤字</div>
+    <div class="sum-value" style="color:${income ? clr(income - totalActual) : '#aaa'}">${income ? sign(income - totalActual) : '—'}</div>
+  </div>
+</div>
+
+<div class="prev-card">
+  <div style="font-size:11px;color:#5B8DD9;margin-bottom:4px;">📦 先月の残高（繰越）</div>
+  <div style="font-size:18px;font-weight:700;font-family:monospace;color:${prevBal !== null ? clr(prevBal) : '#999'};">${prevBal !== null ? sign(prevBal) : '—（未設定）'}</div>
+</div>
+
+${finalBal !== null ? `
+<div class="final-card">
+  <div style="font-size:11px;color:#7A9E7E;margin-bottom:4px;">💰 今月の最終残高（来月への繰越）</div>
+  <div style="font-size:22px;font-weight:700;font-family:monospace;color:${clr(finalBal)};">${sign(finalBal)}</div>
+  <div style="font-size:10px;color:#888;margin-top:4px;">= 繰越${prevBal !== null ? fmt(prevBal) : '¥0'} + 月収${fmt(income)} − 支出${fmt(totalActual)}</div>
+</div>` : ''}
+
+<h2>カテゴリ別　予算 vs 実績</h2>
+<table>
+  <thead><tr>
+    <th>カテゴリ</th><th style="text-align:right">実績</th><th style="text-align:right">予算</th><th style="text-align:right">差額</th><th style="text-align:right">達成率</th>
+  </tr></thead>
+  <tbody>${catRows}</tbody>
+  <tfoot><tr>
+    <td style="padding:8px 10px;font-weight:700;border-top:2px solid #D4956A;">合計</td>
+    <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace;color:#C0675A;border-top:2px solid #D4956A;">${fmt(totalActual)}</td>
+    <td style="padding:8px 10px;text-align:right;font-family:monospace;color:#5B8DD9;border-top:2px solid #D4956A;">${fmt(Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0))}</td>
+    <td colspan="2" style="border-top:2px solid #D4956A;"></td>
+  </tr></tfoot>
+</table>
+
+<h2>支出明細（金額上位）</h2>
+<table>
+  <thead><tr><th>日付</th><th>項目</th><th>カテゴリ</th><th style="text-align:right">金額</th></tr></thead>
+  <tbody>${itemRows}</tbody>
+</table>
+
+<div class="footer">有馬功稀 月次決算書 ／ ${new Date().toLocaleDateString('ja-JP')} 作成 ／ kouki-app</div>
+
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 24px;background:#D4956A;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
+  <button onclick="window.close()" style="padding:10px 16px;background:#eee;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;">✕ 閉じる</button>
+</div>
+</body>
+</html>`;
+
+  const w = window.open('', '_blank', 'width=900,height=750,scrollbars=yes');
+  if (w) { w.document.write(html); w.document.close(); }
+  else alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
+};
 function budgetSaveIncome(val){localStorage.setItem(BUDGET_INCOME_LS,val);window.mdb.ref(`${window.FB_BUDGET}/income`).set(Number(val));}
 window.budgetSaveIncomeForMonth=function(val){
   if(val===''||val===null||val===undefined)return;
@@ -12914,6 +13878,27 @@ function renderBudgetMonthly(){
   document.getElementById('bsum-actual').textContent=`¥${totalActual.toLocaleString()}`;
   document.getElementById('bsum-budget').textContent=`¥${totalBudget.toLocaleString()}`;
   const balEl=document.getElementById('bsum-balance');if(!income){balEl.textContent='—';balEl.style.color='#9A8070';}else{balEl.textContent=(balance>=0?'+':'')+`¥${balance.toLocaleString()}`;balEl.style.color=balance>=0?'#7A9E7E':'#C0675A';}
+
+  // ── 最終残高（繰越 + 月収 − 支出）自動算出 ──
+  const finalBalEl  = document.getElementById('bsum-final-balance');
+  const carryBtn    = document.getElementById('carry-over-btn');
+  const carryMsg    = document.getElementById('carry-over-msg');
+  if (finalBalEl) {
+    if (income > 0) {
+      const finalBal = (prevBal !== null ? prevBal : 0) + income - totalActual;
+      finalBalEl.textContent = (finalBal >= 0 ? '+' : '') + `¥${finalBal.toLocaleString()}`;
+      finalBalEl.style.color = finalBal >= 0 ? '#7A9E7E' : '#C0675A';
+      finalBalEl.dataset.value = finalBal;
+      if (carryBtn) carryBtn.style.display = 'block';
+    } else {
+      finalBalEl.textContent = '—（月収を設定してください）';
+      finalBalEl.style.color = '#9A8070';
+      finalBalEl.dataset.value = '';
+      if (carryBtn) carryBtn.style.display = 'none';
+    }
+    if (carryMsg) carryMsg.textContent = '';
+  }
+
   const rows=document.getElementById('bcat-rows');rows.innerHTML='';
   Object.entries(CAT_LABELS).forEach(([key,label])=>{const actual=actuals[key]||0,budget=Number(catBudgets[key]||0);if(actual===0&&budget===0&&!_catMemoVisible)return;const pct=budget>0?Math.min((actual/budget)*100,100):0,over=budget>0&&actual>budget,diff=budget>0?actual-budget:null,diffHtml=diff!==null?`<span style="color:${diff>0?'#C0675A':'#7A9E7E'};margin-left:4px">${diff>0?'▲':'▼'}¥${Math.abs(diff).toLocaleString()}</span>`:'',memoKey=`${budgetYear}-${budgetMonth}-${key}`,memoVal=_catMemos[memoKey]||'',memoHtml=_catMemoVisible?`<div style="margin-top:6px;display:flex;gap:6px;align-items:center"><input class="minput" placeholder="メモを入力..." value="${mEsc(memoVal)}" style="flex:1;padding:6px 10px;font-size:0.78rem" onchange="saveCatMemo('${key}',this.value)"></div>`:(memoVal?`<div style="font-size:0.75rem;color:#9A8070;margin-top:4px">📝 ${mEsc(memoVal)}</div>`:'');
     rows.innerHTML+=`<div class="bcat-row"><div class="bcat-row-header"><div class="bcat-label"><div style="width:10px;height:10px;border-radius:3px;background:${CAT_COLORS[key]}"></div>${label}</div><div class="bcat-amounts">実績 ¥${actual.toLocaleString()} / 予算 ${budget?'¥'+budget.toLocaleString():'未設定'}${diffHtml}</div></div><div class="bcat-bar-bg"><div class="bcat-bar-fill${over?' bcat-over':''}" style="width:${pct}%;background:${CAT_COLORS[key]}"></div></div>${memoHtml}</div>`;});
