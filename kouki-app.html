@@ -360,6 +360,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab" onclick="switchTab('health')" id="tab-health">❤️ 健康</button>
     <button class="tab" onclick="switchTab('kakeibo')" id="tab-kakeibo">💰 家計</button>
     <button class="tab" onclick="switchTab('ledger')" id="tab-ledger">📋 帳票</button>
+    <button class="tab" onclick="switchTab('profile')" id="tab-profile">👤 プロフィール</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 設定</button>
   </div>
@@ -2833,6 +2834,410 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
 </div>
 
+<!-- ══════════════════════════════════════
+     プロフィールパネル
+══════════════════════════════════════ -->
+<div class="panel" id="profile-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+  <!-- サブタブバー -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;">
+    <button class="wtab active" id="ptab-overview" onclick="switchProfileTab('overview')">🙋 基本情報</button>
+    <button class="wtab" id="ptab-diagnosis" onclick="switchProfileTab('diagnosis')">🧠 診断</button>
+  </div>
+
+  <!-- ═══ 基本情報タブ ═══ -->
+  <div id="psec-overview" style="padding:16px;display:block;">
+
+    <!-- プロフィールカード -->
+    <div style="background:linear-gradient(135deg,rgba(200,169,110,0.1),rgba(91,141,217,0.06));border:1px solid rgba(200,169,110,0.3);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:3.5rem;margin-bottom:8px;">👤</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.3rem;color:var(--accent);font-weight:700;margin-bottom:3px;">有馬 功稀</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted2);">Arima Kouki</div>
+      <div style="margin-top:10px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);border-radius:12px;color:var(--accent);">20歳</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(122,158,126,0.1);border:1px solid rgba(122,158,126,0.3);border-radius:12px;color:#7A9E7E;">フジパン(株)</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:12px;color:#5B8DD9;">埼玉県大井町</span>
+      </div>
+    </div>
+
+    <!-- 基本データ -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">📋 基本データ</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.78rem;color:var(--muted2);">氏名</span>
+          <span style="font-size:0.82rem;color:var(--text);font-weight:600;">有馬 功稀</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.78rem;color:var(--muted2);">生年月日</span>
+          <span style="font-size:0.82rem;color:var(--text);">2006年3月30日</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.78rem;color:var(--muted2);">年齢</span>
+          <span style="font-size:0.82rem;color:var(--text);">20歳（2026年時点）</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.78rem;color:var(--muted2);">勤務先</span>
+          <span style="font-size:0.82rem;color:var(--text);">フジパン(株)</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);">
+          <span style="font-size:0.78rem;color:var(--muted2);">居住地</span>
+          <span style="font-size:0.82rem;color:var(--text);">埼玉県大井町</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:7px 0;">
+          <span style="font-size:0.78rem;color:var(--muted2);">MBTI</span>
+          <span style="font-size:0.82rem;color:#ff69b4;font-weight:700;">ENFJ-T（主人公型）</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- スローガン -->
+    <div class="card" style="margin-bottom:14px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">✨ 2026年 スローガン</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--text);line-height:1.8;padding:8px 0;border-bottom:1px solid var(--border);">「偶然ではなく、設計で生きる。」</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--text);line-height:1.8;padding:8px 0;border-bottom:1px solid var(--border);">「2026、静かに、深く、確実に。」</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--text);line-height:1.8;padding:8px 0;">「焦らない。でも、確実に前へ。」</div>
+      </div>
+    </div>
+
+    <!-- 趣味・興味 -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">🎨 趣味・興味</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">📷 写真</span>
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">🎵 J-POP・オーケストラ</span>
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">💻 アプリ開発</span>
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">📚 読書</span>
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">🚗 運転</span>
+        <span style="font-size:0.75rem;padding:4px 12px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.25);border-radius:20px;color:var(--text);">🏯 日本史・有馬家の家系研究</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ 診断タブ ═══ -->
+  <div id="psec-diagnosis" style="padding:16px;display:none;">
+
+    <!-- MBTIヘッダーカード -->
+    <div style="background:linear-gradient(135deg,rgba(255,105,180,0.12),rgba(232,184,75,0.08),rgba(91,141,217,0.08));border:1px solid rgba(255,105,180,0.3);border-radius:16px;padding:18px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:0.65rem;color:var(--muted2);letter-spacing:0.12em;margin-bottom:4px;">16Personalities 診断結果</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:2rem;font-weight:700;color:#ff69b4;letter-spacing:0.06em;margin-bottom:4px;">ENFJ-T</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.1rem;color:var(--accent);margin-bottom:3px;">主人公型</div>
+      <div style="font-size:0.72rem;color:var(--muted2);font-style:italic;margin-bottom:10px;">Turbulent Protagonist</div>
+      <div style="display:flex;justify-content:center;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(255,105,180,0.1);border:1px solid rgba(255,105,180,0.3);border-radius:10px;color:#ff69b4;">外向型 E</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:10px;color:#5B8DD9;">直観型 N</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(122,158,126,0.1);border:1px solid rgba(122,158,126,0.3);border-radius:10px;color:#7A9E7E;">感情型 F</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);border-radius:10px;color:var(--accent);">判断型 J</span>
+        <span style="font-size:0.68rem;padding:3px 10px;background:rgba(148,92,192,0.1);border:1px solid rgba(148,92,192,0.3);border-radius:10px;color:#9E6FD0;">慎重型 T</span>
+      </div>
+    </div>
+
+    <!-- 5軸スコア -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">📊 5つの指標</div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <!-- E vs I -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.72rem;color:#ff69b4;font-weight:700;">外向型 (E)</span>
+            <span style="font-size:0.72rem;color:var(--muted2);">内向型 (I)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:72%;background:linear-gradient(90deg,#ff69b4,#ff9fb3);border-radius:4px;"></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;text-align:right;">72%</div>
+        </div>
+        <!-- N vs S -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.72rem;color:#5B8DD9;font-weight:700;">直観型 (N)</span>
+            <span style="font-size:0.72rem;color:var(--muted2);">感覚型 (S)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:67%;background:linear-gradient(90deg,#5B8DD9,#90caf9);border-radius:4px;"></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;text-align:right;">67%</div>
+        </div>
+        <!-- F vs T -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.72rem;color:#7A9E7E;font-weight:700;">感情型 (F)</span>
+            <span style="font-size:0.72rem;color:var(--muted2);">思考型 (T)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:75%;background:linear-gradient(90deg,#7A9E7E,#a5d6a7);border-radius:4px;"></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;text-align:right;">75%</div>
+        </div>
+        <!-- J vs P -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.72rem;color:var(--accent);font-weight:700;">判断型 (J)</span>
+            <span style="font-size:0.72rem;color:var(--muted2);">知覚型 (P)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;">
+            <div style="height:100%;width:68%;background:linear-gradient(90deg,#C8973A,#ffd54f);border-radius:4px;"></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;text-align:right;">68%</div>
+        </div>
+        <!-- A vs T -->
+        <div>
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:0.72rem;color:var(--muted2);">自己主張型 (A)</span>
+            <span style="font-size:0.72rem;color:#9E6FD0;font-weight:700;">慎重型 (T)</span>
+          </div>
+          <div style="height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;position:relative;">
+            <div style="height:100%;position:absolute;right:0;width:61%;background:linear-gradient(90deg,#ce93d8,#9E6FD0);border-radius:4px;"></div>
+          </div>
+          <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;text-align:left;">61% T</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 概要 -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">🌟 タイプ概要</div>
+      <div style="font-size:0.82rem;color:var(--text);line-height:1.9;">
+        ENFJ（主人公型）は、人々の動機・信念・感情を察知する優れた洞察力を持ち、<b>生まれながらのリーダー</b>。誠実で思いやりがあり、周囲を自然と巻き込む力とカリスマ性を備えている。
+        <br><br>
+        <b>-Tのポイント：</b>周囲の評価に敏感で内省的な「慎重型」。ストレスをためやすい一方、他者の気持ちに深く寄り添え、サブリーダー的ポジションでも力を発揮する。
+      </div>
+    </div>
+
+    <!-- 強み -->
+    <div class="card" style="margin-bottom:14px;background:rgba(122,158,126,0.04);border:1px solid rgba(122,158,126,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#7A9E7E;margin-bottom:12px;">✅ 強み</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#7A9E7E;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">高い共感力・洞察力</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">相手の感情や動機を素早く読み取り、心に響くコミュニケーションができる</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#7A9E7E;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">天性のリーダーシップ</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">人々をまとめ、共通の目標に向かって巻き込む力。自然と人が集まる</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#7A9E7E;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">誠実さと利他主義</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">他者のために行動することに喜びを感じ、正しいことをしたいという純粋な動機</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#7A9E7E;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">寛容性・多様な視点</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">反対意見にも耳を傾け、様々な人の考えを自分のように吸収する</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#7A9E7E;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">説得力と影響力</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">共感を呼ぶ話し方で、押しつけがましさを感じさせず人を動かせる</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 弱み -->
+    <div class="card" style="margin-bottom:14px;background:rgba(192,96,96,0.03);border:1px solid rgba(192,96,96,0.15);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#c06060;margin-bottom:12px;">⚠️ 注意点・弱み</div>
+      <div style="display:flex;flex-direction:column;gap:7px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#c06060;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">ストレスをためやすい（T）</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">周囲の評価に敏感で、感情の消耗が起きやすい。適度な距離感が重要</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#c06060;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">自尊心がブレやすい</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">目標達成できなかった時の落ち込みが深く、自信を急速に失うことがある</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#c06060;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">他者のために動きすぎる</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">共感力が高い分、境界線を引かないと精神的に疲弊することがある</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#c06060;font-size:0.8rem;flex-shrink:0;">▸</span>
+          <div>
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text);">理想主義的すぎることも</div>
+            <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">強すぎる変革のビジョンが、相手に押しつけがましく感じられる場合がある</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 恋愛傾向 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(255,105,180,0.04);border:1px solid rgba(255,105,180,0.18);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:12px;">💗 恋愛傾向</div>
+      <div style="font-size:0.8rem;color:var(--text);line-height:1.9;">
+        気になる相手には<b>自らアプローチ</b>する傾向がある。大切な人が困っているのを見ると手を差し伸べたくなり、相手の成長を自分のことのように喜べる。<br>
+        一方で感受性が高く、関係において<b>相手の反応に敏感になりやすい</b>。深くコミットするほど感情的な影響も大きくなる。<br><br>
+        <b>相性の良いタイプ：</b> ISTP・ISFP・ESTP・ENTJ など
+      </div>
+    </div>
+
+    <!-- 適職 -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;margin-bottom:12px;">💼 向いている仕事・環境</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;">
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">教師・トレーナー</span>
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">人事・HR</span>
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">法人営業・広報</span>
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">ソーシャルワーカー</span>
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">カウンセラー</span>
+        <span style="font-size:0.72rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.25);border-radius:12px;color:#5B8DD9;">チームリーダー</span>
+      </div>
+      <div style="font-size:0.75rem;color:var(--muted2);line-height:1.7;">人・組織の学びや成長に携われる立場、人との関わりが多い環境でやる気が出る。ルーティンワークや孤立した仕事は苦手な傾向。</div>
+    </div>
+
+    <!-- 同タイプの有名人 -->
+    <div class="card" style="margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">🌟 同タイプの著名人</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;">
+        <span style="font-size:0.73rem;padding:3px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);">バラク・オバマ</span>
+        <span style="font-size:0.73rem;padding:3px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);">ネルソン・マンデラ</span>
+        <span style="font-size:0.73rem;padding:3px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);">ジョン・クスタック</span>
+        <span style="font-size:0.73rem;padding:3px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);">渡辺直美</span>
+        <span style="font-size:0.73rem;padding:3px 10px;background:var(--surface2);border:1px solid var(--border2);border-radius:12px;color:var(--text);">ジャンヌ・ダルク</span>
+      </div>
+    </div>
+
+    <!-- 日本での割合 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(200,169,110,0.04);border:1px solid rgba(200,169,110,0.18);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:8px;">📈 日本での分布</div>
+      <div style="font-size:0.82rem;color:var(--text);line-height:1.8;">
+        ENFJは日本人全体の<b style="color:var(--accent);">約5.59%</b>。16タイプ中9番目に多く、珍しすぎず多すぎない、中間の立ち位置。<br>
+        <span style="font-size:0.72rem;color:var(--muted2);">出典：16Personalities Japan Personality Profile</span>
+      </div>
+    </div>
+
+    <!-- ─────────────────────────────────── -->
+    <!-- 恋愛診断カード（ラブキャラ診断64） -->
+    <!-- ─────────────────────────────────── -->
+
+    <!-- セクション区切り -->
+    <div style="display:flex;align-items:center;gap:8px;margin:18px 0 14px;">
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,105,180,0.4),transparent);"></div>
+      <span style="font-size:0.65rem;color:rgba(255,105,180,0.7);letter-spacing:0.1em;white-space:nowrap;">LOVE CHARACTER 64</span>
+      <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(255,105,180,0.4));"></div>
+    </div>
+
+    <!-- 恋愛診断ヘッダーカード -->
+    <div style="background:linear-gradient(135deg,rgba(255,105,180,0.13),rgba(232,184,75,0.09));border:1px solid rgba(255,105,180,0.3);border-radius:16px;padding:18px;margin-bottom:14px;text-align:center;">
+      <div style="font-size:0.62rem;color:var(--muted2);letter-spacing:0.12em;margin-bottom:4px;">ラブキャラ診断64 診断結果</div>
+      <div style="font-size:2.2rem;margin-bottom:2px;">💑</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.25rem;font-weight:700;color:#ff69b4;letter-spacing:0.04em;margin-bottom:3px;">最後の恋人（溺愛系）</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.8rem;color:var(--muted2);letter-spacing:0.08em;margin-bottom:10px;">FAPE-VD</div>
+      <!-- 4軸バッジ -->
+      <div style="display:flex;justify-content:center;gap:5px;flex-wrap:wrap;">
+        <span style="font-size:0.63rem;padding:3px 9px;background:rgba(255,105,180,0.1);border:1px solid rgba(255,105,180,0.3);border-radius:10px;color:#ff69b4;">Follow（相手に合わせたい）</span>
+        <span style="font-size:0.63rem;padding:3px 9px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:10px;color:#5B8DD9;">Accept（甘えられたい）</span>
+        <span style="font-size:0.63rem;padding:3px 9px;background:rgba(232,184,75,0.1);border:1px solid rgba(232,184,75,0.3);border-radius:10px;color:#E8B84B;">Passionate（情熱重視）</span>
+        <span style="font-size:0.63rem;padding:3px 9px;background:rgba(122,158,126,0.1);border:1px solid rgba(122,158,126,0.3);border-radius:10px;color:#7A9E7E;">Earnest（誠実・真面目）</span>
+      </div>
+    </div>
+
+    <!-- タイプの核心 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(255,105,180,0.04);border:1px solid rgba(255,105,180,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:10px;">💗 タイプの核心</div>
+      <div style="font-size:0.82rem;color:var(--text);line-height:1.9;">
+        "愛されること"よりも<b>「愛すること」に幸せを見出す</b>。言葉よりも行動で誠実さを伝え、相手の心に安心を与える存在。一度信じた人を裏切らず、困難の中でも穏やかに支え続ける——まさに「最後に選ばれる恋人」。
+      </div>
+    </div>
+
+    <!-- 溺愛系の特徴 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(232,184,75,0.04);border:1px solid rgba(232,184,75,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#E8B84B;margin-bottom:12px;">✨ 溺愛系（VD）の特徴</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#E8B84B;font-size:0.8rem;flex-shrink:0;margin-top:1px;">▸</span>
+          <div style="font-size:0.79rem;color:var(--text);line-height:1.7;">愛情表現が豊かで、<b>常に相手に夢中</b>。相手の喜びを自分の喜びとし、パートナーの存在を日々の活力にする</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#E8B84B;font-size:0.8rem;flex-shrink:0;margin-top:1px;">▸</span>
+          <div style="font-size:0.79rem;color:var(--text);line-height:1.7;">深く愛せば愛するほど<b>「本当に好き？」と確認したくなる</b>。弱さを見せることが苦手で、心の奥に甘えん坊が潜む</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#E8B84B;font-size:0.8rem;flex-shrink:0;margin-top:1px;">▸</span>
+          <div style="font-size:0.79rem;color:var(--text);line-height:1.7;">「一緒にいられるだけで幸せ」「無理していない？大丈夫？」など、<b>尽くす行動・言葉</b>が多い</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <span style="color:#E8B84B;font-size:0.8rem;flex-shrink:0;margin-top:1px;">▸</span>
+          <div style="font-size:0.79rem;color:var(--text);line-height:1.7;"><b>包容力最強</b>。弱さを優しく受け止めてくれる相手と安心して関係を築ける</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 強み・注意点 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+      <div class="card" style="background:rgba(122,158,126,0.04);border:1px solid rgba(122,158,126,0.2);">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:#7A9E7E;margin-bottom:9px;">✅ 強み</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <div>🤝 深い共感力・献身性</div>
+          <div>👂 傾聴力・寄り添い力</div>
+          <div>🛡️ 誠実で一途。浮気とは無縁</div>
+          <div>🌿 人の役に立てる環境で最大発揮</div>
+        </div>
+      </div>
+      <div class="card" style="background:rgba(192,96,96,0.03);border:1px solid rgba(192,96,96,0.15);">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:#c06060;margin-bottom:9px;">⚠️ 注意点</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:0.74rem;color:var(--text);line-height:1.6;">
+          <div>😮‍💨 自分の気持ちを後回しにしすぎる</div>
+          <div>👀 相手の顔色を伺いすぎて疲れる</div>
+          <div>🔒 弱さを見せることが苦手</div>
+          <div>💭 愛の確認をしたくなりやすい</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最高相性 -->
+    <div class="card" style="margin-bottom:14px;background:rgba(148,92,192,0.04);border:1px solid rgba(148,92,192,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#9E6FD0;margin-bottom:12px;">💫 最高相性タイプ</div>
+      <div style="background:rgba(148,92,192,0.08);border:1px solid rgba(148,92,192,0.2);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:1.2rem;">🐱</span>
+          <div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;font-weight:700;color:#9E6FD0;">ボス猫（LCRO）</div>
+            <div style="font-size:0.65rem;color:var(--muted2);">最高相性 ★★★★★</div>
+          </div>
+        </div>
+        <div style="font-size:0.76rem;color:var(--text);line-height:1.7;">「ないものを補い合う」最強ペア。最後の恋人の包容力がボス猫の本気の愛情を引き出す。一度惚れ込んだら惜しみなく愛情を注ぐ、スーパーカップル誕生の組み合わせ。</div>
+      </div>
+      <div style="font-size:0.74rem;color:var(--muted2);line-height:1.7;">
+        リードしてくれる積極的なタイプと組むことで安心感を得られ、より深い関係を築ける。自分の弱さを優しく受け止めてくれる相手が理想。
+      </div>
+    </div>
+
+    <!-- アドバイス -->
+    <div class="card" style="background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.2);">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:10px;">💌 大切にしたいこと</div>
+      <div style="font-size:0.8rem;color:var(--text);line-height:1.9;">
+        誠実さと優しさを武器に、自分のペースで歩んでいけば、信頼も愛も自然とあなたのもとに集まってくる。<br>
+        <b>相手への愛情と同じくらい、自分自身を大切にする時間と、正直な気持ちを伝える勇気</b>も持つことが、長く愛される秘訣。<br>
+        <span style="font-size:0.72rem;color:var(--muted2);">出典：LoveType16 / ラブキャラ診断64（Love Character 64）</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
 <div class="panel" id="settings-panel" style="padding:20px 16px;">
 
   <!-- プロフィール設定（運勢計算用） -->
@@ -3670,6 +4075,9 @@ window.switchTab = function(n) {
 
   // 帳票タブ
   if (n === 'ledger') { initLedgerTab(); }
+
+  // プロフィールタブ
+  if (n === 'profile') { switchProfileTab('overview'); }
 };
 
 function updateHeaderDate() {
@@ -12138,6 +12546,16 @@ window.calWeeklyPrint = function() {
   } else {
     alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
   }
+};
+
+// ════ プロフィールタブ ════
+window.switchProfileTab = function(tab) {
+  ['overview','diagnosis'].forEach(t => {
+    const sec = document.getElementById('psec-' + t);
+    const btn = document.getElementById('ptab-' + t);
+    if (sec) sec.style.display = t === tab ? 'block' : 'none';
+    if (btn) btn.classList.toggle('active', t === tab);
+  });
 };
 
 // ════ 帳票タブ ════
