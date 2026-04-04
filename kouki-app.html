@@ -347,6 +347,12 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div class="sync-status synced" id="sync-status">同期済み</div>
     </div>
     <img class="user-avatar" id="user-avatar" src="" alt="" style="display:none">
+    <!-- GCal同期ボタン（ヘッダー常設） -->
+    <button id="gcal-sync-header-btn" onclick="gcalSyncAll()"
+      title="Googleカレンダーを今すぐ同期"
+      style="background:none;border:1px solid rgba(91,141,217,0.4);border-radius:8px;color:#5B8DD9;font-size:0.68rem;padding:4px 8px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all 0.2s;">
+      🔄 GCal
+    </button>
     <button class="logout-btn" onclick="doLogout()">ログアウト</button>
   </header>
   <div class="tabs">
@@ -363,6 +369,13 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab" onclick="switchTab('profile')" id="tab-profile">👤 プロフィール</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 設定</button>
+  </div>
+
+  <!-- GCal未同期警告バナー -->
+  <div id="gcal-sync-banner" style="display:none;background:rgba(232,184,75,0.12);border-bottom:1px solid rgba(232,184,75,0.4);padding:7px 16px;display:none;align-items:center;justify-content:space-between;gap:8px;">
+    <div style="font-size:0.72rem;color:#b07000;flex:1;">⏰ Googleカレンダーの同期が<span id="gcal-banner-days"></span>日以上経過しています</div>
+    <button onclick="gcalSyncAll()" style="padding:4px 12px;background:#E8B84B;border:none;border-radius:10px;font-size:0.7rem;color:#0f0f0f;cursor:pointer;font-weight:700;white-space:nowrap;">今すぐ同期</button>
+    <button onclick="document.getElementById('gcal-sync-banner').style.display='none'" style="background:none;border:none;color:#b07000;cursor:pointer;font-size:0.85rem;padding:2px 4px;">✕</button>
   </div>
 
   <div class="panel active" id="today-panel">
@@ -3436,6 +3449,14 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="mtab" id="mtab-yearly" onclick="switchMusukoTab('yearly')">📈 推移</button>
     <button class="mtab" id="mtab-sim" onclick="switchMusukoTab('sim')">🔮 資産</button>
   </div>
+  <!-- 多端末同期状態インジケーター -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;background:#FDF0DC;border-bottom:1px solid #E8D5BC;font-size:0.68rem;">
+    <div style="display:flex;align-items:center;gap:5px;color:#9A8070;">
+      <span id="kaikei-sync-dot" style="width:7px;height:7px;border-radius:50%;background:#ccc;flex-shrink:0;"></span>
+      <span id="kaikei-sync-label">Firebase 接続確認中...</span>
+    </div>
+    <span style="color:#C8973A;font-size:0.62rem;">☁️ 多端末リアルタイム同期</span>
+  </div>
 
   <!-- 支出カレンダー -->
   <div id="msec-spending" style="display:block">
@@ -4121,6 +4142,23 @@ window.showMainScreen = function() {
   // 労組カレンダー初期化
   renderUnionCal();
   renderUnionEvents();
+
+  // ── GCal同期チェック（起動時）──
+  // 少し遅らせてDOMが安定してから実行
+  setTimeout(() => {
+    _gcalAutoSyncCheck();
+    _kaikeiUpdateSyncDot();
+  }, 1500);
+
+  // ── 家計Firebase接続後に同期インジケーターを更新 ──
+  // mdbが繋がるまで待機して更新
+  (function waitKaikeiSync() {
+    if (window.mdb) {
+      _kaikeiUpdateSyncDot();
+    } else {
+      setTimeout(waitKaikeiSync, 1000);
+    }
+  })();
 };
 
 // ════ 統合switchTab（全ての処理を1箇所に集約） ════
@@ -10504,16 +10542,124 @@ window.calListSync = async function() {
   });
 
   localStorage.setItem(CAL_GCAL_LS, JSON.stringify(_calGcalEvents));
+
+  // ── 最終同期日時を記録 ──
+  const syncNow = Date.now();
+  localStorage.setItem('kouki_gcal_last_sync', syncNow.toString());
+  _gcalUpdateSyncUI(syncNow);
+
   if (status) {
     status.style.color='var(--green)';
     status.textContent='✅ 3カレンダー統合完了（'+_calGcalEvents.length+'件）';
     setTimeout(()=>{status.textContent='';},3000);
   }
   if (btn) { btn.textContent='🔄 同期'; btn.disabled=false; }
+  // ヘッダーGCalボタンも更新
+  const hBtn = document.getElementById('gcal-sync-header-btn');
+  if (hBtn) { hBtn.textContent='🔄 GCal'; hBtn.disabled=false; }
+  // バナーを非表示
+  const banner = document.getElementById('gcal-sync-banner');
+  if (banner) banner.style.display='none';
+
   calListRenderEvents();
   // 誕生日タブも更新
   if (document.getElementById('csec-birthday')?.style.display !== 'none') calBirthdayInit();
 };
+
+// ══════════════════════════════════════
+// Googleカレンダー 全体同期管理
+// ══════════════════════════════════════
+const GCAL_SYNC_LS = 'kouki_gcal_last_sync';
+const GCAL_SYNC_WARN_DAYS = 7; // 何日経過で警告
+
+// ヘッダーGCalボタン・同期UIの更新
+function _gcalUpdateSyncUI(ts) {
+  if (!ts) ts = parseInt(localStorage.getItem(GCAL_SYNC_LS) || '0');
+  if (!ts) return;
+  const diff = Date.now() - ts;
+  const diffDays = Math.floor(diff / 86400000);
+  const diffH    = Math.floor(diff / 3600000);
+  const diffMin  = Math.floor(diff / 60000);
+
+  let label;
+  if (diffMin < 1)       label = 'GCal 今';
+  else if (diffH < 1)    label = `GCal ${diffMin}分前`;
+  else if (diffH < 24)   label = `GCal ${diffH}h前`;
+  else                    label = `GCal ${diffDays}日前`;
+
+  const btn = document.getElementById('gcal-sync-header-btn');
+  if (btn) btn.textContent = '🔄 ' + label;
+
+  // 日曜24時ルール：先週日曜以降に1度も同期していない場合は警告
+  const now = new Date();
+  const lastSunday = new Date(now);
+  const dow = now.getDay();
+  lastSunday.setDate(now.getDate() - (dow === 0 ? 7 : dow)); // 先週日曜
+  lastSunday.setHours(0, 0, 0, 0);
+  const banner = document.getElementById('gcal-sync-banner');
+  if (banner && ts < lastSunday.getTime()) {
+    const d = document.getElementById('gcal-banner-days');
+    if (d) d.textContent = diffDays;
+    banner.style.display = 'flex';
+  }
+}
+
+// ヘッダーGCalボタンから呼ぶ全体同期
+window.gcalSyncAll = async function() {
+  const btn = document.getElementById('gcal-sync-header-btn');
+  if (btn) { btn.textContent = '⏳ 同期中...'; btn.disabled = true; }
+
+  // calListSync を実行（予定タブのデータ更新）
+  await calListSync();
+
+  // 現在開いているタブに応じて再描画
+  const panels = ['today','calendar','work'];
+  panels.forEach(p => {
+    const el = document.getElementById(p + '-panel');
+    if (el && el.classList.contains('active')) {
+      if (p === 'today')    { _renderTodayCard && _renderTodayCard(); }
+      if (p === 'calendar') { calListRenderEvents && calListRenderEvents(); }
+      if (p === 'work')     { renderShiftCal && renderShiftCal(); }
+    }
+  });
+
+  if (typeof calWeeklyRender === 'function') {
+    const weekly = document.getElementById('csec-weekly');
+    if (weekly && weekly.style.display !== 'none') calWeeklyRender();
+  }
+};
+
+// ── 起動時チェック（ページロード時に実行） ──
+function _gcalAutoSyncCheck() {
+  const ts = parseInt(localStorage.getItem(GCAL_SYNC_LS) || '0');
+  _gcalUpdateSyncUI(ts);
+
+  // 先週日曜以降に未同期 → バナー表示（自動同期はしない・ボタンで促す）
+  if (!ts) {
+    const banner = document.getElementById('gcal-sync-banner');
+    const d = document.getElementById('gcal-banner-days');
+    if (banner) banner.style.display = 'flex';
+    if (d) d.textContent = '多数の';
+  }
+}
+
+// ── 家計タブ Firebase同期インジケーター更新 ──
+function _kaikeiUpdateSyncDot() {
+  const dot   = document.getElementById('kaikei-sync-dot');
+  const label = document.getElementById('kaikei-sync-label');
+  if (!dot || !label) return;
+  if (window.mdb) {
+    dot.style.background   = '#7A9E7E';
+    dot.style.boxShadow    = '0 0 4px #7A9E7E';
+    label.textContent      = '✅ Firebase リアルタイム同期中（多端末対応）';
+    label.style.color      = '#7A9E7E';
+  } else {
+    dot.style.background   = '#bbb';
+    dot.style.boxShadow    = 'none';
+    label.textContent      = '⚠️ Firebase 未接続（支出・予算はローカルのみ）';
+    label.style.color      = '#b07000';
+  }
+}
 
 function calListGetPersonal() {
   try { return JSON.parse(localStorage.getItem(CAL_PERSONAL_LS) || '[]'); } catch { return []; }
@@ -14587,6 +14733,8 @@ window.switchMusukoTab=function(tab){
   if(tab==='budget')renderBudgetSettings();
   if(tab==='yearly')renderBudgetYearly();
   if(tab==='sim')initSimTab();
+  // 家計同期インジケーター更新
+  if(typeof _kaikeiUpdateSyncDot === 'function') _kaikeiUpdateSyncDot();
 };
 
 window.spendChangeMonth=function(dir){spendMonth+=dir;if(spendMonth>11){spendMonth=0;spendYear++;}if(spendMonth<0){spendMonth=11;spendYear--;}renderSpendCal();renderSpendList();};
