@@ -3539,7 +3539,22 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       </div>
       <button onclick="budgetSettingsChangeMonth(1)" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#8B5E3C;padding:4px 10px;border-radius:8px">→</button>
     </div>
-    <div style="background:linear-gradient(135deg,#FFF8EE,#FDF6EC);border:2px solid #D4956A;border-radius:14px;padding:14px;margin-bottom:14px">
+
+    <!-- 先月の繰越（自動算出） -->
+    <div style="background:linear-gradient(135deg,#eff4fc,#f0f7ff);border:2px solid #7B9FE0;border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:1.1rem">📦</span>
+          <span style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.78rem;color:#9A8070">先月の残高（繰越）</span>
+        </div>
+        <span id="budget-carry-auto-badge" style="font-size:0.6rem;display:none;background:#7B9FE0;color:white;border-radius:8px;padding:1px 7px">自動算出</span>
+      </div>
+      <div id="budget-carry-display" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.3rem;font-weight:700;color:#5B8DD9">—</div>
+      <div id="budget-carry-note" style="font-size:0.68rem;color:#9A8070;margin-top:2px"></div>
+    </div>
+
+    <!-- 月収 -->
+    <div style="background:linear-gradient(135deg,#FFF8EE,#FDF6EC);border:2px solid #D4956A;border-radius:14px;padding:14px;margin-bottom:12px">
       <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#4A2C1A;margin-bottom:8px">💴 月収（手取り）</div>
       <div style="display:flex;align-items:center;gap:8px">
         <span style="font-size:1rem;color:#9A8070">¥</span>
@@ -3548,13 +3563,41 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
           oninput="budgetSaveIncomeForMonth(this.value)">
       </div>
     </div>
+
+    <!-- 貯蓄目標 -->
+    <div style="background:white;border:1px solid #e0d8cc;border-radius:12px;padding:12px 14px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.82rem;color:#4A2C1A">🐷 今月の貯蓄目標</div>
+        <span style="font-size:0.65rem;color:#9A8070">設定すると達成率が表示されます</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:0.9rem;color:#9A8070">¥</span>
+        <input id="budget-savings-goal" type="number" placeholder="例：20000" min="0"
+          style="flex:1;border:none;border-bottom:2px solid #bbb;outline:none;font-family:'Zen Maru Gothic',sans-serif;font-size:1.1rem;color:#4A2C1A;padding:5px 0;background:transparent"
+          oninput="budgetSaveSavingsGoal(this.value)">
+        <div id="budget-savings-pct" style="font-size:0.78rem;color:#7A9E7E;white-space:nowrap;font-weight:700"></div>
+      </div>
+    </div>
+
+    <!-- カテゴリ別 予算 -->
     <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.82rem;color:#9A8070;margin-bottom:8px">🎯 カテゴリ別 予算</div>
     <div id="budget-cat-cards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"></div>
-    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:0.75rem;color:#9A8070">予算合計</div><div id="budget-total-label" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.3rem;font-weight:700;color:#5B8DD9">¥0</div></div>
-      <div style="text-align:right"><div style="font-size:0.75rem;color:#9A8070">月収との差</div><div id="budget-income-diff" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.1rem;font-weight:700;color:#7A9E7E">—</div></div>
+
+    <!-- 予算合計サマリー -->
+    <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.06);margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><div style="font-size:0.75rem;color:#9A8070">予算合計</div><div id="budget-total-label" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.3rem;font-weight:700;color:#5B8DD9">¥0</div></div>
+        <div style="text-align:right"><div style="font-size:0.75rem;color:#9A8070">月収との差</div><div id="budget-income-diff" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.1rem;font-weight:700;color:#7A9E7E">—</div></div>
+      </div>
+      <!-- 予算配分グラフ -->
+      <div id="budget-bar-chart" style="display:flex;flex-direction:column;gap:4px;"></div>
     </div>
-    <button onclick="copyBudgetFromPrevMonth()" style="width:100%;margin-top:10px;padding:11px;background:#F5E6D0;border:2px dashed #D4956A;border-radius:12px;font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#D4956A;cursor:pointer">📋 前月の予算をコピー</button>
+
+    <!-- ボタン群 -->
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px">
+      <button onclick="copyBudgetFromPrevMonth()" style="width:100%;padding:11px;background:#F5E6D0;border:2px dashed #D4956A;border-radius:12px;font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#D4956A;cursor:pointer">📋 前月の予算をコピー</button>
+      <button onclick="printBudgetStatement()" style="width:100%;padding:11px;background:#5B8DD9;border:none;border-radius:12px;font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:white;cursor:pointer;font-weight:700">📄 予算計画書をPDF作成</button>
+    </div>
   </div>
 
   <!-- 年間推移 -->
@@ -14280,8 +14323,26 @@ window.budgetSaveIncomeForMonth=function(val){
   budgetUpdateTotal();
 };
 window.budgetSaveCatForMonth=function(y,m,cat,val){const key=budgetSettingsKey(y,m),cur=_budgetSettings[key]||{},cats={...(cur.cats||{}),[cat]:Number(val)};window.mdb.ref(`${window.FB_BUDGET}/${key}`).set({...cur,cats});budgetUpdateTotal();};
-window.budgetUpdateTotal=function(){const inputs=document.querySelectorAll('#budget-cat-cards input[data-cat]');let total=0;inputs.forEach(inp=>total+=Number(inp.value)||0);const el=document.getElementById('budget-total-label');if(el)el.textContent=`¥${total.toLocaleString()}`;const income=Number(document.getElementById('budget-income-input')?.value||0),diffEl=document.getElementById('budget-income-diff');if(diffEl){if(!income){diffEl.textContent='—';diffEl.style.color='#9A8070';}else{const diff=income-total;diffEl.textContent=(diff>=0?'+':'')+`¥${diff.toLocaleString()}`;diffEl.style.color=diff>=0?'#7A9E7E':'#C0675A';}}};
 window.copyBudgetFromPrevMonth=function(){let prevY=budgetSettingsYear,prevM=budgetSettingsMonth-1;if(prevM<0){prevM=11;prevY--;}const prevData=getBudgetForMonth(prevY,prevM);if(!prevData.cats||!Object.keys(prevData.cats).length){showMToast('前月の予算データがありません');return;}const key=budgetSettingsKey(budgetSettingsYear,budgetSettingsMonth);window.mdb.ref(`${window.FB_BUDGET}/${key}`).set({...prevData}).then(()=>{showMToast(`${prevY}年${prevM+1}月の予算をコピーしました`);renderBudgetSettings();});};
+
+function renderBudgetYearly(){
+  if(!document.getElementById('budget-year-label'))return;
+  document.getElementById('budget-year-label').textContent=`${budgetYearDisp}年`;
+  const months=Array.from({length:12},(_,i)=>i),totals=months.map(m=>spendGetCycleItems(budgetYearDisp,m).reduce((s,i)=>s+Number(i.amount),0));
+  const monthlyIncomes=months.map(m=>Number(getBudgetForMonth(budgetYearDisp,m).income||0));
+  const totalBudget=Object.values(_budgetSettings.cats||{}).reduce((s,v)=>s+Number(v||0),0),annualTotal=totals.reduce((s,v)=>s+v,0);
+  const annualIncome=monthlyIncomes.reduce((s,v)=>s+v,0);
+  if(typeof Chart!=='undefined'){
+    const ctx=document.getElementById('yearly-chart').getContext('2d');
+    if(_yearlyChartInst)_yearlyChartInst.destroy();
+    const datasets=[{label:'実績支出',data:totals,backgroundColor:totals.map((v,i)=>v>(monthlyIncomes[i]||Infinity)?'rgba(192,103,90,0.7)':'rgba(91,141,217,0.7)'),borderRadius:4,type:'bar'}];
+    if(totalBudget)datasets.push({label:'予算',data:Array(12).fill(totalBudget),type:'line',borderColor:'#E8B84B',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false});
+    if(annualIncome)datasets.push({label:'月収',data:monthlyIncomes,type:'line',borderColor:'#7A9E7E',borderWidth:2,borderDash:[3,3],pointRadius:3,fill:false});
+    _yearlyChartInst=new Chart(ctx,{type:'bar',data:{labels:months.map(m=>`${m+1}月`),datasets},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+(v/10000).toFixed(0)+'万',font:{size:10}}},x:{ticks:{font:{size:10}}}}}});
+  }
+  const table=document.getElementById('yearly-table');
+  table.innerHTML=`<div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06)"><div style="font-family:sans-serif;font-size:0.88rem;color:#4A2C1A;margin-bottom:10px">月別明細</div>${months.map(m=>{const v=totals[m],inc=monthlyIncomes[m],bal=inc?inc-v:null;return`<div class="yearly-row"><div style="font-size:0.82rem;color:#9A8070;width:36px">${m+1}月</div><div style="flex:1;font-size:0.88rem;color:#4A2C1A">¥${v.toLocaleString()}</div>${bal!==null?`<div style="font-size:0.82rem;font-weight:700;color:${bal>=0?'#7A9E7E':'#C0675A'}">${bal>=0?'+':''}¥${bal.toLocaleString()}</div>`:''}</div>`;}).join('')}<div style="display:flex;justify-content:space-between;padding:10px 0 0;border-top:2px solid #F5E6D0;margin-top:4px"><span style="font-size:0.88rem;color:#4A2C1A">年間合計</span><span style="font-size:1rem;font-weight:700;color:#C0675A">¥${annualTotal.toLocaleString()}</span></div></div>`;
+}
 
 function renderBudgetMonthly(){
   if(!document.getElementById('budget-month-label'))return;
@@ -14327,7 +14388,6 @@ function renderBudgetMonthly(){
 }
 
 function renderBudgetSettings(){
-  // 未初期化の場合は今月で初期化（initMusukoContentで設定済みのはずだが安全のため）
   if(budgetSettingsYear===undefined||budgetSettingsMonth===undefined){
     const now=new Date();budgetSettingsYear=now.getFullYear();budgetSettingsMonth=now.getMonth();
   }
@@ -14336,6 +14396,46 @@ function renderBudgetSettings(){
   document.getElementById('budget-settings-month-label').textContent=`${budgetSettingsYear}年${budgetSettingsMonth+1}月 (${start.getMonth()+1}/${start.getDate()}〜${end.getMonth()+1}/${end.getDate()})`;
   const mdata=getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth),income=Number(mdata.income||0),catBudgets=mdata.cats||{};
   const el=document.getElementById('budget-income-input');if(el&&!el.matches(':focus'))el.value=income||'';
+
+  // ── 先月の繰越を自動算出 ──
+  let prevY=budgetSettingsYear,prevM=budgetSettingsMonth-1;
+  if(prevM<0){prevM=11;prevY--;}
+  const prevKey=`${prevY}-${prevM}`;
+  const storedPrev=_prevBalances[prevKey];
+  const carryEl=document.getElementById('budget-carry-display');
+  const carryNote=document.getElementById('budget-carry-note');
+  const carryBadge=document.getElementById('budget-carry-auto-badge');
+  if(storedPrev!==undefined&&storedPrev!==null){
+    // 先月の最終残高が保存済み → 自動反映
+    if(carryEl){carryEl.textContent=(storedPrev>=0?'+':'')+`¥${Number(storedPrev).toLocaleString()}`;carryEl.style.color=storedPrev>=0?'#5B8DD9':'#C0675A';}
+    if(carryNote){carryNote.textContent=`${prevY}年${prevM+1}月の最終残高から自動反映`;}
+    if(carryBadge)carryBadge.style.display='inline';
+  } else {
+    // 先月の最終残高を独自計算できるか試みる
+    const prevIncome=Number(getBudgetForMonth(prevY,prevM).income||0);
+    const prevActual=spendGetCycleItems(prevY,prevM).reduce((s,i)=>s+Number(i.amount),0);
+    const prevPrevKey=`${prevY}-${prevM-1<0?prevM-1+12:prevM-1}`;
+    const prevPrevY=prevM-1<0?prevY-1:prevY, prevPrevM=prevM-1<0?11:prevM-1;
+    const prevPrevBal=_prevBalances[`${prevPrevY}-${prevPrevM}`];
+    if(prevIncome>0){
+      const estimated=(prevPrevBal||0)+prevIncome-prevActual;
+      if(carryEl){carryEl.textContent=(estimated>=0?'+':'')+`¥${estimated.toLocaleString()}`;carryEl.style.color=estimated>=0?'#5B8DD9':'#C0675A';}
+      if(carryNote){carryNote.textContent=`${prevY}年${prevM+1}月データより推定（決算タブで確定値を反映できます）`;}
+      if(carryBadge)carryBadge.style.display='inline';
+    } else {
+      if(carryEl){carryEl.textContent='—（未設定）';carryEl.style.color='#9A8070';}
+      if(carryNote){carryNote.textContent='決算タブ→「来月の先月残高に反映」ボタンで自動セットできます';}
+      if(carryBadge)carryBadge.style.display='none';
+    }
+  }
+
+  // ── 貯蓄目標ロード ──
+  const savingsKey=`budget_savings_${budgetSettingsYear}_${budgetSettingsMonth}`;
+  const savingsGoal=Number(localStorage.getItem(savingsKey)||0);
+  const sgEl=document.getElementById('budget-savings-goal');
+  if(sgEl&&!sgEl.matches(':focus'))sgEl.value=savingsGoal||'';
+
+  // ── カテゴリカード ──
   const cards=document.getElementById('budget-cat-cards');cards.innerHTML='';
   Object.entries(CAT_LABELS).forEach(([key,label])=>{
     const card=document.createElement('div');card.className='budget-cat-card';card.style.borderTopColor=CAT_COLORS[key];
@@ -14346,7 +14446,200 @@ function renderBudgetSettings(){
     card.appendChild(lbl);card.appendChild(yen);card.appendChild(inp);cards.appendChild(card);
   });
   budgetUpdateTotal();
+  _renderBudgetBarChart();
+  _updateSavingsGoalDisplay();
 }
+
+// 予算配分横棒グラフ
+function _renderBudgetBarChart(){
+  const el=document.getElementById('budget-bar-chart');if(!el)return;
+  const catBudgets=getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth).cats||{};
+  const total=Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0);
+  if(!total){el.innerHTML='<div style="font-size:0.72rem;color:#9A8070;text-align:center;padding:4px 0;">カテゴリ予算を入力するとグラフが表示されます</div>';return;}
+  el.innerHTML=Object.entries(CAT_LABELS).filter(([k])=>Number(catBudgets[k]||0)>0).map(([k,label])=>{
+    const v=Number(catBudgets[k]||0),pct=((v/total)*100).toFixed(1);
+    return `<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px;">
+      <div style="font-size:0.62rem;color:#666;white-space:nowrap;width:60px;overflow:hidden;text-overflow:ellipsis;">${label}</div>
+      <div style="flex:1;height:8px;background:#f0ebe3;border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${CAT_COLORS[k]};border-radius:4px;transition:width 0.3s;"></div>
+      </div>
+      <div style="font-size:0.6rem;color:#888;white-space:nowrap;width:38px;text-align:right;">¥${(v/10000).toFixed(v<10000?0:1)}万</div>
+      <div style="font-size:0.6rem;color:#aaa;white-space:nowrap;width:32px;text-align:right;">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+// 貯蓄目標達成率表示
+function _updateSavingsGoalDisplay(){
+  const savingsKey=`budget_savings_${budgetSettingsYear}_${budgetSettingsMonth}`;
+  const goal=Number(localStorage.getItem(savingsKey)||0);
+  const income=Number(getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth).income||0);
+  const catBudgets=getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth).cats||{};
+  const totalBudget=Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0);
+  const pctEl=document.getElementById('budget-savings-pct');
+  if(!pctEl)return;
+  if(goal>0&&income>0){
+    const remaining=income-totalBudget;
+    const pct=Math.round((remaining/goal)*100);
+    const ok=remaining>=goal;
+    pctEl.textContent=ok?`✅ 達成見込み(${pct}%)`:`⚠️ ${pct}%（不足¥${(goal-remaining).toLocaleString()}）`;
+    pctEl.style.color=ok?'#7A9E7E':'#C0675A';
+  }else{pctEl.textContent='';}
+}
+
+// 貯蓄目標保存
+window.budgetSaveSavingsGoal=function(val){
+  const savingsKey=`budget_savings_${budgetSettingsYear}_${budgetSettingsMonth}`;
+  localStorage.setItem(savingsKey,Number(val)||0);
+  _updateSavingsGoalDisplay();
+};
+
+window.budgetUpdateTotal=function(){
+  const inputs=document.querySelectorAll('#budget-cat-cards input[data-cat]');
+  let total=0;inputs.forEach(inp=>total+=Number(inp.value)||0);
+  const el=document.getElementById('budget-total-label');if(el)el.textContent=`¥${total.toLocaleString()}`;
+  const income=Number(document.getElementById('budget-income-input')?.value||0);
+  const diffEl=document.getElementById('budget-income-diff');
+  if(diffEl){
+    if(!income){diffEl.textContent='—';diffEl.style.color='#9A8070';}
+    else{const diff=income-total;diffEl.textContent=(diff>=0?'+':'')+`¥${diff.toLocaleString()}`;diffEl.style.color=diff>=0?'#7A9E7E':'#C0675A';}
+  }
+  _renderBudgetBarChart();
+  _updateSavingsGoalDisplay();
+};
+
+// 予算計画書PDF（新ウィンドウ・白背景固定）
+window.printBudgetStatement = function() {
+  if(budgetSettingsYear===undefined||budgetSettingsMonth===undefined)return;
+  const income=Number(getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth).income||0);
+  const catBudgets=getBudgetForMonth(budgetSettingsYear,budgetSettingsMonth).cats||{};
+  const totalBudget=Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0);
+  const start=spendCycleStart(budgetSettingsYear,budgetSettingsMonth),end=spendCycleEnd(budgetSettingsYear,budgetSettingsMonth);
+  const savingsKey=`budget_savings_${budgetSettingsYear}_${budgetSettingsMonth}`;
+  const savingsGoal=Number(localStorage.getItem(savingsKey)||0);
+
+  // 先月繰越
+  let prevY=budgetSettingsYear,prevM=budgetSettingsMonth-1;
+  if(prevM<0){prevM=11;prevY--;}
+  const storedPrev=_prevBalances[`${prevY}-${prevM}`];
+  let carryStr='—（未設定）', carryVal=null;
+  if(storedPrev!==undefined&&storedPrev!==null){
+    carryVal=storedPrev;
+    carryStr=(storedPrev>=0?'+':'')+`¥${Number(storedPrev).toLocaleString()}`;
+  }
+
+  const fmt=v=>`¥${Number(v).toLocaleString()}`;
+  const sign=v=>(v>=0?'+':'')+fmt(Math.abs(v));
+  const clr=v=>v>=0?'#2e7d32':'#c62828';
+
+  // カテゴリ行（横棒付き）
+  const catRows=Object.entries(CAT_LABELS).filter(([k])=>Number(catBudgets[k]||0)>0).map(([k,label])=>{
+    const v=Number(catBudgets[k]||0);
+    const pct=totalBudget>0?((v/totalBudget)*100).toFixed(1):0;
+    return `<tr>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ebe3;">
+        <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${CAT_COLORS[k]};margin-right:6px;vertical-align:middle;"></span>${label}
+      </td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;">${fmt(v)}</td>
+      <td style="padding:7px 10px;border-bottom:1px solid #f0ebe3;text-align:right;color:#888;font-size:11px;">${pct}%</td>
+      <td style="padding:7px 20px;border-bottom:1px solid #f0ebe3;">
+        <div style="background:#f5f5f5;border-radius:3px;height:7px;width:80px;overflow:hidden;display:inline-block;vertical-align:middle;">
+          <div style="height:100%;width:${pct}%;background:${CAT_COLORS[k]};border-radius:3px;"></div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>予算計画書 ${budgetSettingsYear}年${budgetSettingsMonth+1}月</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { background:#fff !important; color:#111 !important; font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif; padding:12mm 14mm; font-size:13px; }
+  h1 { font-size:18px; color:#4A2C1A; border-bottom:3px solid #5B8DD9; padding-bottom:8px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-end; }
+  h2 { font-size:13px; color:#4A2C1A; border-left:4px solid #5B8DD9; padding-left:8px; margin:16px 0 8px; }
+  .kpi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .kpi { background:#f8f9ff; border:1px solid #c5d5f0; border-radius:8px; padding:10px 12px; }
+  .kpi-label { font-size:10px; color:#5B8DD9; margin-bottom:3px; }
+  .kpi-value { font-size:16px; font-weight:700; font-family:monospace; }
+  .carry-box { background:#eff4fc; border:2px solid #7B9FE0; border-radius:8px; padding:10px 14px; margin-bottom:14px; }
+  .savings-box { background:#f0f9f0; border:2px solid #7A9E7E; border-radius:8px; padding:10px 14px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; margin-bottom:14px; }
+  th { background:#eff4fc; padding:7px 10px; font-size:11px; color:#4A2C1A; text-align:left; border-bottom:2px solid #5B8DD9; }
+  .total-row td { font-weight:700; border-top:2px solid #5B8DD9; padding:8px 10px; background:#f8f9ff; }
+  .note-box { background:#fff8e1; border:1px solid #ffe082; border-radius:6px; padding:10px 12px; margin-bottom:10px; font-size:11px; color:#8a6000; line-height:1.7; }
+  .footer { font-size:9px; color:#aaa; text-align:right; border-top:1px solid #eee; padding-top:6px; margin-top:12px; }
+  .no-print { text-align:center; margin-top:14px; }
+  @media print { .no-print { display:none !important; } * { -webkit-print-color-adjust:exact; print-color-adjust:exact; } body { padding:8mm 10mm; } }
+</style>
+</head>
+<body>
+<h1>
+  <span>予算計画書</span>
+  <span style="font-size:12px;color:#9A8070;">${budgetSettingsYear}年${budgetSettingsMonth+1}月（${start.getMonth()+1}/${start.getDate()}〜${end.getMonth()+1}/${end.getDate()}）</span>
+</h1>
+
+<div class="kpi-grid">
+  <div class="kpi">
+    <div class="kpi-label">💴 月収（手取り）</div>
+    <div class="kpi-value" style="color:${income?'#4A2C1A':'#aaa'}">${income?fmt(income):'未設定'}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">🎯 予算合計</div>
+    <div class="kpi-value" style="color:#5B8DD9">${fmt(totalBudget)}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">💰 月収との差（予定余剰）</div>
+    <div class="kpi-value" style="color:${income?clr(income-totalBudget):'#aaa'}">${income?sign(income-totalBudget):'—'}</div>
+  </div>
+</div>
+
+<div class="carry-box">
+  <div style="font-size:11px;color:#5B8DD9;margin-bottom:4px;">📦 先月の残高（繰越）</div>
+  <div style="font-size:18px;font-weight:700;font-family:monospace;color:${carryVal!==null?clr(carryVal):'#999'}">${carryStr}</div>
+  ${carryVal!==null?`<div style="font-size:10px;color:#888;margin-top:2px;">${prevY}年${prevM+1}月の最終残高より</div>`:''}
+</div>
+
+${savingsGoal>0?`
+<div class="savings-box">
+  <div style="font-size:11px;color:#7A9E7E;margin-bottom:4px;">🐷 今月の貯蓄目標</div>
+  <div style="font-size:18px;font-weight:700;font-family:monospace;color:#7A9E7E">${fmt(savingsGoal)}</div>
+  ${income>0?`<div style="font-size:10px;color:#888;margin-top:2px;">月収 ${fmt(income)} − 予算合計 ${fmt(totalBudget)} = 残余 ${sign(income-totalBudget)}（目標の${Math.round(((income-totalBudget)/savingsGoal)*100)}%）</div>`:''}
+</div>`:''}
+
+<h2>カテゴリ別 予算配分</h2>
+<table>
+  <thead><tr><th>カテゴリ</th><th style="text-align:right">予算額</th><th style="text-align:right">割合</th><th>配分グラフ</th></tr></thead>
+  <tbody>${catRows}</tbody>
+  <tfoot><tr class="total-row"><td>合計</td><td style="text-align:right;font-family:monospace;">${fmt(totalBudget)}</td><td style="text-align:right;">100%</td><td></td></tr></tfoot>
+</table>
+
+${income>0?`
+<div class="note-box">
+  💡 <b>計画サマリー</b><br>
+  月収 ${fmt(income)} のうち、予算合計 ${fmt(totalBudget)} を消費予定。予定余剰は <b>${sign(income-totalBudget)}</b>。
+  ${carryVal!==null?`先月繰越 ${carryStr} を加えると、今月末の想定残高は <b>${sign((carryVal||0)+(income-totalBudget))}</b>。`:''}
+  ${savingsGoal>0?`貯蓄目標 ${fmt(savingsGoal)} に対して、余剰は${(income-totalBudget)>=savingsGoal?'十分確保されています。':'不足しています。'}`:' '}
+</div>`:''}
+
+<div style="display:flex;justify-content:flex-end;">
+  <div style="border-top:1px solid #999;width:100px;text-align:center;padding-top:4px;font-size:10px;color:#555;">確認者</div>
+</div>
+<div class="footer">有馬功稀 ／ ${new Date().toLocaleDateString('ja-JP')} 作成 ／ kouki-app 予算計画書</div>
+
+<div class="no-print">
+  <button onclick="window.print()" style="padding:10px 24px;background:#5B8DD9;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
+  <button onclick="window.close()" style="padding:10px 16px;background:#eee;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;">✕ 閉じる</button>
+</div>
+</body>
+</html>`;
+
+  const w=window.open('','_blank','width=900,height=720,scrollbars=yes');
+  if(w){w.document.write(html);w.document.close();}
+  else alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
+};
 
 function renderBudgetYearly(){
   if(!document.getElementById('budget-year-label'))return;
