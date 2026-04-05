@@ -367,6 +367,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <button class="tab" onclick="switchTab('kakeibo')" id="tab-kakeibo">💰 家計</button>
     <button class="tab" onclick="switchTab('ledger')" id="tab-ledger">📋 帳票</button>
     <button class="tab" onclick="switchTab('profile')" id="tab-profile">👤 プロフィール</button>
+    <button class="tab" onclick="switchTab('events')" id="tab-events">🎪 イベント</button>
+    <button class="tab" onclick="switchTab('policy')" id="tab-policy">📋 方針</button>
     <button class="tab" onclick="switchTab('passenger')" id="tab-passenger">🪑 乗客</button>
     <button class="tab" onclick="switchTab('settings')" id="tab-settings">⚙️ 設定</button>
   </div>
@@ -2284,6 +2286,425 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 </div>
 
 <!-- 乗客パネル（横画面最適化・画面ロック対応） -->
+<!-- ══════════════════════════════════════
+     🎪 イベントページ
+══════════════════════════════════════ -->
+<div class="panel" id="events-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);background:var(--bg);">
+
+  <!-- ヘッダービジュアル -->
+  <div style="background:linear-gradient(135deg,#1a1a2e 0%,#16213e 40%,#0f3460 100%);padding:28px 20px 20px;position:relative;overflow:hidden;">
+    <div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 30%,rgba(255,180,0,0.08),transparent 60%),radial-gradient(circle at 20% 80%,rgba(91,141,217,0.1),transparent 50%);pointer-events:none;"></div>
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.65rem;letter-spacing:0.18em;color:rgba(255,255,255,0.4);margin-bottom:6px;">EVENT PAGES</div>
+    <div style="font-family:'Shippori Mincho',serif;font-size:1.5rem;color:white;font-weight:700;margin-bottom:4px;">🎪 イベント</div>
+    <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">気になるイベントをまとめて管理</div>
+    <!-- イベント数バッジ -->
+    <div style="position:absolute;top:20px;right:20px;background:rgba(255,180,0,0.15);border:1px solid rgba(255,180,0,0.3);border-radius:12px;padding:4px 12px;font-size:0.68rem;color:#ffb400;font-family:'DM Mono',monospace;">2 EVENTS</div>
+  </div>
+
+  <!-- イベント一覧 -->
+  <div style="padding:16px;display:flex;flex-direction:column;gap:20px;">
+
+    <!-- ══ EVENT 1: Doom or Zenith ══ -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+
+      <!-- ヒーローバナー -->
+      <div style="background:linear-gradient(135deg,#0d0d0d 0%,#1a0a00 30%,#2d1200 60%,#1a0a00 100%);padding:24px 20px 16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(255,100,0,0.15),transparent 60%),radial-gradient(ellipse at 20% 80%,rgba(100,50,255,0.1),transparent 50%);pointer-events:none;"></div>
+        <!-- タイトル -->
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(255,100,0,0.7);margin-bottom:6px;position:relative;">DOZLE-SHA PRESENTS</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:700;color:white;letter-spacing:0.04em;line-height:1.2;position:relative;">
+          Doom or Zenith
+        </div>
+        <div style="font-size:0.72rem;color:rgba(255,180,120,0.8);margin-top:4px;font-family:'DM Mono',monospace;position:relative;">ドズル社　#Doz</div>
+        <!-- カウントダウン -->
+        <div id="doz-countdown" style="margin-top:14px;position:relative;"></div>
+      </div>
+
+      <!-- 詳細情報 -->
+      <div style="padding:16px;">
+
+        <!-- ステータスバー -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(255,100,0,0.1);border:1px solid rgba(255,100,0,0.3);border-radius:10px;color:#ff6400;">🔴 LIVE配信</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:10px;color:#5B8DD9;">📅 毎日開催</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(122,158,126,0.1);border:1px solid rgba(122,158,126,0.3);border-radius:10px;color:#7A9E7E;">ドズル社</span>
+        </div>
+
+        <!-- スケジュール -->
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:var(--accent);margin-bottom:10px;">📅 配信スケジュール</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">配信期間</span>
+              <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--accent);">4/11（土）〜 4/19（日）</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">配信時間</span>
+              <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);">18:00 〜 深夜2:00</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;">
+              <span style="font-size:0.75rem;color:var(--text);">最終日</span>
+              <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--text);">4/19（日）18:00 〜 翌1:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 日程カレンダー -->
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:var(--accent);margin-bottom:10px;">🗓 4月 配信カレンダー</div>
+          <div id="doz-cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center;"></div>
+          <div style="display:flex;gap:10px;margin-top:8px;font-size:0.62rem;color:var(--muted2);">
+            <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(255,100,0,0.7);"></span>配信日</span>
+            <span style="display:flex;align-items:center;gap:4px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:rgba(200,169,110,0.8);"></span>今日</span>
+          </div>
+        </div>
+
+        <!-- 公式リンク -->
+        <a href="https://www.dozle.jp/events/doom_or_zenith/" target="_blank"
+          style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:linear-gradient(135deg,rgba(255,100,0,0.1),rgba(255,50,0,0.05));border:1px solid rgba(255,100,0,0.3);border-radius:12px;text-decoration:none;margin-bottom:10px;">
+          <div>
+            <div style="font-size:0.75rem;font-weight:700;color:#ff6400;">🌐 公式サイト</div>
+            <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">dozle.jp/events/doom_or_zenith</div>
+          </div>
+          <span style="color:#ff6400;font-size:1rem;">↗</span>
+        </a>
+
+        <!-- メモ欄 -->
+        <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:6px;">📝 メモ</div>
+          <textarea id="doz-memo" placeholder="視聴予定のこと、推しメンバーなど..." rows="2"
+            style="width:100%;background:transparent;border:none;outline:none;font-family:'Noto Sans JP',sans-serif;font-size:0.82rem;color:var(--text);resize:none;line-height:1.7;"
+            oninput="evtSaveMemo('doz',this.value)"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EVENT 2: ドズル社LIVE（仮） ══ -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+      <div style="background:linear-gradient(135deg,#0a1628 0%,#0d2137 40%,#112945 100%);padding:24px 20px 16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(91,141,217,0.2),transparent 60%);pointer-events:none;"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(91,141,217,0.7);margin-bottom:6px;position:relative;">DOZLE-SHA LIVE</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:1.4rem;font-weight:700;color:white;position:relative;">ドズル社 LIVE（仮）</div>
+        <div style="font-size:0.72rem;color:rgba(150,190,255,0.8);margin-top:4px;font-family:'DM Mono',monospace;position:relative;">at 京王アリーナTOKYO</div>
+        <div id="doz-live-countdown" style="margin-top:14px;position:relative;"></div>
+      </div>
+      <div style="padding:16px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:10px;color:#5B8DD9;">🎤 LIVE公演</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.3);border-radius:10px;color:var(--accent);">📍 調布市</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(148,92,192,0.1);border:1px solid rgba(148,92,192,0.3);border-radius:10px;color:#9E6FD0;">（仮）情報</span>
+        </div>
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:var(--accent);margin-bottom:10px;">📅 開催情報</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">開催日</span>
+              <span style="font-family:'DM Mono',monospace;font-size:0.72rem;color:#5B8DD9;">2026.09.12 – 13</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">会場</span>
+              <span style="font-size:0.72rem;color:var(--text);">京王アリーナTOKYO</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;">
+              <span style="font-size:0.75rem;color:var(--text);">所在地</span>
+              <span style="font-size:0.72rem;color:var(--muted2);">東京都調布市西町290-11</span>
+            </div>
+          </div>
+        </div>
+        <div style="background:rgba(148,92,192,0.05);border:1px solid rgba(148,92,192,0.2);border-radius:10px;padding:10px 12px;margin-bottom:10px;">
+          <div style="font-size:0.72rem;color:#9E6FD0;font-weight:700;margin-bottom:4px;">⚠️ 情報未確定</div>
+          <div style="font-size:0.7rem;color:var(--muted2);line-height:1.7;">詳細・チケット情報は未発表。公式発表をお待ちください。</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:6px;">📝 メモ</div>
+          <textarea id="doz-live-memo" placeholder="チケット情報、交通手段など..." rows="2"
+            style="width:100%;background:transparent;border:none;outline:none;font-family:'Noto Sans JP',sans-serif;font-size:0.82rem;color:var(--text);resize:none;line-height:1.7;"
+            oninput="evtSaveMemo('doz-live',this.value)"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ EVENT 3: 2026河津家族旅行 ══ -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);">
+      <div style="background:linear-gradient(135deg,#0a2010 0%,#0f3020 40%,#0a4828 100%);padding:24px 20px 16px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 30% 70%,rgba(122,158,126,0.25),transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(0,180,120,0.1),transparent 50%);pointer-events:none;"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(122,200,150,0.7);margin-bottom:6px;position:relative;">FAMILY TRIP 2026</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:700;color:white;position:relative;">2026 河津 家族旅行</div>
+        <div style="font-size:0.72rem;color:rgba(150,220,180,0.8);margin-top:4px;font-family:'DM Mono',monospace;position:relative;">静岡県・河津町</div>
+        <div id="kawazu-countdown" style="margin-top:14px;position:relative;"></div>
+      </div>
+      <div style="padding:16px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(122,158,126,0.1);border:1px solid rgba(122,158,126,0.3);border-radius:10px;color:#7A9E7E;">🌸 河津桜</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.3);border-radius:10px;color:var(--accent);">👨‍👩‍👧‍👦 家族</span>
+          <span style="font-size:0.65rem;padding:3px 10px;background:rgba(91,141,217,0.1);border:1px solid rgba(91,141,217,0.3);border-radius:10px;color:#5B8DD9;">📋 計画中</span>
+        </div>
+
+        <!-- 旅行詳細 -->
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:var(--accent);margin-bottom:10px;">🗓 旅行概要</div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">目的地</span>
+              <span style="font-size:0.72rem;color:#7A9E7E;font-weight:700;">静岡県 河津町</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+              <span style="font-size:0.75rem;color:var(--text);">日程</span>
+              <span id="kawazu-date" style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted2);">未定</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;">
+              <span style="font-size:0.75rem;color:var(--text);">メンバー</span>
+              <span style="font-size:0.72rem;color:var(--text);">有馬家</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 見どころ -->
+        <div style="background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:#7A9E7E;margin-bottom:10px;">🌸 河津の見どころ</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:0.75rem;color:var(--text);line-height:1.7;">
+            <div style="display:flex;gap:6px;"><span>🌸</span><span>河津桜（日本最早咲きの桜）2月〜</span></div>
+            <div style="display:flex;gap:6px;"><span>♨️</span><span>河津七滝温泉 / 峰温泉</span></div>
+            <div style="display:flex;gap:6px;"><span>🏞️</span><span>河津七滝ループ橋・滝めぐり</span></div>
+            <div style="display:flex;gap:6px;"><span>🦢</span><span>黒船来航記念公園・下田観光</span></div>
+          </div>
+        </div>
+
+        <!-- チェックリスト -->
+        <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:var(--accent);margin-bottom:10px;">✅ 準備チェック</div>
+          <div id="kawazu-checklist" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+
+        <!-- メモ -->
+        <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+          <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:6px;">📝 旅行メモ</div>
+          <textarea id="kawazu-memo" placeholder="持ち物、予算、希望プランなど..." rows="3"
+            style="width:100%;background:transparent;border:none;outline:none;font-family:'Noto Sans JP',sans-serif;font-size:0.82rem;color:var(--text);resize:none;line-height:1.7;"
+            oninput="evtSaveMemo('kawazu',this.value)"></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /padding -->
+</div><!-- /events-panel -->
+
+<!-- ══════════════════════════════════════
+     📋 年度方針・購入計画
+══════════════════════════════════════ -->
+<div class="panel" id="policy-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);background:var(--bg);">
+
+  <!-- サブタブ -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;">
+    <button class="wtab active" id="ptab-2026" onclick="switchPolicyYear('2026')">📘 2026年度</button>
+    <button class="wtab" id="ptab-archive" onclick="switchPolicyYear('archive')">🗂 過去の方針</button>
+  </div>
+
+  <!-- ═══ 2026年度 ═══ -->
+  <div id="psec-2026" style="display:block;">
+
+    <!-- ヘッダービジュアル -->
+    <div style="background:linear-gradient(135deg,#0f0f1a 0%,#1a1030 40%,#0f1a2e 100%);padding:28px 20px 20px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(200,169,110,0.12),transparent 55%),radial-gradient(ellipse at 10% 80%,rgba(91,141,217,0.08),transparent 50%);pointer-events:none;"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.2em;color:rgba(200,169,110,0.6);margin-bottom:6px;position:relative;">ANNUAL STRATEGY 2026</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.6rem;font-weight:700;color:white;line-height:1.2;position:relative;">2026年度<br><span style="font-size:1rem;color:rgba(200,169,110,0.9);">方針・ルール・購入計画</span></div>
+      <div style="margin-top:12px;font-family:'Shippori Mincho',serif;font-size:0.75rem;color:rgba(255,255,255,0.4);position:relative;">2026.04 — 2027.03</div>
+      <!-- スローガン -->
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:5px;position:relative;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:rgba(200,169,110,0.8);border-left:2px solid rgba(200,169,110,0.4);padding-left:10px;">「偶然ではなく、設計で生きる。」</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:rgba(200,169,110,0.7);border-left:2px solid rgba(200,169,110,0.3);padding-left:10px;">「2026、静かに、深く、確実に。」</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:rgba(200,169,110,0.6);border-left:2px solid rgba(200,169,110,0.2);padding-left:10px;">「焦らない。でも、確実に前へ。」</div>
+      </div>
+    </div>
+
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+
+      <!-- ── ① 年度方針 ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(200,169,110,0.12),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🎯</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:var(--accent);font-weight:700;">年度方針</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:0.05em;">WORK</div>
+            <div style="font-size:0.82rem;color:var(--text);line-height:1.8;">フジパン(株)での業務を着実にこなしながら、<b>仕事のルーティンを確立</b>する。シフト制の中で睡眠・体力管理を最優先に置き、長期就業できる体制を整える。</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:0.05em;">FINANCE</div>
+            <div style="font-size:0.82rem;color:var(--text);line-height:1.8;">家計管理アプリの活用で支出を可視化。<b>毎月の固定費見直し</b>と貯蓄目標の達成を継続的に行う。車ローン（〜2030年12月）を計画通り完済できる資金フローを維持する。</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:0.05em;">HUMAN RELATIONS</div>
+            <div style="font-size:0.82rem;color:var(--text);line-height:1.8;"><b>設計による人間関係</b>。恋愛（Gradual Connection / Spring Bloom Link）は自然な接点を維持しながら、無理に進展を急がない。友人・同僚関係はバランスよく維持。</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:0.05em;">SELF-DEVELOPMENT</div>
+            <div style="font-size:0.82rem;color:var(--text);line-height:1.8;">読書・写真・アプリ開発を継続。kouki-appの完成度を高める。有馬家の家系研究を年に1回以上更新。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ② 行動ルール ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(91,141,217,0.12),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">📏</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#5B8DD9;font-weight:700;">行動ルール</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:8px;" id="policy-rules-2026">
+          <!-- JSで描画 -->
+        </div>
+      </div>
+
+      <!-- ── ③ KPI（評価軸） ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(122,158,126,0.12),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">📊</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#7A9E7E;font-weight:700;">KPI（評価軸）</span>
+        </div>
+        <div style="padding:14px 16px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">😴 睡眠</div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">6.5h 以上/日</div>
+              <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">早番日：22時就寝目標</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">💰 貯蓄</div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">月2万以上</div>
+              <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">固定費見直し毎期</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">🍺 飲酒</div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">週3日以内</div>
+              <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">純アルコール20g/日以内</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+              <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">🚗 運転</div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">無事故・無違反</div>
+              <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">飲酒後8h以上空ける</div>
+            </div>
+            <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;grid-column:span 2;">
+              <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">💕 恋愛</div>
+              <div style="font-size:0.88rem;font-weight:700;color:var(--text);">4/16 S4判定 → 段階的進展</div>
+              <div style="font-size:0.65rem;color:var(--muted2);margin-top:2px;">Spring Bloom Link 前期 / Gradual Connection</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ④ 恋愛方針 ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(192,103,90,0.12),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">💕</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#C0675A;font-weight:700;">恋愛方針 2026</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+          <!-- テーマ名 -->
+          <div style="background:linear-gradient(135deg,rgba(192,103,90,0.06),rgba(91,141,217,0.04));border:1px solid rgba(192,103,90,0.2);border-radius:12px;padding:14px 16px;">
+            <div style="font-size:0.62rem;color:rgba(192,103,90,0.7);letter-spacing:0.12em;margin-bottom:6px;">ROMANCE THEME</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:1.15rem;font-weight:700;color:var(--text);margin-bottom:3px;">Gradual Connection</div>
+            <div style="font-size:0.72rem;color:var(--muted2);">グラデュアル・コネクション —「段階的なつながり」</div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-top:1px;">英語訳：Gradual（段階的な）× Connection（つながり・関係）</div>
+          </div>
+          <!-- 前期タイトル -->
+          <div style="background:linear-gradient(135deg,rgba(122,158,126,0.06),rgba(91,141,217,0.04));border:1px solid rgba(122,158,126,0.2);border-radius:12px;padding:14px 16px;">
+            <div style="font-size:0.62rem;color:rgba(122,158,126,0.8);letter-spacing:0.12em;margin-bottom:6px;">2026年度 前期 SEASON TITLE</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:3px;">Spring Bloom Link</div>
+            <div style="font-size:0.72rem;color:var(--muted2);">スプリング・ブルーム・リンク</div>
+            <div style="font-size:0.72rem;color:var(--muted2);margin-top:2px;">Spring（春）× Bloom（開花・芽吹き）× Link（つながり）<br>
+            訳すと「春の芽吹きの中で育てるつながり」。自然体で距離を縮める前期の姿勢を表す。</div>
+          </div>
+          <!-- 現在のステージ -->
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:8px;font-weight:700;">📍 現在のステージと方針</div>
+            <div style="display:flex;flex-direction:column;gap:6px;font-size:0.78rem;color:var(--text);line-height:1.7;">
+              <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;font-weight:700;flex-shrink:0;">S3達成</span><span>2026/4/2 確認。「仲のいい同僚以上・親しい人寄り」の状態。</span></div>
+              <div style="display:flex;gap:6px;"><span style="color:#C0675A;font-weight:700;flex-shrink:0;">S4目標</span><span>4/16判定ライン。私的入口（名前呼び・連絡先交換）への段階的移行。</span></div>
+              <div style="display:flex;gap:6px;"><span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">方針</span><span>焦らず、設計で動く。自然な日常接点の維持を最優先。アクション後は3日のクールダウン。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ⑤ 職場コミュニティ強化 ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(91,141,217,0.1),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🤝</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#5B8DD9;font-weight:700;">職場コミュニティ強化方針</span>
+        </div>
+        <div style="padding:14px 16px;display:flex;flex-direction:column;gap:10px;">
+          <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.15);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:0.7rem;color:#5B8DD9;font-weight:700;margin-bottom:4px;">📅 開始時期</div>
+            <div style="font-size:0.82rem;color:var(--text);">2026年4月より 段階的に開始</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:12px;padding:12px 14px;">
+            <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:8px;font-weight:700;">対象・方針</div>
+            <div style="display:flex;flex-direction:column;gap:7px;font-size:0.78rem;color:var(--text);line-height:1.7;">
+              <div style="background:rgba(122,158,126,0.08);border-radius:8px;padding:7px 10px;border-left:2px solid #7A9E7E;">
+                <span style="font-weight:700;color:#7A9E7E;">✅ 社員</span><br>部門を問わず、自然な会話・挨拶を増やす。食堂・休憩室での接点を意識的に広げる。特定の仲良しグループに閉じず、横断的な関係構築を目指す。
+              </div>
+              <div style="background:rgba(192,103,90,0.06);border-radius:8px;padding:7px 10px;border-left:2px solid rgba(192,103,90,0.4);">
+                <span style="font-weight:700;color:#C0675A;">⚠️ 外国人実習生</span><br>現行の就業規則・会社ルールに基づいた範囲内での接し方を維持。過度な関与・プライベートな交流は控える。業務上の挨拶・コミュニケーションは丁寧に行う。
+              </div>
+            </div>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:10px 12px;">
+            <div style="font-size:0.7rem;color:var(--muted2);margin-bottom:6px;font-weight:700;">段階的アクション</div>
+            <div style="display:flex;flex-direction:column;gap:4px;font-size:0.75rem;color:var(--text);">
+              <div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);"><span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">Phase 1（4〜6月）</span><span>挨拶の質を上げる。名前を覚える・呼ぶ機会を増やす。</span></div>
+              <div style="display:flex;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);"><span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">Phase 2（7〜9月）</span><span>休憩・食事の機会を共有。個別の話題を把握する。</span></div>
+              <div style="display:flex;gap=6px;padding:4px 0;"><span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">Phase 3（10月〜）</span><span>信頼関係が築けた社員との継続的なつながりを維持。</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ⑥ 購入計画（時系列） ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(148,92,192,0.12),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🛒</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#9E6FD0;font-weight:700;">購入計画 2026-2027</span>
+        </div>
+        <div style="padding:14px 16px;">
+          <!-- タイムライン -->
+          <div style="position:relative;padding-left:24px;">
+            <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--accent),rgba(200,169,110,0.1));border-radius:1px;"></div>
+            <div id="policy-purchases" style="display:flex;flex-direction:column;gap:0;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ⑤ 年度タイムライン ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,rgba(232,184,75,0.1),transparent);padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;">
+          <span style="font-size:1.1rem;">🗓</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.95rem;color:#E8B84B;font-weight:700;">年度タイムライン</span>
+        </div>
+        <div style="padding:14px 16px;" id="policy-timeline"></div>
+      </div>
+
+      <!-- ── ⑥ メモ ── -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">📝 年度メモ・追記</div>
+        <textarea id="policy-memo-2026" rows="4" placeholder="方針の追記・変更点・気づきをメモ..."
+          style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.82rem;outline:none;resize:none;line-height:1.8;"
+          oninput="policyMemoSave('2026',this.value)"></textarea>
+      </div>
+
+    </div><!-- /padding -->
+  </div><!-- /psec-2026 -->
+
+  <!-- ═══ 過去の方針アーカイブ ═══ -->
+  <div id="psec-archive" style="display:none;padding:16px;">
+    <div style="text-align:center;padding:40px 20px;color:var(--muted2);">
+      <div style="font-size:2rem;margin-bottom:10px;">🗂</div>
+      <div style="font-size:0.85rem;">2025年度以前の方針は<br>随時追加予定です</div>
+    </div>
+  </div>
+
+</div><!-- /policy-panel -->
+
 <div class="panel" id="passenger-panel" style="padding:0;position:relative;overflow:hidden;">
   <div style="background:#080808;min-height:100%;position:relative;">
 
@@ -2371,6 +2792,15 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 <!-- 設定パネル -->
 <!-- 健康管理パネル -->
 <div class="panel" id="health-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+  <!-- サブタブ -->
+  <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;">
+    <button class="wtab active" id="htab-record" onclick="switchHealthSub('record')">❤️ 健康記録</button>
+    <button class="wtab" id="htab-checkup" onclick="switchHealthSub('checkup')">🩺 健康診断</button>
+  </div>
+
+  <!-- ═══ 健康記録 ═══ -->
+  <div id="hsec-record" style="display:block;">
   <div style="padding:16px;">
 
     <!-- 月ナビ + PDFボタン -->
@@ -2527,6 +2957,95 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <div class="sec-title" style="margin-bottom:10px;">❤️ 今月の健康記録</div>
     <div id="health-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
   </div>
+  </div><!-- /hsec-record -->
+
+  <!-- ═══ 健康診断 ═══ -->
+  <div id="hsec-checkup" style="display:none;padding:16px;">
+
+    <!-- ヘッダー -->
+    <div style="background:linear-gradient(135deg,#0a1a2e,#0d2137);border-radius:14px;padding:20px 18px;margin-bottom:16px;position:relative;overflow:hidden;">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 80% 30%,rgba(91,141,217,0.15),transparent 60%);pointer-events:none;"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.18em;color:rgba(91,141,217,0.7);margin-bottom:5px;">ANNUAL HEALTH CHECKUP</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:1.3rem;font-weight:700;color:white;margin-bottom:3px;">🩺 健康診断</div>
+      <div style="font-size:0.72rem;color:rgba(150,190,255,0.7);">毎年4〜5月　フジパン(株) 社内実施</div>
+    </div>
+
+    <!-- 年度切替 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <button onclick="checkupChangeYear(-1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">‹</button>
+      <span id="checkup-year-label" style="font-family:'Shippori Mincho',serif;font-size:1rem;color:var(--text);font-weight:700;"></span>
+      <button onclick="checkupChangeYear(1)" style="background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--accent);padding:2px 8px;">›</button>
+    </div>
+
+    <!-- 次回の健康診断カード -->
+    <div id="checkup-next-card" style="margin-bottom:14px;"></div>
+
+    <!-- 記録入力フォーム -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">📝 診断結果を記録</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">身長 (cm)</div>
+          <input id="cu-height" type="number" placeholder="170.5" step="0.1"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">体重 (kg)</div>
+          <input id="cu-weight" type="number" placeholder="65.0" step="0.1"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">血圧 収縮期 (mmHg)</div>
+          <input id="cu-sbp" type="number" placeholder="120"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">血圧 拡張期 (mmHg)</div>
+          <input id="cu-dbp" type="number" placeholder="80"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">腹囲 (cm)</div>
+          <input id="cu-waist" type="number" placeholder="78.0" step="0.1"
+            style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+        </div>
+        <div>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">視力（右/左）</div>
+          <div style="display:flex;gap:4px;">
+            <input id="cu-vision-r" type="number" placeholder="1.2" step="0.1"
+              style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+            <input id="cu-vision-l" type="number" placeholder="1.0" step="0.1"
+              style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+          </div>
+        </div>
+      </div>
+      <!-- 総合判定 -->
+      <div style="margin-bottom:10px;">
+        <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">総合判定</div>
+        <select id="cu-judge" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.88rem;outline:none;">
+          <option value="">選択してください</option>
+          <option value="A">A — 異常なし</option>
+          <option value="B">B — 軽度異常（経過観察）</option>
+          <option value="C">C — 要生活改善</option>
+          <option value="D">D — 要精密検査</option>
+          <option value="E">E — 要治療</option>
+        </select>
+      </div>
+      <!-- メモ -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:4px;">所見・メモ</div>
+        <textarea id="cu-memo" rows="2" placeholder="所見、指摘事項など..."
+          style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;resize:none;outline:none;line-height:1.7;font-family:'Noto Sans JP',sans-serif;"></textarea>
+      </div>
+      <button onclick="checkupSave()" style="width:100%;padding:10px;background:var(--accent);border:none;border-radius:10px;color:#0f0f0f;font-family:'Shippori Mincho',serif;font-size:0.88rem;font-weight:700;cursor:pointer;">💾 記録を保存</button>
+    </div>
+
+    <!-- 過去の記録 -->
+    <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">📋 診断履歴</div>
+    <div id="checkup-history" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+  </div><!-- /hsec-checkup -->
+
 </div>
 <!-- アルコール記録パネル -->
 <div class="panel" id="alcohol-panel" style="padding:0;overflow-y:auto;max-height:calc(100vh - 110px);">
@@ -4268,6 +4787,8 @@ window.switchTab = function(n) {
 
   // プロフィールタブ
   if (n === 'profile') { switchProfileTab('overview'); }
+  if (n === 'events')  { initEventsTab(); }
+  if (n === 'policy')  { initPolicyTab(); }
 };
 
 function updateHeaderDate() {
@@ -12920,6 +13441,455 @@ window.calWeeklyPrint = function() {
   } else {
     alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
   }
+};
+
+// ════ 健康診断サブタブ ════
+const CHECKUP_LS = 'kouki_checkup_v1';
+let _checkupYear = new Date().getFullYear();
+
+window.switchHealthSub = function(tab) {
+  ['record','checkup'].forEach(t => {
+    const s = document.getElementById(`hsec-${t}`);
+    const b = document.getElementById(`htab-${t}`);
+    if(s) s.style.display = t === tab ? 'block' : 'none';
+    if(b) b.classList.toggle('active', t === tab);
+  });
+  if(tab === 'checkup') initCheckupTab();
+};
+
+function initCheckupTab() {
+  _checkupYear = new Date().getFullYear();
+  renderCheckupYear();
+}
+
+function renderCheckupYear() {
+  const el = document.getElementById('checkup-year-label');
+  if(el) el.textContent = `${_checkupYear}年度`;
+  renderCheckupNextCard();
+  renderCheckupHistory();
+}
+
+window.checkupChangeYear = function(dir) {
+  _checkupYear += dir;
+  renderCheckupYear();
+};
+
+function renderCheckupNextCard() {
+  const el = document.getElementById('checkup-next-card');
+  if(!el) return;
+  const now = new Date();
+  const year = now.getFullYear();
+  // 毎年4〜5月実施
+  const targetStart = new Date(year, 3, 1); // 4月1日
+  const targetEnd   = new Date(year, 4, 31); // 5月末
+  const records = _getCheckupRecords();
+  const thisYearRec = records.find(r => r.year === year);
+
+  if(thisYearRec) {
+    const jColor = { A:'#7A9E7E', B:'#E8B84B', C:'#E8B84B', D:'#C0675A', E:'#C0675A' }[thisYearRec.judge] || '#9A8070';
+    el.innerHTML = `<div style="background:rgba(122,158,126,0.08);border:1.5px solid rgba(122,158,126,0.3);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="font-size:2rem;">✅</div>
+      <div>
+        <div style="font-size:0.72rem;color:#7A9E7E;font-weight:700;margin-bottom:2px;">${year}年度 受診済み</div>
+        <div style="font-size:0.82rem;color:var(--text);">総合判定：<span style="color:${jColor};font-weight:700;">${thisYearRec.judge||'—'}</span>${thisYearRec.memo ? '　' + thisYearRec.memo : ''}</div>
+      </div>
+    </div>`;
+  } else {
+    const diff = Math.ceil((targetStart - now) / 86400000);
+    const upcoming = diff > 0;
+    el.innerHTML = `<div style="background:rgba(91,141,217,0.06);border:1.5px solid rgba(91,141,217,0.25);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;">
+      <div style="font-size:2rem;">🩺</div>
+      <div>
+        <div style="font-size:0.72rem;color:#5B8DD9;font-weight:700;margin-bottom:2px;">${year}年度 健康診断 ${upcoming?`あと${diff}日`:'実施時期'}</div>
+        <div style="font-size:0.82rem;color:var(--text);">実施時期：${year}年4〜5月（フジパン社内）</div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-top:2px;">受診後に下のフォームで記録してください</div>
+      </div>
+    </div>`;
+  }
+}
+
+function renderCheckupHistory() {
+  const el = document.getElementById('checkup-history');
+  if(!el) return;
+  const records = _getCheckupRecords().sort((a,b) => b.year - a.year);
+  if(!records.length) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted2);font-size:0.82rem;">まだ記録がありません</div>`;
+    return;
+  }
+  const jColor = { A:'#7A9E7E', B:'#E8B84B', C:'#E8B84B', D:'#C0675A', E:'#C0675A' };
+  el.innerHTML = records.map(r => {
+    const bmi = r.height && r.weight ? (r.weight / ((r.height/100)**2)).toFixed(1) : null;
+    const bmiColor = bmi ? (bmi < 18.5 ? '#5B8DD9' : bmi < 25 ? '#7A9E7E' : bmi < 30 ? '#E8B84B' : '#C0675A') : '#9A8070';
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;font-weight:700;color:var(--text);">${r.year}年度</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          ${r.judge ? `<span style="font-size:1.1rem;font-weight:700;color:${jColor[r.judge]||'#9A8070'};background:${jColor[r.judge]||'#9A8070'}18;padding:3px 12px;border-radius:8px;">判定 ${r.judge}</span>` : ''}
+          <button onclick="checkupDelete(${r.year})" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.75rem;">✕</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-size:0.75rem;">
+        ${r.height ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;"><div style="color:var(--muted2);font-size:0.62rem;">身長</div><div style="font-weight:700;color:var(--text);">${r.height}cm</div></div>` : ''}
+        ${r.weight ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;"><div style="color:var(--muted2);font-size:0.62rem;">体重</div><div style="font-weight:700;color:var(--text);">${r.weight}kg</div></div>` : ''}
+        ${bmi    ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;"><div style="color:var(--muted2);font-size:0.62rem;">BMI</div><div style="font-weight:700;color:${bmiColor};">${bmi}</div></div>` : ''}
+        ${r.sbp&&r.dbp ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;grid-column:span 2;"><div style="color:var(--muted2);font-size:0.62rem;">血圧</div><div style="font-weight:700;color:var(--text);">${r.sbp}/${r.dbp} mmHg</div></div>` : ''}
+        ${r.waist ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;"><div style="color:var(--muted2);font-size:0.62rem;">腹囲</div><div style="font-weight:700;color:var(--text);">${r.waist}cm</div></div>` : ''}
+        ${r.visionR||r.visionL ? `<div style="background:var(--surface2);border-radius:7px;padding:6px 8px;"><div style="color:var(--muted2);font-size:0.62rem;">視力</div><div style="font-weight:700;color:var(--text);">右${r.visionR||'—'} / 左${r.visionL||'—'}</div></div>` : ''}
+      </div>
+      ${r.memo ? `<div style="margin-top:7px;font-size:0.75rem;color:var(--muted2);line-height:1.6;">📝 ${r.memo}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function _getCheckupRecords() {
+  try { return JSON.parse(localStorage.getItem(CHECKUP_LS)||'[]'); } catch{ return []; }
+}
+
+window.checkupSave = function() {
+  const year    = _checkupYear;
+  const height  = parseFloat(document.getElementById('cu-height')?.value) || null;
+  const weight  = parseFloat(document.getElementById('cu-weight')?.value) || null;
+  const sbp     = parseInt(document.getElementById('cu-sbp')?.value)     || null;
+  const dbp     = parseInt(document.getElementById('cu-dbp')?.value)     || null;
+  const waist   = parseFloat(document.getElementById('cu-waist')?.value) || null;
+  const visionR = parseFloat(document.getElementById('cu-vision-r')?.value) || null;
+  const visionL = parseFloat(document.getElementById('cu-vision-l')?.value) || null;
+  const judge   = document.getElementById('cu-judge')?.value || '';
+  const memo    = document.getElementById('cu-memo')?.value || '';
+
+  let records = _getCheckupRecords().filter(r => r.year !== year);
+  records.push({ year, height, weight, sbp, dbp, waist, visionR, visionL, judge, memo, saved: new Date().toISOString() });
+  localStorage.setItem(CHECKUP_LS, JSON.stringify(records));
+
+  // フォームクリア
+  ['cu-height','cu-weight','cu-sbp','cu-dbp','cu-waist','cu-vision-r','cu-vision-l','cu-memo'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  const jEl = document.getElementById('cu-judge'); if(jEl) jEl.value = '';
+
+  renderCheckupYear();
+  showMToast && showMToast(`${year}年度の健康診断記録を保存しました`);
+};
+
+window.checkupDelete = function(year) {
+  if(!confirm(`${year}年度の健康診断記録を削除しますか？`)) return;
+  let records = _getCheckupRecords().filter(r => r.year !== year);
+  localStorage.setItem(CHECKUP_LS, JSON.stringify(records));
+  renderCheckupHistory();
+  renderCheckupNextCard();
+};
+
+// ════ イベントタブ ════
+const EVT_MEMO_LS   = 'kouki_evt_memo_v1';
+const EVT_CHECK_LS  = 'kouki_evt_check_v1';
+
+const KAWAZU_CHECKS = [
+  '旅館・宿泊先の予約',
+  '交通手段の確認（電車/車）',
+  '予算の確認',
+  '持ち物リスト作成',
+  '天気予報チェック',
+  '温泉セット（タオル等）',
+];
+
+function initEventsTab() {
+  _renderDozCountdown();
+  _renderDozLiveCountdown();
+  _renderKawazuCountdown();
+  _renderDozCal();
+  _renderKawazuChecklist();
+  _loadEvtMemos();
+}
+
+// ── カウントダウン共通 ──
+function _makeCountdown(targetDate, elId, colorClass) {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  const now  = new Date();
+  const diff = targetDate - now;
+  if (diff <= 0) {
+    el.innerHTML = `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(122,158,126,0.2);border:1px solid rgba(122,158,126,0.4);border-radius:10px;padding:5px 12px;font-size:0.75rem;color:#7A9E7E;">✅ 開催中 / 終了</div>`;
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  el.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap;">
+    ${[['D','日',d],['H','時',h],['M','分',m]].map(([,u,v])=>`
+      <div style="text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:5px 10px;min-width:44px;">
+        <div style="font-family:'DM Mono',monospace;font-size:1.2rem;font-weight:700;color:white;line-height:1;">${String(v).padStart(2,'0')}</div>
+        <div style="font-size:0.55rem;color:rgba(255,255,255,0.4);margin-top:2px;">${u}</div>
+      </div>`).join('')}
+    <div style="display:flex;align-items:center;font-size:0.68rem;color:rgba(255,255,255,0.45);padding-left:2px;">まで</div>
+  </div>`;
+}
+
+function _renderDozCountdown() {
+  _makeCountdown(new Date('2026-04-11T18:00:00+09:00'), 'doz-countdown', 'orange');
+}
+function _renderDozLiveCountdown() {
+  _makeCountdown(new Date('2026-09-12T00:00:00+09:00'), 'doz-live-countdown', 'blue');
+}
+function _renderKawazuCountdown() {
+  // 日程未定なのでカウントダウン非表示
+  const el = document.getElementById('kawazu-countdown');
+  if (el) el.innerHTML = `<div style="font-size:0.68rem;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.05);border-radius:8px;padding:5px 10px;display:inline-block;">📋 日程未定</div>`;
+}
+
+// ── Doom or Zenith カレンダー ──
+function _renderDozCal() {
+  const el = document.getElementById('doz-cal');
+  if (!el) return;
+  // 4月のカレンダー（2026年4月）
+  const DOW = ['日','月','火','水','木','金','土'];
+  const DOZ_DAYS = new Set([11,12,13,14,15,16,17,18,19]); // 配信日
+  const today = new Date();
+  const todayD = today.getFullYear()===2026 && today.getMonth()===3 ? today.getDate() : -1;
+
+  // ヘッダー
+  el.innerHTML = DOW.map(d=>`<div style="font-size:0.6rem;color:var(--muted2);padding:2px 0;">${d}</div>`).join('');
+
+  // 1日の曜日（2026-04-01は水曜=3）
+  for(let i=0;i<3;i++) el.innerHTML += `<div></div>`;
+
+  for(let d=1;d<=30;d++){
+    const isEvent = DOZ_DAYS.has(d);
+    const isToday = d === todayD;
+    const dow = (3+d-1)%7; // 1日=水曜=3
+    const isSun = dow===0, isSat = dow===6;
+    el.innerHTML += `<div style="
+      aspect-ratio:1;display:flex;align-items:center;justify-content:center;border-radius:50%;
+      font-size:0.65rem;font-family:'DM Mono',monospace;
+      background:${isEvent?'rgba(255,100,0,0.7)':isToday?'rgba(200,169,110,0.6)':'transparent'};
+      color:${isEvent||isToday?'white':isSun?'#c06060':isSat?'#5B8DD9':'var(--text)'};
+      font-weight:${isEvent||isToday?700:400};
+      border:${isToday&&!isEvent?'1px solid rgba(200,169,110,0.8)':'none'};
+    ">${d}</div>`;
+  }
+}
+
+// ── 河津チェックリスト ──
+function _renderKawazuChecklist() {
+  const el = document.getElementById('kawazu-checklist');
+  if (!el) return;
+  let checks = {};
+  try { checks = JSON.parse(localStorage.getItem(EVT_CHECK_LS)||'{}'); } catch{}
+  el.innerHTML = KAWAZU_CHECKS.map((item,i)=>{
+    const done = checks[`kawazu-${i}`] || false;
+    return `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 0;${i<KAWAZU_CHECKS.length-1?'border-bottom:1px solid var(--border);':''}">
+      <input type="checkbox" ${done?'checked':''} onchange="evtToggleCheck('kawazu-${i}',this.checked)"
+        style="width:16px;height:16px;cursor:pointer;accent-color:#7A9E7E;">
+      <span style="font-size:0.78rem;color:${done?'var(--muted2)':'var(--text)'};text-decoration:${done?'line-through':'none'};">${item}</span>
+    </label>`;
+  }).join('');
+}
+
+window.evtToggleCheck = function(key, val) {
+  let checks = {};
+  try { checks = JSON.parse(localStorage.getItem(EVT_CHECK_LS)||'{}'); } catch{}
+  checks[key] = val;
+  localStorage.setItem(EVT_CHECK_LS, JSON.stringify(checks));
+  _renderKawazuChecklist();
+};
+
+// ── メモ保存・読込 ──
+window.evtSaveMemo = function(key, val) {
+  let memos = {};
+  try { memos = JSON.parse(localStorage.getItem(EVT_MEMO_LS)||'{}'); } catch{}
+  memos[key] = val;
+  localStorage.setItem(EVT_MEMO_LS, JSON.stringify(memos));
+};
+
+function _loadEvtMemos() {
+  let memos = {};
+  try { memos = JSON.parse(localStorage.getItem(EVT_MEMO_LS)||'{}'); } catch{}
+  ['doz','doz-live','kawazu'].forEach(k=>{
+    const el = document.getElementById(k+'-memo');
+    if(el && memos[k]) el.value = memos[k];
+  });
+}
+
+// ════ 方針タブ ════
+const POLICY_MEMO_LS = 'kouki_policy_memo_v1';
+
+const POLICY_RULES_2026 = [
+  { icon:'😴', cat:'生活', rule:'早番前日は22時就寝。アラームは5時台固定。睡眠6.5h以上を最優先。' },
+  { icon:'🚗', cat:'運転', rule:'飲酒後8時間以上空けてから乗車。休憩なしの2時間超え走行は禁止。' },
+  { icon:'🍺', cat:'飲酒', rule:'週3日以内。純アルコール20g/日を上限。翌日早番の前日は原則禁酒。' },
+  { icon:'💰', cat:'家計', rule:'毎月26日前夜に決算実施。衝動買いは48時間待ってから判断。' },
+  { icon:'📱', cat:'SNS', rule:'深夜1時以降のスマホ閲覧禁止。ベッド上でのSNSは1日15分以内。' },
+  { icon:'💕', cat:'恋愛', rule:'週次分析を続ける。焦らず自然な接点を優先。アクション後は3日のクールダウン期間を設ける。' },
+  { icon:'🤝', cat:'コミュニティ', rule:'職場の社員との横断的な関係を段階的に拡大。外国人実習生は就業規則の範囲内での接し方を維持。' },
+  { icon:'🏦', cat:'貯蓄', rule:'給料日翌日に貯蓄分を即時移動。「先取り貯蓄」を絶対守る。' },
+];
+
+const POLICY_PURCHASES_2026 = [
+  {
+    period: '2026年 前半〜中盤',
+    color:  '#5B8DD9',
+    items: [
+      { month:'2026.06〜', icon:'🔍', name:'スマートフォン（調査・検討）', detail:'Pixel / iPhone候補。価格推移を追いながら適切なタイミングで購入検討。急がない。', status:'検討', statusColor:'#E8B84B' },
+    ]
+  },
+  {
+    period: '2026年 10月期（秋）',
+    color:  '#9E6FD0',
+    items: [
+      { month:'2026.10', icon:'📷', name:'カメラ（Sony α シリーズ）', detail:'フルサイズミラーレス。α7C II / α7C R候補。予算20〜30万円。ドズル社LIVE後〜秋が購入目標。', status:'予定', statusColor:'#5B8DD9' },
+      { month:'2026.10', icon:'💻', name:'ノートPC', detail:'現行PCの老朽化に応じて。MacBook Air M3 / Surface候補。カメラと同時期に導入検討。予算15〜20万円。', status:'予定', statusColor:'#5B8DD9' },
+    ]
+  },
+  {
+    period: '2027年度以降',
+    color:  '#7A9E7E',
+    items: [
+      { month:'2027.04〜', icon:'📱', name:'スマートフォン（購入）', detail:'2026年度に調査・検討を済ませ、2027年度前半での購入を目標。機種は2026年度末に確定。', status:'将来', statusColor:'#9A8070' },
+      { month:'2027.04〜', icon:'🏠', name:'住居・生活環境の見直し', detail:'2026年度の貯蓄実績をもとに検討開始。家賃・立地・間取りなどの条件整理。', status:'将来', statusColor:'#9A8070' },
+    ]
+  },
+  {
+    period: '2030年12月',
+    color:  '#C0675A',
+    items: [
+      { month:'2030.12', icon:'🚗', name:'車ローン完済', detail:'現在の返済計画通り完済予定。完済後は車両維持費の積立に切り替え。', status:'完済目標', statusColor:'#7A9E7E' },
+    ]
+  },
+];
+
+const POLICY_TIMELINE_2026 = [
+  { month:'2026.04', label:'4月', events:[
+    { dot:'🔵', text:'年度方針策定・kouki-app 刷新', type:'plan' },
+    { dot:'🌸', text:'リフレッシュ週（4/6〜）', type:'rest' },
+    { dot:'💕', text:'S4判定ライン（4/16）', type:'love' },
+    { dot:'🎮', text:'Doom or Zenith（4/11〜4/19）', type:'event' },
+    { dot:'💰', text:'4月期最終決算（4/26）', type:'finance' },
+  ]},
+  { month:'2026.05〜07', label:'5〜7月', events:[
+    { dot:'📊', text:'家計サイクル安定化・貯蓄ペース確立', type:'finance' },
+    { dot:'💕', text:'Gradual Connection 中期進捗確認', type:'love' },
+  ]},
+  { month:'2026.08〜09', label:'8〜9月', events:[
+    { dot:'📷', text:'Sony α シリーズ 購入（9月頃）', type:'plan' },
+    { dot:'🎤', text:'ドズル社LIVE 京王アリーナTOKYO（9/12〜13）', type:'event' },
+    { dot:'🔍', text:'下半期 中間振り返り', type:'plan' },
+  ]},
+  { month:'2026.10〜12', label:'10〜12月', events:[
+    { dot:'📷', text:'写真スキルアップ・撮影記録開始', type:'plan' },
+    { dot:'💰', text:'年末固定費総点検・来年度予算設計', type:'finance' },
+  ]},
+  { month:'2027.01〜03', label:'2027年前期', events:[
+    { dot:'📋', text:'2026年度総決算・KPI評価', type:'plan' },
+    { dot:'📘', text:'2027年度方針策定', type:'plan' },
+  ]},
+];
+
+const POLICY_TYPE_COLORS = {
+  plan:    '#5B8DD9',
+  love:    '#C0675A',
+  finance: '#7A9E7E',
+  event:   '#9E6FD0',
+  rest:    '#E8B84B',
+};
+
+function initPolicyTab() {
+  switchPolicyYear('2026');
+}
+
+window.switchPolicyYear = function(year) {
+  ['2026','archive'].forEach(y => {
+    const s = document.getElementById(`psec-${y}`);
+    const b = document.getElementById(`ptab-${y}`);
+    if(s) s.style.display = y === year ? 'block' : 'none';
+    if(b) b.classList.toggle('active', y === year);
+  });
+  if(year === '2026') {
+    _renderPolicyRules();
+    _renderPolicyPurchases();
+    _renderPolicyTimeline();
+    _loadPolicyMemo('2026');
+  }
+};
+
+function _renderPolicyRules() {
+  const el = document.getElementById('policy-rules-2026');
+  if(!el) return;
+  el.innerHTML = POLICY_RULES_2026.map((r,i) => `
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:9px 10px;background:var(--surface2);border-radius:10px;border-left:3px solid rgba(91,141,217,0.4);">
+      <span style="font-size:1.1rem;flex-shrink:0;margin-top:1px;">${r.icon}</span>
+      <div style="min-width:0;">
+        <div style="font-size:0.62rem;color:#5B8DD9;font-weight:700;letter-spacing:0.06em;margin-bottom:3px;">${r.cat.toUpperCase()}</div>
+        <div style="font-size:0.8rem;color:var(--text);line-height:1.7;">${r.rule}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function _renderPolicyPurchases() {
+  const el = document.getElementById('policy-purchases');
+  if(!el) return;
+  el.innerHTML = POLICY_PURCHASES_2026.map(group => `
+    <div style="margin-bottom:4px;">
+      <!-- 期間ラベル -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <div style="width:14px;height:14px;border-radius:50%;background:${group.color};border:2px solid var(--bg);box-shadow:0 0 0 2px ${group.color}44;flex-shrink:0;margin-left:-19px;"></div>
+        <div style="font-size:0.68rem;font-weight:700;color:${group.color};letter-spacing:0.06em;">${group.period}</div>
+      </div>
+      <!-- アイテム -->
+      ${group.items.map(item => `
+        <div style="margin-left:4px;margin-bottom:12px;background:var(--surface2);border-radius:12px;padding:11px 13px;border:1px solid var(--border);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-size:1rem;">${item.icon}</span>
+              <span style="font-size:0.83rem;font-weight:700;color:var(--text);">${item.name}</span>
+            </div>
+            <span style="font-size:0.6rem;padding:2px 8px;border-radius:8px;background:${item.statusColor}22;color:${item.statusColor};border:1px solid ${item.statusColor}44;white-space:nowrap;">${item.status}</span>
+          </div>
+          <div style="font-size:0.68rem;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:4px;">${item.month}</div>
+          <div style="font-size:0.75rem;color:var(--text);line-height:1.7;opacity:0.8;">${item.detail}</div>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function _renderPolicyTimeline() {
+  const el = document.getElementById('policy-timeline');
+  if(!el) return;
+  el.innerHTML = `<div style="position:relative;padding-left:24px;">
+    <div style="position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,rgba(232,184,75,0.8),rgba(232,184,75,0.1));border-radius:1px;"></div>
+    ${POLICY_TIMELINE_2026.map(block => `
+      <div style="margin-bottom:14px;">
+        <!-- 月ラベル -->
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <div style="width:14px;height:14px;border-radius:50%;background:#E8B84B;border:2px solid var(--bg);box-shadow:0 0 0 2px rgba(232,184,75,0.4);flex-shrink:0;margin-left:-19px;"></div>
+          <div style="font-family:'DM Mono',monospace;font-size:0.7rem;font-weight:700;color:#E8B84B;letter-spacing:0.06em;">${block.label}</div>
+        </div>
+        <!-- イベント一覧 -->
+        <div style="margin-left:4px;display:flex;flex-direction:column;gap:5px;">
+          ${block.events.map(ev => `
+            <div style="display:flex;align-items:flex-start;gap:8px;background:var(--surface2);border-radius:9px;padding:7px 10px;border-left:2px solid ${POLICY_TYPE_COLORS[ev.type]||'#9A8070'};">
+              <span style="font-size:0.75rem;flex-shrink:0;">${ev.dot}</span>
+              <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">${ev.text}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function _loadPolicyMemo(year) {
+  let memos = {};
+  try { memos = JSON.parse(localStorage.getItem(POLICY_MEMO_LS)||'{}'); } catch{}
+  const el = document.getElementById(`policy-memo-${year}`);
+  if(el && memos[year]) el.value = memos[year];
+}
+
+window.policyMemoSave = function(year, val) {
+  let memos = {};
+  try { memos = JSON.parse(localStorage.getItem(POLICY_MEMO_LS)||'{}'); } catch{}
+  memos[year] = val;
+  localStorage.setItem(POLICY_MEMO_LS, JSON.stringify(memos));
 };
 
 // ════ プロフィールタブ ════
