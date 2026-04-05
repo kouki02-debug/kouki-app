@@ -3571,12 +3571,17 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <div style="background:white;border-radius:12px;padding:14px;box-shadow:0 2px 6px rgba(0,0,0,0.06);grid-column:span 2"><div style="font-size:0.72rem;color:#9A8070;margin-bottom:3px">✨ 今月余剰／赤字</div><div id="bsum-balance" style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.4rem;font-weight:700">—</div></div>
     </div>
     <div style="background:white;border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);margin-bottom:14px">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div style="font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#4A2C1A">カテゴリ別　予算 vs 実績</div>
         <div style="display:flex;gap:6px">
           <button onclick="toggleCatMemo()" id="cat-memo-toggle-btn" style="font-size:0.72rem;padding:4px 10px;background:#F5E6D0;border:2px solid #D4956A;border-radius:8px;color:#D4956A;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">✏️ メモ</button>
+          <button onclick="bcatConfirmAllFromActual()" style="font-size:0.72rem;padding:4px 10px;background:#F0F8EE;border:2px solid #7A9E7E;border-radius:8px;color:#7A9E7E;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">✅ 実績で一括確定</button>
           <button onclick="printMonthlyStatement()" style="font-size:0.72rem;padding:4px 10px;background:#5B8DD9;border:2px solid #5B8DD9;border-radius:8px;color:white;cursor:pointer;font-family:'Zen Maru Gothic',sans-serif">📄 決算書</button>
         </div>
+      </div>
+      <!-- 確定入力のヒント -->
+      <div style="font-size:0.68rem;color:#7A9E7E;background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:8px;padding:6px 10px;margin-bottom:10px;">
+        📌 各カテゴリの「確定額」欄に月末の最終支出を入力 → 最終残高に自動反映されます
       </div>
       <div id="bcat-rows"></div>
     </div>
@@ -15120,55 +15125,72 @@ window.printMonthlyStatement = function() {
   const start       = spendCycleStart(budgetYear, budgetMonth);
   const end         = spendCycleEnd(budgetYear, budgetMonth);
 
+  // 実績集計
   const actuals = {};
   Object.keys(CAT_LABELS).forEach(k => actuals[k] = 0);
   cycleItems.forEach(i => { actuals[i.cat] = (actuals[i.cat] || 0) + Number(i.amount); });
-
   const totalActual = cycleItems.reduce((s, i) => s + Number(i.amount), 0);
-  const prevKey     = `${budgetYear}-${budgetMonth}`;
-  const prevBal     = (_prevBalances[prevKey] !== undefined && _prevBalances[prevKey] !== null)
-    ? _prevBalances[prevKey] : null;
-  const finalBal    = income > 0 ? ((prevBal || 0) + income - totalActual) : null;
 
-  const fmt  = v  => `¥${Number(v).toLocaleString()}`;
-  const sign = v  => (v >= 0 ? '+' : '') + fmt(Math.abs(v));
-  const clr  = v  => v >= 0 ? '#2e7d32' : '#c62828';
+  // 確定入力
+  const confirmed    = _getConfirmedCats(budgetYear, budgetMonth);
+  const hasConfirmed = Object.keys(confirmed).length > 0;
+  const confirmedTotal = hasConfirmed
+    ? Object.values(confirmed).reduce((s, v) => s + Number(v), 0)
+    : totalActual;
 
-  // カテゴリ行
+  // 最終残高計算に使う支出（確定値優先）
+  const prevKey  = `${budgetYear}-${budgetMonth}`;
+  const prevBal  = (_prevBalances[prevKey] !== undefined && _prevBalances[prevKey] !== null)
+    ? Number(_prevBalances[prevKey]) : null;
+  const finalBal = income > 0 ? ((prevBal || 0) + income - confirmedTotal) : null;
+
+  const fmt  = v => `¥${Number(v).toLocaleString()}`;
+  const sign = v => (v >= 0 ? '+' : '') + `¥${Math.abs(Number(v)).toLocaleString()}`;
+  const clr  = v => v >= 0 ? '#2e7d32' : '#c62828';
+  const totalBudget = Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0);
+
+  // カテゴリ行（予算・実績・確定・差）
   const catRows = Object.entries(CAT_LABELS)
-    .filter(([k]) => (actuals[k] || 0) > 0 || (catBudgets[k] || 0) > 0)
+    .filter(([k]) => (actuals[k] || 0) > 0 || Number(catBudgets[k]||0) > 0 || confirmed[k]!==undefined)
     .map(([k, label]) => {
-      const act = actuals[k] || 0;
-      const bud = Number(catBudgets[k] || 0);
-      const diff = bud > 0 ? act - bud : null;
-      const pct  = bud > 0 ? Math.min((act / bud) * 100, 100).toFixed(0) : null;
-      const memoKey = `${budgetYear}-${budgetMonth}-${k}`;
-      const memo = _catMemos[memoKey] || '';
+      const act    = actuals[k] || 0;
+      const bud    = Number(catBudgets[k] || 0);
+      const conf   = confirmed[k] !== undefined ? Number(confirmed[k]) : null;
+      const useVal = conf !== null ? conf : act;  // 確定値優先
+      const diff   = bud > 0 ? useVal - bud : null;
+      const over   = bud > 0 && useVal > bud;
+      const pct    = bud > 0 ? Math.round((useVal / bud) * 100) : null;
+      const memoKey= `${budgetYear}-${budgetMonth}-${k}`;
+      const memo   = _catMemos[memoKey] || '';
+      const confBadge = conf !== null
+        ? `<span style="font-size:9px;background:#e8f5e9;color:#2e7d32;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700;">✅確定</span>`
+        : `<span style="font-size:9px;background:#fff8e1;color:#8a6000;border-radius:3px;padding:1px 5px;margin-left:4px;">自動実績</span>`;
+      const pbar   = pct !== null
+        ? `<div style="height:6px;background:#eee;border-radius:3px;overflow:hidden;width:70px;display:inline-block;vertical-align:middle;">
+             <div style="height:100%;width:${Math.min(pct,100)}%;background:${over?'#c62828':pct>=80?'#e65100':CAT_COLORS[k]};border-radius:3px;"></div>
+           </div> <span style="font-size:9px;color:${over?'#c62828':pct>=80?'#e65100':'#888'};">${over?'超過':''}${pct}%</span>`
+        : '—';
       return `<tr>
-        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;">
-          <span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${CAT_COLORS[k]};margin-right:6px;vertical-align:middle;"></span>${label}
-          ${memo ? `<div style="font-size:10px;color:#888;margin-top:2px;">📝 ${memo}</div>` : ''}
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;font-size:12px;">
+          <span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${CAT_COLORS[k]};margin-right:5px;vertical-align:middle;"></span>${label}
+          ${memo?`<div style="font-size:9px;color:#888;margin-top:1px;">📝 ${memo}</div>`:''}
         </td>
-        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;">${fmt(act)}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;color:#666;">${bud ? fmt(bud) : '—'}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;color:${diff !== null ? clr(diff) : '#999'};">${diff !== null ? (diff > 0 ? '▲' : '▼') + fmt(Math.abs(diff)) : '—'}</td>
-        <td style="padding:6px 10px;border-bottom:1px solid #f0ebe3;text-align:right;">
-          ${pct !== null ? `<div style="background:#eee;border-radius:3px;height:8px;width:60px;display:inline-block;vertical-align:middle;overflow:hidden;">
-            <div style="height:100%;width:${pct}%;background:${CAT_COLORS[k]};border-radius:3px;"></div></div> ${pct}%` : '—'}
-        </td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;font-size:12px;color:#777;">${bud?fmt(bud):'—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;font-size:12px;color:#555;">${fmt(act)}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;font-size:11px;">${confBadge} ${conf!==null?fmt(conf):'—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;text-align:right;font-family:monospace;font-size:12px;font-weight:${over?700:400};color:${diff!==null?clr(diff):'#aaa'};">${diff!==null?(diff>=0?'▲':'▼')+fmt(Math.abs(diff)):'—'}</td>
+        <td style="padding:6px 8px;border-bottom:1px solid #f0ebe3;">${pbar}</td>
       </tr>`;
     }).join('');
 
-  // 支出明細（上位10件）
-  const topItems = [...cycleItems]
-    .sort((a, b) => Number(b.amount) - Number(a.amount))
-    .slice(0, 15);
-  const itemRows = topItems.map(i =>
+  // 支出明細（上位15件）
+  const topItems = [...cycleItems].sort((a,b)=>Number(b.amount)-Number(a.amount)).slice(0,15);
+  const itemRows = topItems.map(i=>
     `<tr>
-      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;">${i.day}日</td>
-      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;">${i.name}</td>
-      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;color:#666;">${CAT_LABELS[i.cat] || i.cat}</td>
-      <td style="padding:5px 10px;border-bottom:1px solid #f5f0ea;font-size:12px;text-align:right;font-family:monospace;">${fmt(i.amount)}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #f5f0ea;font-size:11px;">${i.day}日</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #f5f0ea;font-size:11px;">${i.name}${i.repeat?'<span style="font-size:9px;color:#888;margin-left:3px;">(毎月)</span>':''}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #f5f0ea;font-size:11px;color:#666;">${CAT_LABELS[i.cat]||i.cat}</td>
+      <td style="padding:5px 8px;border-bottom:1px solid #f5f0ea;font-size:11px;text-align:right;font-family:monospace;">${fmt(i.amount)}</td>
     </tr>`).join('');
 
   const html = `<!DOCTYPE html>
@@ -15179,86 +15201,119 @@ window.printMonthlyStatement = function() {
 <style>
   * { box-sizing:border-box; margin:0; padding:0; }
   body { background:#fff !important; color:#111 !important; font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',sans-serif; padding:12mm 14mm; font-size:13px; }
-  h1 { font-size:18px; color:#4A2C1A; border-bottom:3px solid #D4956A; padding-bottom:8px; margin-bottom:16px; }
-  h2 { font-size:13px; color:#4A2C1A; border-left:4px solid #D4956A; padding-left:8px; margin:16px 0 8px; }
-  .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
-  .sum-card { background:#fdf8f2; border:1px solid #e8d5bc; border-radius:8px; padding:10px 12px; }
-  .sum-label { font-size:10px; color:#9A8070; margin-bottom:3px; }
-  .sum-value { font-size:16px; font-weight:700; color:#4A2C1A; font-family:monospace; }
-  .final-card { background:#f0f7f0; border:2px solid #7A9E7E; border-radius:8px; padding:12px 14px; margin-bottom:16px; }
-  .prev-card { background:#eff4fc; border:2px solid #7B9FE0; border-radius:8px; padding:10px 14px; margin-bottom:16px; }
-  table { width:100%; border-collapse:collapse; }
-  th { background:#fdf3e8; padding:7px 10px; font-size:11px; color:#4A2C1A; text-align:left; border-bottom:2px solid #D4956A; }
-  th:not(:first-child) { text-align:right; }
-  .footer { margin-top:14px; font-size:10px; color:#aaa; text-align:right; border-top:1px solid #eee; padding-top:6px; }
-  .no-print { display:block; text-align:center; margin-top:14px; }
-  @media print {
-    .no-print { display:none !important; }
-    * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
-    body { padding:8mm 10mm; }
-  }
+  h1 { font-size:17px; color:#3e2723; border-bottom:3px solid #8d6e63; padding-bottom:8px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-end; }
+  h2 { font-size:12px; color:#3e2723; border-left:4px solid #8d6e63; padding-left:8px; margin:14px 0 7px; font-weight:700; }
+  /* KPI */
+  .kpi5 { display:grid; grid-template-columns:repeat(5,1fr); gap:7px; margin-bottom:12px; }
+  .kpi { background:#fdf8f3; border:1px solid #e8d5bc; border-radius:8px; padding:8px 10px; text-align:center; }
+  .kpi-label { font-size:9px; color:#9A8070; margin-bottom:3px; line-height:1.3; }
+  .kpi-value { font-size:13px; font-weight:700; font-family:monospace; }
+  /* 算式ボックス */
+  .formula { background:#fafafa; border:1.5px solid #8d6e63; border-radius:10px; padding:10px 14px; margin-bottom:12px; }
+  .formula-title { font-size:10px; color:#8d6e63; font-weight:700; margin-bottom:6px; }
+  .formula-row { display:flex; align-items:center; justify-content:center; gap:5px; flex-wrap:wrap; font-size:12px; font-family:monospace; }
+  .fv { background:#f5ede4; border-radius:4px; padding:3px 7px; font-weight:700; }
+  .fv.red { background:#fce4ec; color:#c62828; }
+  .fv.result { font-size:14px; }
+  .fv.result.ok { background:#e8f5e9; color:#2e7d32; }
+  .fv.result.ng { background:#fce4ec; color:#c62828; }
+  .op { color:#666; font-weight:700; }
+  /* テーブル */
+  table { width:100%; border-collapse:collapse; margin-bottom:12px; }
+  th { background:#f5ede4; padding:6px 8px; font-size:10px; color:#3e2723; text-align:left; border-bottom:2px solid #8d6e63; }
+  th.r { text-align:right; }
+  .total-row td { font-weight:700; border-top:2px solid #8d6e63; padding:7px 8px; background:#fdf8f3; font-family:monospace; }
+  /* 確定バッジ */
+  .conf-note { background:#e8f5e9; border:1px solid #a5d6a7; border-radius:6px; padding:7px 12px; margin-bottom:12px; font-size:11px; color:#2e7d32; }
+  .footer { font-size:9px; color:#aaa; text-align:right; border-top:1px solid #eee; padding-top:6px; margin-top:12px; }
+  .no-print { text-align:center; margin-top:14px; }
+  @media print { .no-print { display:none !important; } * { -webkit-print-color-adjust:exact; print-color-adjust:exact; } body { padding:8mm 10mm; } }
 </style>
 </head>
 <body>
-<h1>月次決算書　${budgetYear}年${budgetMonth+1}月（${start.getMonth()+1}/${start.getDate()}〜${end.getMonth()+1}/${end.getDate()}）</h1>
+<h1>
+  <span>月次決算書</span>
+  <span style="font-size:11px;color:#9A8070;">${budgetYear}年${budgetMonth+1}月（${start.getMonth()+1}/${start.getDate()}〜${end.getMonth()+1}/${end.getDate()}）</span>
+</h1>
 
-<div class="summary-grid">
-  <div class="sum-card">
-    <div class="sum-label">💴 月収（手取り）</div>
-    <div class="sum-value" style="color:${income?'#4A2C1A':'#aaa'}">${income ? fmt(income) : '未設定'}</div>
+${hasConfirmed?`<div class="conf-note">✅ <b>確定入力あり</b>：最終残高は確定額 ${fmt(confirmedTotal)} をもとに算出しています（自動実績: ${fmt(totalActual)}）</div>`:''}
+
+<!-- KPI -->
+<div class="kpi5">
+  <div class="kpi">
+    <div class="kpi-label">📦 先月の残高<br>（繰越）</div>
+    <div class="kpi-value" style="color:${prevBal!==null?clr(prevBal):'#aaa'};font-size:12px;">${prevBal!==null?sign(prevBal):'未設定'}</div>
   </div>
-  <div class="sum-card">
-    <div class="sum-label">💸 実績支出合計</div>
-    <div class="sum-value" style="color:#C0675A">${fmt(totalActual)}</div>
+  <div class="kpi">
+    <div class="kpi-label">💴 月収<br>（手取り）</div>
+    <div class="kpi-value" style="color:${income?'#3e2723':'#aaa'};font-size:12px;">${income?fmt(income):'未設定'}</div>
   </div>
-  <div class="sum-card">
-    <div class="sum-label">✨ 今月余剰／赤字</div>
-    <div class="sum-value" style="color:${income ? clr(income - totalActual) : '#aaa'}">${income ? sign(income - totalActual) : '—'}</div>
+  <div class="kpi">
+    <div class="kpi-label">🎯 予算合計</div>
+    <div class="kpi-value" style="color:#5B8DD9;font-size:12px;">${totalBudget?fmt(totalBudget):'—'}</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi-label">💸 支出${hasConfirmed?'（確定）':'（実績）'}</div>
+    <div class="kpi-value" style="color:#c62828;font-size:12px;">${fmt(confirmedTotal)}</div>
+  </div>
+  <div class="kpi" style="background:${finalBal!==null&&finalBal>=0?'#e8f5e9':'#fce4ec'};border-color:${finalBal!==null&&finalBal>=0?'#a5d6a7':'#ef9a9a'};">
+    <div class="kpi-label" style="color:${finalBal!==null?clr(finalBal):'#888'};">💰 最終残高</div>
+    <div class="kpi-value" style="color:${finalBal!==null?clr(finalBal):'#aaa'};font-size:12px;">${finalBal!==null?sign(finalBal):'—'}</div>
   </div>
 </div>
 
-<div class="prev-card">
-  <div style="font-size:11px;color:#5B8DD9;margin-bottom:4px;">📦 先月の残高（繰越）</div>
-  <div style="font-size:18px;font-weight:700;font-family:monospace;color:${prevBal !== null ? clr(prevBal) : '#999'};">${prevBal !== null ? sign(prevBal) : '—（未設定）'}</div>
+<!-- 算式 -->
+<div class="formula">
+  <div class="formula-title">最終残高の算出式</div>
+  <div class="formula-row">
+    <span class="fv">${prevBal!==null?sign(prevBal):'¥0'}<br><span style="font-size:8px;font-weight:400;color:#888;">先月残高</span></span>
+    <span class="op">＋</span>
+    <span class="fv">${income?fmt(income):'未設定'}<br><span style="font-size:8px;font-weight:400;color:#888;">月収</span></span>
+    <span class="op">−</span>
+    <span class="fv red">${fmt(confirmedTotal)}<br><span style="font-size:8px;font-weight:400;color:#888;">${hasConfirmed?'確定支出':'実績支出'}</span></span>
+    <span class="op">=</span>
+    <span class="fv result ${finalBal!==null&&finalBal>=0?'ok':'ng'}">${finalBal!==null?sign(finalBal):'—'}<br><span style="font-size:8px;font-weight:400;">最終残高</span></span>
+  </div>
 </div>
 
-${finalBal !== null ? `
-<div class="final-card">
-  <div style="font-size:11px;color:#7A9E7E;margin-bottom:4px;">💰 今月の最終残高（来月への繰越）</div>
-  <div style="font-size:22px;font-weight:700;font-family:monospace;color:${clr(finalBal)};">${sign(finalBal)}</div>
-  <div style="font-size:10px;color:#888;margin-top:4px;">= 繰越${prevBal !== null ? fmt(prevBal) : '¥0'} + 月収${fmt(income)} − 支出${fmt(totalActual)}</div>
-</div>` : ''}
-
-<h2>カテゴリ別　予算 vs 実績</h2>
+<!-- カテゴリ別 -->
+<h2>カテゴリ別　予算 vs 実績 vs 確定</h2>
 <table>
   <thead><tr>
-    <th>カテゴリ</th><th style="text-align:right">実績</th><th style="text-align:right">予算</th><th style="text-align:right">差額</th><th style="text-align:right">達成率</th>
+    <th>カテゴリ</th>
+    <th class="r">予算</th>
+    <th class="r">実績</th>
+    <th>確定額</th>
+    <th class="r">差（確定/実績−予算）</th>
+    <th>消化率</th>
   </tr></thead>
   <tbody>${catRows}</tbody>
-  <tfoot><tr>
-    <td style="padding:8px 10px;font-weight:700;border-top:2px solid #D4956A;">合計</td>
-    <td style="padding:8px 10px;text-align:right;font-weight:700;font-family:monospace;color:#C0675A;border-top:2px solid #D4956A;">${fmt(totalActual)}</td>
-    <td style="padding:8px 10px;text-align:right;font-family:monospace;color:#5B8DD9;border-top:2px solid #D4956A;">${fmt(Object.values(catBudgets).reduce((s,v)=>s+Number(v||0),0))}</td>
-    <td colspan="2" style="border-top:2px solid #D4956A;"></td>
+  <tfoot><tr class="total-row">
+    <td>合計</td>
+    <td style="text-align:right;">${totalBudget?fmt(totalBudget):'—'}</td>
+    <td style="text-align:right;color:#c62828;">${fmt(totalActual)}</td>
+    <td style="color:#2e7d32;">${hasConfirmed?`✅ ${fmt(confirmedTotal)}`:'—'}</td>
+    <td style="text-align:right;color:${clr(confirmedTotal-totalBudget)};">${totalBudget?(confirmedTotal>=totalBudget?'▲':'▼')+fmt(Math.abs(confirmedTotal-totalBudget)):'—'}</td>
+    <td style="font-size:11px;">${totalBudget?Math.round((confirmedTotal/totalBudget)*100)+'%':'—'}</td>
   </tr></tfoot>
 </table>
 
+<!-- 支出明細 -->
 <h2>支出明細（金額上位）</h2>
 <table>
-  <thead><tr><th>日付</th><th>項目</th><th>カテゴリ</th><th style="text-align:right">金額</th></tr></thead>
+  <thead><tr><th>日</th><th>項目</th><th>カテゴリ</th><th class="r">金額</th></tr></thead>
   <tbody>${itemRows}</tbody>
 </table>
 
-<div class="footer">有馬功稀 月次決算書 ／ ${new Date().toLocaleDateString('ja-JP')} 作成 ／ kouki-app</div>
-
+<div class="footer">有馬功稀 月次決算書 ／ ${new Date().toLocaleDateString('ja-JP')} 作成 ／ kouki-app${hasConfirmed?' ／ ✅確定入力済み':''}</div>
 <div class="no-print">
-  <button onclick="window.print()" style="padding:10px 24px;background:#D4956A;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
+  <button onclick="window.print()" style="padding:10px 24px;background:#8d6e63;border:none;border-radius:8px;color:white;cursor:pointer;font-size:14px;margin-right:8px;">🖨️ 印刷 / PDFで保存</button>
   <button onclick="window.close()" style="padding:10px 16px;background:#eee;border:1px solid #ccc;border-radius:8px;cursor:pointer;font-size:14px;">✕ 閉じる</button>
 </div>
 </body>
 </html>`;
 
-  const w = window.open('', '_blank', 'width=900,height=750,scrollbars=yes');
+  const w = window.open('', '_blank', 'width=960,height=780,scrollbars=yes');
   if (w) { w.document.write(html); w.document.close(); }
   else alert('ポップアップがブロックされました。ブラウザの設定で許可してください。');
 };
@@ -15271,6 +15326,137 @@ window.budgetSaveIncomeForMonth=function(val){
 };
 window.budgetSaveCatForMonth=function(y,m,cat,val){const key=budgetSettingsKey(y,m),cur=_budgetSettings[key]||{},cats={...(cur.cats||{}),[cat]:Number(val)};window.mdb.ref(`${window.FB_BUDGET}/${key}`).set({...cur,cats});budgetUpdateTotal();};
 window.copyBudgetFromPrevMonth=function(){let prevY=budgetSettingsYear,prevM=budgetSettingsMonth-1;if(prevM<0){prevM=11;prevY--;}const prevData=getBudgetForMonth(prevY,prevM);if(!prevData.cats||!Object.keys(prevData.cats).length){showMToast('前月の予算データがありません');return;}const key=budgetSettingsKey(budgetSettingsYear,budgetSettingsMonth);window.mdb.ref(`${window.FB_BUDGET}/${key}`).set({...prevData}).then(()=>{showMToast(`${prevY}年${prevM+1}月の予算をコピーしました`);renderBudgetSettings();});};
+
+// ════ カテゴリ別 確定入力 ════
+const LS_CAT_CONFIRMED = 'fam_cat_confirmed_v1';
+let _catConfirmedVisible = false;
+
+function _getConfirmedCats(year, month) {
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(LS_CAT_CONFIRMED) || '{}'); } catch {}
+  return data[`${year}-${month}`] || {};
+}
+
+function _saveConfirmedCat(year, month, cat, val) {
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(LS_CAT_CONFIRMED) || '{}'); } catch {}
+  const key = `${year}-${month}`;
+  if (!data[key]) data[key] = {};
+  if (val === '' || val === null) { delete data[key][cat]; }
+  else { data[key][cat] = Number(val); }
+  localStorage.setItem(LS_CAT_CONFIRMED, JSON.stringify(data));
+  _renderConfirmedInputs();
+  _updateBsumFinalWithConfirmed();
+}
+
+window.toggleConfirmedInput = function() {
+  _catConfirmedVisible = !_catConfirmedVisible;
+  const panel = document.getElementById('bcat-confirm-panel');
+  const btn   = document.getElementById('cat-confirm-toggle-btn');
+  if (panel) panel.style.display = _catConfirmedVisible ? 'block' : 'none';
+  if (btn) {
+    btn.style.background = _catConfirmedVisible ? '#7A9E7E' : '#F0F8EE';
+    btn.style.color      = _catConfirmedVisible ? 'white'   : '#7A9E7E';
+    btn.style.borderColor= _catConfirmedVisible ? '#7A9E7E' : '#7A9E7E';
+  }
+  if (_catConfirmedVisible) _renderConfirmedInputs();
+};
+
+function _renderConfirmedInputs() {
+  const el = document.getElementById('bcat-confirm-inputs');
+  if (!el) return;
+  const confirmed = _getConfirmedCats(budgetYear, budgetMonth);
+  const cycleItems = spendGetCycleItems(budgetYear, budgetMonth);
+  const actuals = {};
+  Object.keys(CAT_LABELS).forEach(k => actuals[k] = 0);
+  cycleItems.forEach(i => { if (actuals[i.cat] !== undefined) actuals[i.cat] += Number(i.amount); });
+
+  el.innerHTML = '';
+  Object.entries(CAT_LABELS).forEach(([key, label]) => {
+    const actual  = actuals[key] || 0;
+    const confVal = confirmed[key];
+    const isDone  = confVal !== undefined;
+    const row = document.createElement('div');
+    row.style.cssText = `display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:10px;background:${isDone?'rgba(122,158,126,0.08)':'#fdfaf6'};border:1px solid ${isDone?'rgba(122,158,126,0.4)':'#e8d5bc'};`;
+    row.innerHTML = `
+      <div style="width:9px;height:9px;border-radius:50%;background:${CAT_COLORS[key]};flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.75rem;color:#4A2C1A;font-family:'Zen Maru Gothic',sans-serif;font-weight:600;">${label}</div>
+        <div style="font-size:0.65rem;color:#9A8070;">自動実績: ¥${actual.toLocaleString()}</div>
+      </div>
+      ${isDone ? `<span style="font-size:0.65rem;color:#7A9E7E;white-space:nowrap;font-weight:700;">✅ 確定</span>` : '<span style="font-size:0.65rem;color:#bbb;white-space:nowrap;">未確定</span>'}
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span style="font-size:0.8rem;color:#9A8070;">¥</span>
+        <input type="number" min="0" placeholder="${actual||'0'}"
+          value="${isDone ? confVal : ''}"
+          style="width:90px;border:2px solid ${isDone?'#7A9E7E':'#D4956A'};border-radius:8px;padding:5px 7px;font-size:0.85rem;font-family:'Zen Maru Gothic',sans-serif;outline:none;background:white;text-align:right;"
+          oninput="bcatSaveConfirmed('${key}',this.value)">
+      </div>
+      ${isDone ? `<button onclick="bcatClearConfirmed('${key}')" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:0.8rem;padding:2px 4px;" title="確定を解除">✕</button>` : '<div style="width:20px;"></div>'}
+    `;
+    el.appendChild(row);
+  });
+
+  const total = Object.values(confirmed).reduce((s, v) => s + Number(v), 0);
+  const hasAny = Object.keys(confirmed).length > 0;
+  const totalEl = document.getElementById('bcat-confirmed-total');
+  if (totalEl) {
+    totalEl.textContent = hasAny ? `¥${total.toLocaleString()}` : '¥—';
+    totalEl.style.color = hasAny ? '#4A2C1A' : '#9A8070';
+  }
+}
+
+window.bcatSaveConfirmed = function(cat, val) {
+  _saveConfirmedCat(budgetYear, budgetMonth, cat, val === '' ? null : val);
+};
+
+window.bcatClearConfirmed = function(cat) {
+  _saveConfirmedCat(budgetYear, budgetMonth, cat, null);
+};
+
+window.bcatConfirmAllFromActual = function() {
+  const cycleItems = spendGetCycleItems(budgetYear, budgetMonth);
+  const actuals = {};
+  Object.keys(CAT_LABELS).forEach(k => actuals[k] = 0);
+  cycleItems.forEach(i => { if (actuals[i.cat] !== undefined) actuals[i.cat] += Number(i.amount); });
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(LS_CAT_CONFIRMED) || '{}'); } catch {}
+  const key = `${budgetYear}-${budgetMonth}`;
+  data[key] = {};
+  Object.keys(CAT_LABELS).forEach(k => { if (actuals[k] > 0) data[key][k] = actuals[k]; });
+  localStorage.setItem(LS_CAT_CONFIRMED, JSON.stringify(data));
+  showMToast && showMToast('実績値で一括確定しました');
+  _renderConfirmedInputs();
+  _updateBsumFinalWithConfirmed();
+};
+
+function _updateBsumFinalWithConfirmed() {
+  const confirmed = _getConfirmedCats(budgetYear, budgetMonth);
+  const hasConfirmed = Object.keys(confirmed).length > 0;
+  if (!hasConfirmed) return;
+  const confirmedTotal = Object.values(confirmed).reduce((s, v) => s + Number(v), 0);
+  const income  = Number(getBudgetForMonth(budgetYear, budgetMonth).income || 0);
+  const prevKey = `${budgetYear}-${budgetMonth}`;
+  const storedPrev = _prevBalances[prevKey];
+  const prevBal = (storedPrev !== undefined && storedPrev !== null) ? storedPrev : null;
+  const actualEl = document.getElementById('bsum-actual');
+  if (actualEl) { actualEl.textContent = `¥${confirmedTotal.toLocaleString()}`; actualEl.title = '確定入力値'; }
+  if (income > 0) {
+    const finalBal = (prevBal !== null ? prevBal : 0) + income - confirmedTotal;
+    const finalBalEl = document.getElementById('bsum-final-balance');
+    const noteEl     = document.getElementById('bsum-final-balance-note');
+    let manuals = {};
+    try { manuals = JSON.parse(localStorage.getItem('fam_final_bal_manual_v1') || '{}'); } catch {}
+    if (!manuals[prevKey]) {
+      if (finalBalEl) { finalBalEl.textContent = (finalBal >= 0 ? '+' : '') + `¥${finalBal.toLocaleString()}`; finalBalEl.style.color = finalBal >= 0 ? '#7A9E7E' : '#C0675A'; finalBalEl.dataset.value = finalBal; }
+      if (noteEl) noteEl.textContent = '✅ 確定入力値で再計算（繰越 + 月収 − 確定支出合計）';
+      const carryBtn = document.getElementById('carry-over-btn');
+      if (carryBtn) carryBtn.style.display = 'block';
+    }
+    const balEl = document.getElementById('bsum-balance');
+    if (balEl) { const bal = income - confirmedTotal; balEl.textContent = (bal >= 0 ? '+' : '') + `¥${bal.toLocaleString()}`; balEl.style.color = bal >= 0 ? '#7A9E7E' : '#C0675A'; }
+  }
+}
 
 function renderBudgetYearly(){
   if(!document.getElementById('budget-year-label'))return;
@@ -15326,12 +15512,54 @@ function renderBudgetMonthly(){
   }
 
   const rows=document.getElementById('bcat-rows');rows.innerHTML='';
-  Object.entries(CAT_LABELS).forEach(([key,label])=>{const actual=actuals[key]||0,budget=Number(catBudgets[key]||0);if(actual===0&&budget===0&&!_catMemoVisible)return;const pct=budget>0?Math.min((actual/budget)*100,100):0,over=budget>0&&actual>budget,diff=budget>0?actual-budget:null,diffHtml=diff!==null?`<span style="color:${diff>0?'#C0675A':'#7A9E7E'};margin-left:4px">${diff>0?'▲':'▼'}¥${Math.abs(diff).toLocaleString()}</span>`:'',memoKey=`${budgetYear}-${budgetMonth}-${key}`,memoVal=_catMemos[memoKey]||'',memoHtml=_catMemoVisible?`<div style="margin-top:6px;display:flex;gap:6px;align-items:center"><input class="minput" placeholder="メモを入力..." value="${mEsc(memoVal)}" style="flex:1;padding:6px 10px;font-size:0.78rem" onchange="saveCatMemo('${key}',this.value)"></div>`:(memoVal?`<div style="font-size:0.75rem;color:#9A8070;margin-top:4px">📝 ${mEsc(memoVal)}</div>`:'');
-    rows.innerHTML+=`<div class="bcat-row"><div class="bcat-row-header"><div class="bcat-label"><div style="width:10px;height:10px;border-radius:3px;background:${CAT_COLORS[key]}"></div>${label}</div><div class="bcat-amounts">実績 ¥${actual.toLocaleString()} / 予算 ${budget?'¥'+budget.toLocaleString():'未設定'}${diffHtml}</div></div><div class="bcat-bar-bg"><div class="bcat-bar-fill${over?' bcat-over':''}" style="width:${pct}%;background:${CAT_COLORS[key]}"></div></div>${memoHtml}</div>`;});
+  const confirmed = _getConfirmedCats(budgetYear, budgetMonth);
+  Object.entries(CAT_LABELS).forEach(([key,label])=>{
+    const actual=actuals[key]||0,budget=Number(catBudgets[key]||0);
+    if(actual===0&&budget===0&&!_catMemoVisible)return;
+    const pct=budget>0?Math.min((actual/budget)*100,100):0;
+    const over=budget>0&&actual>budget;
+    const diff=budget>0?actual-budget:null;
+    const diffHtml=diff!==null?`<span style="color:${diff>0?'#C0675A':'#7A9E7E'};margin-left:4px">${diff>0?'▲':'▼'}¥${Math.abs(diff).toLocaleString()}</span>`:'';
+    const memoKey=`${budgetYear}-${budgetMonth}-${key}`;
+    const memoVal=_catMemos[memoKey]||'';
+    const memoHtml=_catMemoVisible?`<div style="margin-top:6px;display:flex;gap:6px;align-items:center"><input class="minput" placeholder="メモを入力..." value="${mEsc(memoVal)}" style="flex:1;padding:6px 10px;font-size:0.78rem" onchange="saveCatMemo('${key}',this.value)"></div>`:(memoVal?`<div style="font-size:0.75rem;color:#9A8070;margin-top:4px">📝 ${mEsc(memoVal)}</div>`:'');
+    const confVal=confirmed[key];
+    const isConfirmed=confVal!==undefined;
+    const confBg    = isConfirmed?'rgba(122,158,126,0.06)':'#fdfaf6';
+    const confBorder= isConfirmed?'rgba(122,158,126,0.3)':'#e8d5bc';
+    const confInpBorder=isConfirmed?'#7A9E7E':'#D4956A';
+    rows.innerHTML+=`<div class="bcat-row" style="border-radius:10px;background:${confBg};border:1px solid ${confBorder};padding:9px 10px;margin-bottom:8px;">
+      <div class="bcat-row-header"><div class="bcat-label"><div style="width:10px;height:10px;border-radius:3px;background:${CAT_COLORS[key]}"></div>${label}</div><div class="bcat-amounts">実績 ¥${actual.toLocaleString()} / 予算 ${budget?'¥'+budget.toLocaleString():'未設定'}${diffHtml}</div></div>
+      <div class="bcat-bar-bg" style="margin-bottom:8px;"><div class="bcat-bar-fill${over?' bcat-over':''}" style="width:${pct}%;background:${CAT_COLORS[key]}"></div></div>
+      <div style="display:flex;align-items:center;gap:6px;background:white;border-radius:8px;padding:5px 8px;border:1.5px solid ${confInpBorder};">
+        <div style="font-size:0.63rem;color:${isConfirmed?'#7A9E7E':'#D4956A'};white-space:nowrap;font-weight:700;flex-shrink:0;">${isConfirmed?'✅確定':'📌確定額'}</div>
+        <span style="font-size:0.72rem;color:#9A8070;flex-shrink:0;">¥</span>
+        <input type="number" min="0" placeholder="${actual||'0'}"
+          value="${isConfirmed?confVal:''}"
+          style="flex:1;border:none;outline:none;font-family:'Zen Maru Gothic',sans-serif;font-size:0.88rem;color:#4A2C1A;background:transparent;text-align:right;min-width:0;"
+          oninput="bcatSaveConfirmed('${key}',this.value)">
+        ${isConfirmed?`<button onclick="bcatClearConfirmed('${key}')" style="background:none;border:none;color:#bbb;cursor:pointer;font-size:0.78rem;padding:0 2px;flex-shrink:0;" title="確定を解除">✕</button>`:'<div style="width:18px;"></div>'}
+      </div>
+      ${memoHtml}
+    </div>`;
+  });
+  // 確定合計サマリー
+  const hasConf=Object.keys(confirmed).length>0;
+  const confTotal=Object.values(confirmed).reduce((s,v)=>s+Number(v),0);
+  if(hasConf){
+    rows.innerHTML+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(122,158,126,0.08);border:1px solid rgba(122,158,126,0.3);border-radius:8px;margin-top:2px;">
+      <span style="font-size:0.78rem;color:#7A9E7E;font-family:'Zen Maru Gothic',sans-serif;font-weight:700;">確定合計</span>
+      <span style="font-family:'Zen Maru Gothic',sans-serif;font-size:1.05rem;font-weight:700;color:#4A2C1A;">¥${confTotal.toLocaleString()}</span>
+    </div>`;
+  }
   if(typeof Chart==='undefined')return;
   const cats=Object.keys(CAT_LABELS).filter(k=>(actuals[k]||0)>0||(catBudgets[k]||0)>0),ctx=document.getElementById('budget-chart').getContext('2d');
   if(_budgetChartInst)_budgetChartInst.destroy();
   _budgetChartInst=new Chart(ctx,{type:'bar',data:{labels:cats.map(k=>CAT_LABELS[k]),datasets:[{label:'予算',data:cats.map(k=>Number(catBudgets[k]||0)),backgroundColor:'rgba(91,141,217,0.25)',borderColor:'#5B8DD9',borderWidth:2,borderRadius:4},{label:'実績',data:cats.map(k=>actuals[k]||0),backgroundColor:cats.map(k=>CAT_COLORS[k]+'BB'),borderColor:cats.map(k=>CAT_COLORS[k]),borderWidth:2,borderRadius:4}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'¥'+v.toLocaleString(),font:{size:10}}},x:{ticks:{font:{size:10}}}}}});
+  // 確定入力済みなら最終残高に反映
+  if(typeof _updateBsumFinalWithConfirmed === 'function') _updateBsumFinalWithConfirmed();
+  // 確定パネルが開いていれば再描画
+  if(_catConfirmedVisible && typeof _renderConfirmedInputs === 'function') _renderConfirmedInputs();
 }
 
 function renderBudgetSettings(){
