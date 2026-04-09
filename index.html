@@ -623,7 +623,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <!-- ═══ 週報タブ ═══ -->
     <div id="csec-weekly" style="padding:0;display:none;overflow-y:auto;max-height:calc(100vh - 110px);background:#ffffff;">
 
-      <!-- ヘッダー（白固定） -->
+      <!-- ヘッダー -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;border-bottom:1px solid #e0e0e0;background:#ffffff;position:sticky;top:0;z-index:10;">
         <div style="display:flex;align-items:center;gap:6px;">
           <button onclick="calWeeklyMove(-1)" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:#C8973A;padding:2px 6px;">‹</button>
@@ -637,24 +637,30 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       </div>
 
       <!-- 凡例 -->
-      <div style="display:flex;gap:6px;flex-wrap:wrap;padding:7px 16px;border-bottom:1px solid #e0e0e0;background:#fafafa;">
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7;">🏭 仕事</span>
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#fff8e1;color:#8a6000;border:1px solid #f0c040;">① 個人</span>
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;">② 恋人</span>
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;">③ 友人</span>
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;">🎂 誕生日</span>
-        <span style="font-size:0.63rem;padding:1px 7px;border-radius:8px;background:#e8eaf6;color:#283593;border:1px solid #9fa8da;">😴 就寝</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;padding:7px 16px;border-bottom:1px solid #e0e0e0;background:#fafafa;font-size:0.63rem;">
+        <span style="padding:1px 8px;border-radius:8px;background:#e8f5e9;color:#1b5e20;border:1px solid #a5d6a7;">🏭 仕事（フジパン）</span>
+        <span style="padding:1px 8px;border-radius:8px;background:#fff8e1;color:#8a6000;border:1px solid #f0c040;">① 個人</span>
+        <span style="padding:1px 8px;border-radius:8px;background:#fce4ec;color:#880e4f;border:1px solid #f48fb1;">② 恋人</span>
+        <span style="padding:1px 8px;border-radius:8px;background:#e3f2fd;color:#0d47a1;border:1px solid #90caf9;">③ 友人</span>
+        <span style="padding:1px 8px;border-radius:8px;background:#f3e5f5;color:#6a1b9a;border:1px solid #ce93d8;">🎂 誕生日</span>
+      </div>
+
+      <!-- 同期元バッジ -->
+      <div style="padding:6px 16px;background:#f5f5f5;border-bottom:1px solid #eee;display:flex;gap:8px;flex-wrap:wrap;font-size:0.62rem;color:#666;">
+        <span>🏭 仕事 → フジパン(株)カレンダー</span>
+        <span style="color:#bbb;">｜</span>
+        <span>①②③ → 有馬功稀カレンダー（primary）</span>
       </div>
 
       <!-- 終日予定帯 -->
       <div id="weekly-allday-row" style="background:#f9f9f9;border-bottom:2px solid #ddd;min-height:28px;"></div>
 
-      <!-- 時間割グリッド（白背景固定） -->
-      <div id="weekly-grid-wrap" style="padding:0 0 0;overflow-x:auto;background:#ffffff;">
+      <!-- 時間割グリッド -->
+      <div id="weekly-grid-wrap" style="padding:0;overflow-x:auto;background:#ffffff;">
         <div id="weekly-grid" style="min-width:520px;background:#ffffff;"></div>
       </div>
 
-      <!-- 日別サマリー欄 -->
+      <!-- 日別サマリー -->
       <div style="background:#fafafa;border-top:2px solid #ddd;padding:10px 16px;">
         <div style="font-family:'Shippori Mincho',serif;font-size:0.8rem;color:#555;margin-bottom:8px;">📊 日別サマリー</div>
         <div id="weekly-summary-row" style="overflow-x:auto;"></div>
@@ -897,57 +903,119 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       </div>
     </div>
 
-    <!-- 今期方針カード（Spring Bloom Link / PDFプレリリース反映） -->
+    <!-- 今期方針カード（4/9週次レポート反映） -->
     <div class="card" style="margin-bottom:14px;background:rgba(91,141,217,0.04);border:1px solid rgba(91,141,217,0.2);">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;">🌸 今期運用方針</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;">📊 週次KPIサマリー</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
           <span style="font-size:0.6rem;background:rgba(232,184,75,0.12);color:#E8B84B;border:1px solid rgba(232,184,75,0.3);border-radius:6px;padding:1px 7px;">Spring Bloom Link</span>
-          <span style="font-size:0.6rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.25);border-radius:6px;padding:1px 7px;">2026前期</span>
+          <span style="font-size:0.6rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.25);border-radius:6px;padding:1px 7px;">4/7〜4/9締め</span>
         </div>
       </div>
 
-      <!-- 期間別方針テーブル -->
-      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;">
-        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:8px;">
-          <span style="font-size:0.68rem;background:#7A9E7E;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">4月前半</span>
-          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">日常会話を自然に継続。趣味・休み・食べ物などの<b>軽い入口会話</b>を試す</span>
+      <!-- KPIグリッド -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+        <div style="background:rgba(255,105,180,0.07);border:1px solid rgba(255,105,180,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
+          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">確認接触回数</div>
+          <div style="font-family:'DM Mono',monospace;font-size:2rem;font-weight:700;color:#ff69b4;line-height:1;">12</div>
+          <div style="font-size:0.6rem;color:var(--muted2);">4/7×2 + 4/8×4 + 4/9×6</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.2);border-radius:8px;">
-          <span style="font-size:0.68rem;background:#E8B84B;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">4月中旬</span>
-          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">相手の反応を見て、<b>今期中に一段上げられるかを判断</b>する。4/16が判定ライン</span>
+        <div style="background:rgba(122,158,126,0.07);border:1px solid rgba(122,158,126,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
+          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">現在ステージ</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:#7A9E7E;line-height:1.2;">S3後半</div>
+          <div style="font-size:0.6rem;color:var(--muted2);">仲のいい同僚以上</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(91,141,217,0.05);border:1px solid rgba(91,141,217,0.18);border-radius:8px;">
-          <span style="font-size:0.68rem;background:#5B8DD9;color:white;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-top:1px;">難しい場合</span>
-          <span style="font-size:0.78rem;color:var(--text);line-height:1.6;">無理に押し上げず、<b>今ある良好な関係を崩さず維持</b>する</span>
+        <div style="background:rgba(232,184,75,0.07);border:1px solid rgba(232,184,75,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
+          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">次回判定日</div>
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:#E8B84B;line-height:1.3;">4/16</div>
+          <div style="font-size:0.6rem;color:var(--muted2);">残り7日</div>
         </div>
-      </div>
-
-      <!-- 評価軸 -->
-      <div style="background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.15);border-radius:8px;padding:8px 12px;">
-        <div style="font-size:0.68rem;color:#ff69b4;margin-bottom:6px;">📐 今期評価軸</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">🌿 自然さ</span>
-          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">💬 相手発信</span>
-          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">📖 会話の広がり</span>
-          <span style="font-size:0.68rem;padding:2px 8px;background:rgba(255,105,180,0.08);border:1px solid rgba(255,105,180,0.2);border-radius:10px;color:var(--text);">🔗 接点継続への意識</span>
+        <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;text-align:center;">
+          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">今週の評価</div>
+          <div style="font-size:0.78rem;font-weight:700;color:#5B8DD9;line-height:1.4;">自然接触の量<br>と質ともに強</div>
         </div>
       </div>
 
-      <!-- 週次方針（直近） -->
-      <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
-        <div style="font-size:0.68rem;color:#5B8DD9;margin-bottom:6px;">📋 直近の行動方針（2026/4/2 週次レポートより）</div>
-        <div style="font-size:0.76rem;color:var(--text);line-height:1.8;">
-          <div>▸ 挨拶はタメ語の温度感で継続。<b>敬語に戻さず</b></div>
-          <div>▸ プライベート入口会話を<b>1テーマだけ</b>（自分の話も添える）</div>
-          <div>▸ 名前を<b>1回自然に</b>（苗字呼び）</div>
+      <!-- 週次総括 -->
+      <div style="background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.18);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+        <div style="font-size:0.68rem;color:#ff69b4;font-weight:700;margin-bottom:6px;">📝 週次総括（4/9締め）</div>
+        <div style="font-size:0.77rem;color:var(--text);line-height:1.8;">
+          今週は「自然に会う頻度」と「会えた時の空気感」がともに強かった週。4/7は相手発信の健康診断会話で身体の向き・視線・タメ語がそろい、4/8は終業時間を意識した反応（「帰っちゃだめ」「19時まで残って」）が出た。4/9は非言語接触が増え、個人への関心を示す言葉（「筋肉ついた？」）も確認。
         </div>
       </div>
 
-      <!-- 相手視点 -->
-      <div style="margin-top:10px;padding:8px 12px;background:rgba(255,105,180,0.06);border:1px solid rgba(255,105,180,0.15);border-radius:8px;">
-        <div style="font-size:0.65rem;color:#ff69b4;margin-bottom:3px;">💭 相手視点推定</div>
-        <div style="font-size:0.74rem;color:var(--text);line-height:1.7;font-style:italic;">「この人とは気軽に挨拶できるし、会ったら自然に話せる。前に話したことも覚えておける。来週もまた普通に話す流れがある」</div>
+      <!-- 週間ハイライト -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:0.68rem;color:#E8B84B;font-weight:700;margin-bottom:7px;">📅 週間ハイライト</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:8px;">
+            <span style="font-size:0.68rem;background:#7A9E7E;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/7</span>
+            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">相手発信で「健康診断終わった？」→ 4〜5分会話。身体を向き合わせ、目線・タメ語・余韻まで良好。<span style="color:#7A9E7E;font-size:0.7rem;">自然再接続確認</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.2);border-radius:8px;">
+            <span style="font-size:0.68rem;background:#E8B84B;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/8</span>
+            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">接触4回。残業伝えると「よし」。定時後「帰っちゃだめ」「19時まで残って」。<span style="color:#E8B84B;font-size:0.7rem;">週内最大の前進日</span></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,105,180,0.06);border:1px solid rgba(255,105,180,0.2);border-radius:8px;">
+            <span style="font-size:0.68rem;background:#ff69b4;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/9</span>
+            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">接触6回。「びっくりした！居るとは思わなかった笑」「よっしゃ」「筋肉ついた？」など個人への関心が出た。<span style="color:#ff69b4;font-size:0.7rem;">非言語接触増・小発展複数</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 強いサイン -->
+      <div style="background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+        <div style="font-size:0.68rem;color:#7A9E7E;font-weight:700;margin-bottom:7px;">✨ 今週の強いサイン（3点）</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:0.76rem;color:var(--text);line-height:1.7;">
+          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">①</span><span><b>終業時間を気にしている</b> — 「今日は早い日？」「私は20時までになりそう」と勤務終わりの共有が双方向化。</span></div>
+          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">②</span><span><b>ポジティブ反応が繰り返される</b> — 残業・来週の見込みに「よし」「よっしゃ」が複数回。時間が重なることへの軽い喜びが継続。</span></div>
+          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">③</span><span><b>あなた個人への観察が増えた</b> — 「筋肉ついた？」は作業でなく本人へのコメント。軽いいじりと観察が混じるフランクな関心。</span></div>
+        </div>
+      </div>
+
+      <!-- 来週の焦点 -->
+      <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
+        <div style="font-size:0.68rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">🎯 来週の焦点（4/10〜4/16）</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;gap:8px;align-items:flex-start;">
+            <span style="font-size:0.65rem;background:#5B8DD9;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">優先</span>
+            <div style="font-size:0.77rem;color:var(--text);line-height:1.6;"><b>苗字を1回自然に呼ぶ</b> ＋ <b>軽いプライベート話題を1つ</b>だけ入れる。休みの過ごし方・食べ物・シフトの大変さへの気づかいが候補。</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--border);padding-top:6px;">
+            <span style="font-size:0.65rem;background:rgba(154,128,112,0.5);color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">軸</span>
+            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">決定報告ではなく<b>軽い共有</b>。「最近そのシフトきつそうですね」のように重くしない。</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--border);padding-top:6px;">
+            <span style="font-size:0.65rem;background:rgba(192,103,90,0.6);color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">避ける</span>
+            <div style="font-size:0.76rem;color:var(--muted2);line-height:1.6;">残業制度を相手のために変えるような言い方 / 好意の深さを問い詰める聞き方 / 周囲が多い場での無理な私的会話</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4/16 判定方針 -->
+      <div style="background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.25);border-radius:10px;padding:10px 12px;">
+        <div style="font-size:0.68rem;color:#E8B84B;font-weight:700;margin-bottom:7px;">📌 4月16日 判定方針</div>
+        <div style="display:flex;flex-direction:column;gap:5px;font-size:0.75rem;">
+          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(122,158,126,0.08);border-radius:7px;align-items:flex-start;">
+            <span style="color:#7A9E7E;font-weight:700;flex-shrink:0;">S4挑戦</span>
+            <span style="color:var(--text);">反応が広がる・苗字呼び成功・プライベート話題が回る → 一段上げる方向で動く</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(91,141,217,0.06);border-radius:7px;align-items:flex-start;">
+            <span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">S3維持</span>
+            <span style="color:var(--text);">現状の自然な接触が続く・入口が通せない場面多い → 崩さず維持。3未満には落とさない</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(154,128,112,0.06);border-radius:7px;align-items:flex-start;">
+            <span style="color:#9A8070;font-weight:700;flex-shrink:0;">保留延長</span>
+            <span style="color:var(--text);">判断が割れる・シグナルが混在 → 4/23まで観察期間を延長して再判定</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 週次結論 -->
+      <div style="margin-top:12px;padding:10px 12px;background:rgba(255,105,180,0.05);border-left:3px solid #ff69b4;border-radius:0 8px 8px 0;">
+        <div style="font-size:0.68rem;color:#ff69b4;font-weight:700;margin-bottom:4px;">💬 週次結論</div>
+        <div style="font-size:0.76rem;color:var(--text);line-height:1.8;font-style:italic;">関係が静かに、しかしかなり実感を伴って前へ進んだ週。プライベート入口の実行は限定的だったが、土台はむしろ強くなった。来週は「呼びかけ」と「軽い私的話題」を一段だけ通せるかが最大の焦点。</div>
+        <div style="margin-top:6px;font-size:0.65rem;color:var(--muted2);">Gradual Connection ／ Spring Bloom Link　2026年4月9日(木)締め</div>
       </div>
     </div>
 
@@ -8486,7 +8554,7 @@ function renderShiftTable() {
     if (shiftCount) parts.push(`シフト${shiftCount}件`);
     if (evtCount) parts.push(`概要${evtCount}日分`);
     status.textContent = parts.length
-      ? `✅ フジパン(株) ${parts.join('・')} 自動同期済み（最終取得: 2026-04-08）`
+      ? `✅ フジパン(株)カレンダーのみ同期 — ${parts.join('・')}（最終取得: 2026-04-08）`
       : '';
   }
   label.textContent = `${shiftYear}年${shiftMonth+1}月`;
@@ -9436,8 +9504,8 @@ const LOVE_DEFAULT_DATA = {
   stages: {
     s1: { done: true,  date: '2025-08-01', score: 5, memo: '8月〜相手からの継続的なアプローチ確認。挨拶・視線・笑顔が安定して続く' },
     s2: { done: true,  date: '2025-12-31', score: 5, memo: '大晦日のからかい＆励まし。冗談のキャッチボール成立。勤務状況・残業など日常共有が自然に定着' },
-    s3: { done: true,  date: '2026-04-02', score: 5, memo: '【4/1】相手から「お久しぶり！」・3連休の記憶保持・健診採血の話題・2人の空間×2回・視線長い（成功率82%）。【4/2】タメ語「おはよう！」・手を上げてサイン・双方向接触3回・「また来週で」締め（成功率84%）。週5接触中4回が相手発信。「仲のいい同僚以上・親しい人寄り」の状態が確認' },
-    s4: { done: false, date: '', score: 0, memo: '次目標：プライベート入口会話（趣味・休み・食べ物）を1テーマ自然に通す。4/16が判定ライン' },
+    s3: { done: true,  date: '2026-04-02', score: 5, memo: '【4/1〜4/2】S3達成確認（成功率84%）。週5接触中4回が相手発信。「仲のいい同僚以上・親しい人寄り」。【4/7〜4/9】接触12回。4/7：相手発信の健康診断会話・身体向き・タメ語・余韻良好。4/8：「帰っちゃだめ」「19時まで残って」と終業時間を意識した感情反応。4/9：「びっくりした！居るとは思わなかった笑」「筋肉ついた？」など個人への観察が増加。土台はS3後半〜S4手前まで強化済み。' },
+    s4: { done: false, date: '', score: 0, memo: '4/16判定ライン。来週の焦点：①苗字を1回自然に呼ぶ②軽いプライベート話題を1つ（休みの過ごし方・食べ物・シフトの大変さへの気づかい）。反応が広がればS4挑戦、通せない場面多ければS3維持、判断が割れれば4/23まで保留延長。' },
     s5: { done: false, date: '', score: 0, memo: '' },
   },
   factors: {
@@ -9448,7 +9516,7 @@ const LOVE_DEFAULT_DATA = {
     special:  4,  // 2人だけの会話空間・「また来週で」という継続前提の締め・視線
     timing:   3,  // 4/16が判定ライン。来週は入口会話のチャレンジが焦点
   },
-  note: '【Gradual Connection / Spring Bloom Link】職場の同僚（4歳年上・別部署・社交的）。関係定義：仲のいい同僚以上・親しい人寄り（S3後半〜S4手前）。週次成功率84%。2026前期テーマ：Spring Bloom Link。今期方針：小さな接触の質を高める。軽い入口会話・苗字呼び・自分の話を添える。4/16判定：材料が増えればS4挑戦、難しければS3維持。'
+  note: '【Gradual Connection / Spring Bloom Link】職場の同僚（4歳年上・別部署・社交的）。関係定義：仲のいい同僚以上・親しい人寄り（S3後半〜S4手前）。4/7〜4/9週：接触12回・終業時間を意識した感情反応・個人への観察発言確認。2026前期テーマ：Spring Bloom Link。来週方針：苗字呼び＋軽いプライベート話題1つ。4/16判定：S4挑戦 or S3維持 or 4/23保留延長。'
 };
 
 let _loveProgress = null;
@@ -9936,7 +10004,7 @@ function renderLoveAdvice() {
       + '</div>'
       + '</div>';
   } else if (s3done) {
-    // 現在の実際の位置：S3後半〜S4手前（Gradual Connection / Spring Bloom Link）
+    // 現在の実際の位置：S3後半〜S4手前（4/9週次レポート反映）
     adviceText =
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;flex-wrap:wrap;gap:4px;">'
       + '<b style="color:#ff69b4;">📍 現在地：S3後半〜S4手前</b>'
@@ -9945,24 +10013,21 @@ function renderLoveAdvice() {
       + '<span style="font-size:0.6rem;background:rgba(232,184,75,0.1);color:#E8B84B;border:1px solid rgba(232,184,75,0.25);border-radius:5px;padding:1px 6px;">Spring Bloom Link</span>'
       + '</div>'
       + '</div>'
-      + '<div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;">「仲のいい同僚以上・親しい人寄り」。成功率：<b style="color:#ff69b4;">84%</b>（2026/4/2時点）</div>'
+      + '<div style="font-size:0.72rem;color:var(--muted2);margin-bottom:10px;">「仲のいい同僚以上・親しい人寄り」。4/7〜4/9週：接触<b style="color:#ff69b4;">12回</b>、土台さらに強化</div>'
       + '<div style="font-size:0.82rem;line-height:1.9;color:var(--text);">'
-      + '✅ <b>確認できた強み</b><br>'
-      + '・相手から「おはよう！」タメ語・手のサイン（4/2）<br>'
-      + '・「お久しぶり！」記憶保持・健診採血の話題・2人の空間（4/1）<br>'
-      + '・週5接触中<b>4回が相手発信</b>・「また来週で」次週継続前提<br><br>'
-      + '📌 <b>現在の課題</b><br>'
-      + '・プライベート入口会話（趣味・休み・食べ物）がまだ<br>'
-      + '・連絡先交換はまだ先<br><br>'
-      + '🌸 <b>今期方針（Spring Bloom Link）</b><br>'
-      + '・挨拶の温度感を継続。敬語に戻さず<br>'
-      + '・<b>プライベート入口を1テーマ</b>（自分の話も添える）<br>'
-      + '・名前を1回自然に（苗字呼び）<br><br>'
+      + '✅ <b>今週確認できた強み（4/7〜4/9）</b><br>'
+      + '・4/7 相手発信「健康診断終わった？」→ 4〜5分会話、視線・タメ語・余韻良好<br>'
+      + '・4/8 「帰っちゃだめ」「19時まで残って」→ 終業時間に感情が乗った最大前進日<br>'
+      + '・4/9 「びっくりした！居るとは思わなかった笑」「筋肉ついた？」→ 個人への観察増加<br><br>'
+      + '🎯 <b>来週の行動方針</b><br>'
+      + '・<b>苗字を1回自然に呼ぶ</b>（重くしない、軽い呼びかけで）<br>'
+      + '・<b>プライベート話題を1つ</b>（休みの過ごし方・食べ物・シフトの大変さへの気づかい）<br>'
+      + '・決定報告ではなく「軽い共有」のトーンを保つ<br><br>'
       + '<div style="background:rgba(232,184,75,0.08);border:1px solid rgba(232,184,75,0.2);border-radius:8px;padding:8px 10px;font-size:0.78rem;color:#E8B84B;font-weight:700;">'
-      + '⏰ 4/16 判定ライン：材料が増えればS4挑戦 / 難しければS3維持'
+      + '⏰ 4/16 判定：S4挑戦 or S3維持 or 4/23保留延長'
       + '</div><br>'
       + '<div style="background:rgba(255,105,180,0.08);border-radius:8px;padding:8px 10px;font-size:0.75rem;color:#ff69b4;font-style:italic;">'
-      + '「この恋は"進むかどうか"ではなく、"どう進めるか"の段階に入っている」'
+      + '「関係が静かに、しかしかなり実感を伴って前へ進んでいる」'
       + '</div>'
       + '</div>';
   } else if (doneStages.length >= 2) {
@@ -13631,31 +13696,55 @@ let _weeklyFetchedRange = null;
 function _weeklyCollectAllEvts(startStr, endStr) {
   let all = [];
 
-  // 1. GCALキャッシュ（シフト等）
-  try { all = JSON.parse(localStorage.getItem(CAL_GCAL_LS) || '[]'); } catch {}
+  // ── 1. フジパン(株)カレンダー（仕事）── source:'fujipan' のみ
+  try {
+    const gcal = JSON.parse(localStorage.getItem(CAL_GCAL_LS) || '[]');
+    gcal.filter(e => e.source === 'fujipan').forEach(e => {
+      all.push({ ...e, _weekSource: 'fujipan' });
+    });
+  } catch {}
 
-  // 2. 個人予定
+  // ── 2. 有馬功稀カレンダー（primary / 個人①②③）── source:'primary' のみ
   try {
     const personal = JSON.parse(localStorage.getItem(CAL_PERSONAL_LS) || '[]');
-    all = [...all, ...personal];
+    personal.forEach(e => {
+      all.push({ ...e, _weekSource: 'primary' });
+    });
   } catch {}
-
-  // 3. 就寝・YouTubeなどの埋め込みデータ
-  const extra = _weeklyLoadExtraData();
-  all = [...all, ...extra];
-
-  // 4. localStorageに保存されているGcal週次イベントキャッシュ
-  const weekKey = 'kouki_weekly_gcal_' + startStr;
+  // GCAL_EVENTSキャッシュのprimary系も追加
   try {
-    const cached = JSON.parse(localStorage.getItem(weekKey) || '[]');
-    if (cached.length) all = [...all, ...cached];
+    const gcal = JSON.parse(localStorage.getItem(CAL_GCAL_LS) || '[]');
+    gcal.filter(e => e.source === 'primary').forEach(e => {
+      all.push({ ...e, _weekSource: 'primary' });
+    });
   } catch {}
+  // GCAL_EVENTS_DATA（静的データ）から個人予定を抽出
+  if (window.GCAL_EVENTS_DATA) {
+    Object.entries(window.GCAL_EVENTS_DATA).forEach(([date, evts]) => {
+      evts.forEach(e => {
+        // 仕事系は除外（フジパンが既に登録済み）
+        const isWork = e.s?.includes('早番') || e.s?.includes('中番') || e.s?.includes('遅番') ||
+          e.s?.includes('中種') || e.s?.includes('配合') || e.s?.includes('専属') ||
+          e.s === '休日' || e.s?.includes('残業') || e.s?.includes('休憩');
+        if (!isWork) {
+          all.push({
+            id: 'evtdata_' + date + '_' + e.s?.slice(0,8),
+            date, title: e.s || '', time: e.t || '',
+            source: 'primary', _weekSource: 'primary',
+            priority: _detectPriority(e.s || ''),
+          });
+        }
+      });
+    });
+  }
+
+  // ── 就寝・風呂・食事・YTなどは週報に表示しない ──
 
   // 日付フィルタ・重複除去
   const seen = new Set();
   return all.filter(e => {
     if (!e.date || e.date < startStr || e.date > endStr) return false;
-    const key = e.date + '_' + e.title + '_' + (e.time || 'allday');
+    const key = e.date + '_' + (e.title || '') + '_' + (e.time || 'allday');
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -13913,20 +14002,31 @@ function _weeklyEventBlock(e) {
 
 // 白背景固定カラー
 function _weeklyGetColorLight(e) {
-  if (e.title?.includes('就寝') || e.calType === 'sleep')
-    return { bg:'#ede7f6', border:'#9575cd', text:'#4527a0' };
-  if (e.title?.includes('風呂') || e.calType === 'bath')
-    return { bg:'#e0f7fa', border:'#26c6da', text:'#006064' };
-  if (e.title?.includes('食事') || e.calType === 'meal')
-    return { bg:'#fff3e0', border:'#ffa726', text:'#e65100' };
-  if (e.isRefresh || e.title?.includes('リフレッシュ') || e.title?.includes('休暇期間') || e.isOff || e.title === '休日' || e.title?.includes('終日OFF'))
-    return { bg:'#f1f8e9', border:'#aed581', text:'#558b2f' };
+  // 🏭 仕事（フジパン(株)カレンダー）
+  if (e._weekSource === 'fujipan' || e.source === 'fujipan' ||
+      e.title?.includes('早番') || e.title?.includes('中番') || e.title?.includes('遅番') ||
+      e.title?.includes('中種') || e.title?.includes('配合') || e.title?.includes('専属') ||
+      e.priority === 0)
+    return { bg:'#e8f5e9', border:'#66bb6a', text:'#1b5e20' };
+
+  // 🎂 誕生日（primaryカレンダー内）
   if (e.isBirthday || e.title?.includes('誕生日'))
     return { bg:'#f3e5f5', border:'#ab47bc', text:'#6a1b9a' };
-  if (e.priority === 2) return { bg:'#fce4ec', border:'#f06292', text:'#880e4f' };
-  if (e.priority === 3) return { bg:'#e3f2fd', border:'#64b5f6', text:'#0d47a1' };
-  if (e.priority === 0 || e.source === 'fujipan' || e.title?.includes('番') || e.title?.includes('専属') || e.title?.includes('健康診断'))
-    return { bg:'#e8f5e9', border:'#66bb6a', text:'#1b5e20' };
+
+  // ② 恋人（primaryカレンダー priority=2）
+  if (e.priority === 2)
+    return { bg:'#fce4ec', border:'#f06292', text:'#880e4f' };
+
+  // ③ 友人（primaryカレンダー priority=3）
+  if (e.priority === 3)
+    return { bg:'#e3f2fd', border:'#64b5f6', text:'#0d47a1' };
+
+  // 🌿 休日・リフレッシュ
+  if (e.isRefresh || e.title?.includes('リフレッシュ') || e.title?.includes('休暇期間') ||
+      e.isOff || e.title === '休日' || e.title?.includes('終日OFF') || e.title === 'OFF')
+    return { bg:'#f1f8e9', border:'#aed581', text:'#558b2f' };
+
+  // ① 個人（primaryカレンダー デフォルト）
   return { bg:'#fff8e1', border:'#ffd54f', text:'#8a6000' };
 }
 
