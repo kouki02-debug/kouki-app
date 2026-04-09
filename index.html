@@ -831,7 +831,7 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   <!-- サブタブ -->
   <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
     <button class="wtab active" id="ltab-calendar" onclick="switchLoveTab('calendar')">💗 カレンダー</button>
-    <button class="wtab" id="ltab-progress" onclick="switchLoveTab('progress')">📊 発展記録</button>
+    <button class="wtab" id="ltab-progress" onclick="switchLoveTab('progress')">📋 レポート</button>
     <button class="wtab" id="ltab-diary" onclick="switchLoveTab('diary')">📓 記録表</button>
     <button class="wtab" id="ltab-analysis" onclick="switchLoveTab('analysis')">📈 分析</button>
   </div>
@@ -879,215 +879,462 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
   </div>
 
   <!-- ═══ 発展記録タブ ═══ -->
-  <div id="lsec-progress" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
+  <div id="lsec-progress" style="padding:0;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
 
-    <!-- ヘッダーバナー：恋愛名称 + Seasonタイトル -->
-    <div style="background:linear-gradient(135deg,rgba(255,105,180,0.12),rgba(232,184,75,0.08),rgba(91,141,217,0.06));border:1px solid rgba(255,105,180,0.25);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <div>
-          <div style="font-size:0.62rem;color:var(--muted2);letter-spacing:0.1em;margin-bottom:2px;">LOVE PROJECT</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:1.15rem;color:#ff69b4;font-weight:700;letter-spacing:0.04em;">Gradual Connection</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:0.6rem;color:var(--muted2);letter-spacing:0.08em;margin-bottom:2px;">2026 SPRING SEASON</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:0.82rem;color:#E8B84B;letter-spacing:0.06em;">Spring Bloom Link</div>
-        </div>
-      </div>
-      <div style="height:1px;background:linear-gradient(90deg,rgba(255,105,180,0.3),rgba(232,184,75,0.3),transparent);margin:8px 0;"></div>
-      <div style="font-size:0.68rem;color:var(--muted2);line-height:1.7;display:flex;gap:16px;flex-wrap:wrap;">
-        <span>📌 段階的に距離が縮まり、積み上げで関係が育つ</span>
-        <span>🌸 春の時期に関係がゆっくり花開く前期テーマ</span>
-      </div>
-      <div style="margin-top:8px;font-family:'Shippori Mincho',serif;font-size:0.75rem;color:rgba(255,105,180,0.7);text-align:center;letter-spacing:0.12em;">
-        「偶然ではなく、設計で生きる。」
-      </div>
+    <!-- 発展記録サブタブ -->
+    <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:0;z-index:10;">
+      <button class="wtab active" id="ptab-report" onclick="switchProgressTab('report')" style="font-size:0.72rem;padding:10px 12px;white-space:nowrap;">📋 週次レポート</button>
+      <button class="wtab" id="ptab-stage" onclick="switchProgressTab('stage')" style="font-size:0.72rem;padding:10px 12px;white-space:nowrap;">📈 発展記録</button>
+      <button class="wtab" id="ptab-action" onclick="switchProgressTab('action')" style="font-size:0.72rem;padding:10px 12px;white-space:nowrap;">🎯 アクション</button>
+      <button class="wtab" id="ptab-log" onclick="switchProgressTab('log')" style="font-size:0.72rem;padding:10px 12px;white-space:nowrap;">🗃️ 過去ログ</button>
     </div>
 
-    <!-- 今期方針カード（4/9週次レポート反映） -->
-    <div class="card" style="margin-bottom:14px;background:rgba(91,141,217,0.04);border:1px solid rgba(91,141,217,0.2);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;">📊 週次KPIサマリー</div>
-        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;">
-          <span style="font-size:0.6rem;background:rgba(232,184,75,0.12);color:#E8B84B;border:1px solid rgba(232,184,75,0.3);border-radius:6px;padding:1px 7px;">Spring Bloom Link</span>
-          <span style="font-size:0.6rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.25);border-radius:6px;padding:1px 7px;">4/7〜4/9締め</span>
+    <!-- ═══ 週次レポートタブ ═══ -->
+    <div id="psec-report" style="padding:14px;display:block;">
+
+      <!-- ヘッダーバナー -->
+      <div style="background:linear-gradient(135deg,#1a0a1a 0%,#200a20 40%,#0f0a2e 100%);border-radius:14px;padding:18px 16px;margin-bottom:14px;position:relative;overflow:hidden;">
+        <div style="position:absolute;inset:0;background:radial-gradient(ellipse at 70% 30%,rgba(255,105,180,0.15),transparent 60%);pointer-events:none;"></div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;position:relative;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.18em;color:rgba(255,105,180,0.6);margin-bottom:4px;">LOVE PROJECT — WEEKLY REPORT</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:white;">Gradual Connection</div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.45);margin-top:2px;">2026前期 / Spring Bloom Link</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:0.58rem;color:rgba(232,184,75,0.7);margin-bottom:3px;">締め日</div>
+            <div style="font-family:'DM Mono',monospace;font-size:0.82rem;color:#E8B84B;font-weight:700;">2026/04/09</div>
+            <div style="font-size:0.58rem;color:rgba(255,255,255,0.4);margin-top:2px;">4/7〜4/9</div>
+          </div>
         </div>
       </div>
 
       <!-- KPIグリッド -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-        <div style="background:rgba(255,105,180,0.07);border:1px solid rgba(255,105,180,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
-          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">確認接触回数</div>
-          <div style="font-family:'DM Mono',monospace;font-size:2rem;font-weight:700;color:#ff69b4;line-height:1;">12</div>
-          <div style="font-size:0.6rem;color:var(--muted2);">4/7×2 + 4/8×4 + 4/9×6</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;">
+        <div style="background:var(--surface);border:1.5px solid rgba(255,105,180,0.3);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:0.58rem;color:var(--muted2);margin-bottom:2px;">接触回数</div>
+          <div style="font-family:'DM Mono',monospace;font-size:1.8rem;font-weight:700;color:#ff69b4;line-height:1;">12</div>
+          <div style="font-size:0.58rem;color:var(--muted2);">今週合計</div>
         </div>
-        <div style="background:rgba(122,158,126,0.07);border:1px solid rgba(122,158,126,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
-          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">現在ステージ</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:700;color:#7A9E7E;line-height:1.2;">S3後半</div>
-          <div style="font-size:0.6rem;color:var(--muted2);">仲のいい同僚以上</div>
+        <div style="background:var(--surface);border:1.5px solid rgba(122,158,126,0.3);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:0.58rem;color:var(--muted2);margin-bottom:2px;">ステージ</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:700;color:#7A9E7E;line-height:1.2;">S3後半</div>
+          <div style="font-size:0.58rem;color:var(--muted2);">〜S4手前</div>
         </div>
-        <div style="background:rgba(232,184,75,0.07);border:1px solid rgba(232,184,75,0.25);border-radius:10px;padding:10px 12px;text-align:center;">
-          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">次回判定日</div>
-          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:#E8B84B;line-height:1.3;">4/16</div>
-          <div style="font-size:0.6rem;color:var(--muted2);">残り7日</div>
-        </div>
-        <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;text-align:center;">
-          <div style="font-size:0.6rem;color:var(--muted2);margin-bottom:3px;">今週の評価</div>
-          <div style="font-size:0.78rem;font-weight:700;color:#5B8DD9;line-height:1.4;">自然接触の量<br>と質ともに強</div>
+        <div style="background:var(--surface);border:1.5px solid rgba(232,184,75,0.3);border-radius:12px;padding:10px 8px;text-align:center;">
+          <div style="font-size:0.58rem;color:var(--muted2);margin-bottom:2px;">判定日</div>
+          <div style="font-family:'DM Mono',monospace;font-size:1.1rem;font-weight:700;color:#E8B84B;line-height:1.2;">4/16</div>
+          <div style="font-size:0.58rem;color:var(--muted2);">残り7日</div>
         </div>
       </div>
 
       <!-- 週次総括 -->
-      <div style="background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.18);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
-        <div style="font-size:0.68rem;color:#ff69b4;font-weight:700;margin-bottom:6px;">📝 週次総括（4/9締め）</div>
-        <div style="font-size:0.77rem;color:var(--text);line-height:1.8;">
-          今週は「自然に会う頻度」と「会えた時の空気感」がともに強かった週。4/7は相手発信の健康診断会話で身体の向き・視線・タメ語がそろい、4/8は終業時間を意識した反応（「帰っちゃだめ」「19時まで残って」）が出た。4/9は非言語接触が増え、個人への関心を示す言葉（「筋肉ついた？」）も確認。
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:0.82rem;">📝</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);">週次総括</span>
+          <span style="font-size:0.6rem;color:var(--muted2);margin-left:auto;">4/9締め</span>
+        </div>
+        <div style="font-size:0.78rem;color:var(--text);line-height:1.9;">
+          今週は「自然に会う頻度」と「会えた時の空気感」がともに強かった週。4/7は相手発信の健康診断会話で身体の向き・視線・タメ語がそろい、4/8は終業時間を意識した反応が出た。4/9は非言語接触が増え、個人への関心を示す言葉も確認。プライベート入口は限定的だったが、<b>土台はむしろ強くなった</b>。
         </div>
       </div>
 
       <!-- 週間ハイライト -->
-      <div style="margin-bottom:12px;">
-        <div style="font-size:0.68rem;color:#E8B84B;font-weight:700;margin-bottom:7px;">📅 週間ハイライト</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:8px;">
-            <span style="font-size:0.68rem;background:#7A9E7E;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/7</span>
-            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">相手発信で「健康診断終わった？」→ 4〜5分会話。身体を向き合わせ、目線・タメ語・余韻まで良好。<span style="color:#7A9E7E;font-size:0.7rem;">自然再接続確認</span></div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:0.82rem;">📅</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);">週間ハイライト</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch;">
+            <div style="background:#7A9E7E;border-radius:6px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:0.65rem;color:white;text-align:center;height:fit-content;margin-top:2px;">4/7</div>
+            <div>
+              <div style="font-size:0.78rem;color:var(--text);line-height:1.7;">相手発信「健康診断終わった？」→ 4〜5分会話。視線・タメ語・余韻まで良好。</div>
+              <div style="font-size:0.68rem;color:#7A9E7E;margin-top:2px;">✔ 自然再接続確認 / 相手発信2回</div>
+            </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.2);border-radius:8px;">
-            <span style="font-size:0.68rem;background:#E8B84B;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/8</span>
-            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">接触4回。残業伝えると「よし」。定時後「帰っちゃだめ」「19時まで残って」。<span style="color:#E8B84B;font-size:0.7rem;">週内最大の前進日</span></div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch;">
+            <div style="background:#E8B84B;border-radius:6px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:0.65rem;color:#0f0f0f;text-align:center;height:fit-content;margin-top:2px;">4/8</div>
+            <div>
+              <div style="font-size:0.78rem;color:var(--text);line-height:1.7;">接触4回。定時後「<b>帰っちゃだめ</b>」「<b>19時まで残って</b>」。終業時間が関係トリガーとして浮上。</div>
+              <div style="font-size:0.68rem;color:#E8B84B;margin-top:2px;">⭐ 週内最大の前進日 / 感情が乗った反応</div>
+            </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;background:rgba(255,105,180,0.06);border:1px solid rgba(255,105,180,0.2);border-radius:8px;">
-            <span style="font-size:0.68rem;background:#ff69b4;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">4/9</span>
-            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">接触6回。「びっくりした！居るとは思わなかった笑」「よっしゃ」「筋肉ついた？」など個人への関心が出た。<span style="color:#ff69b4;font-size:0.7rem;">非言語接触増・小発展複数</span></div>
+          <div style="height:1px;background:var(--border);"></div>
+          <div style="display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:stretch;">
+            <div style="background:#ff69b4;border-radius:6px;padding:3px 8px;font-family:'DM Mono',monospace;font-size:0.65rem;color:white;text-align:center;height:fit-content;margin-top:2px;">4/9</div>
+            <div>
+              <div style="font-size:0.78rem;color:var(--text);line-height:1.7;">接触6回。「びっくりした！居るとは思わなかった笑」「<b>筋肉ついた？</b>」など個人への関心が出た。</div>
+              <div style="font-size:0.68rem;color:#ff69b4;margin-top:2px;">✔ 非言語接触増 / 個人観察 / 小発展複数</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- 強いサイン -->
-      <div style="background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
-        <div style="font-size:0.68rem;color:#7A9E7E;font-weight:700;margin-bottom:7px;">✨ 今週の強いサイン（3点）</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:0.82rem;">✨</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);">今週の強いサイン</span>
+          <span style="font-size:0.6rem;background:rgba(122,158,126,0.1);color:#7A9E7E;border:1px solid rgba(122,158,126,0.25);border-radius:10px;padding:1px 8px;margin-left:auto;">3点</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;gap:8px;background:rgba(122,158,126,0.06);border-radius:8px;padding:8px 10px;border-left:2px solid #7A9E7E;">
+            <span style="font-size:0.75rem;font-weight:700;color:#7A9E7E;flex-shrink:0;">①</span>
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:2px;">終業時間を気にしている</div>
+              <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">「今日は早い日？」「私は20時までになりそう」と勤務終わりの共有が双方向化。会える時間を業務情報以上に扱っている可能性。</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;background:rgba(232,184,75,0.06);border-radius:8px;padding:8px 10px;border-left:2px solid #E8B84B;">
+            <span style="font-size:0.75rem;font-weight:700;color:#E8B84B;flex-shrink:0;">②</span>
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:2px;">ポジティブ反応が繰り返される</div>
+              <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">残業・来週の見込みに「よし」「よっしゃ」が複数回。時間が重なることへの軽い喜びが継続。22時対応に「ヤバっ」と感情つきで驚く反応も。</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;background:rgba(255,105,180,0.06);border-radius:8px;padding:8px 10px;border-left:2px solid #ff69b4;">
+            <span style="font-size:0.75rem;font-weight:700;color:#ff69b4;flex-shrink:0;">③</span>
+            <div>
+              <div style="font-size:0.78rem;font-weight:700;color:var(--text);margin-bottom:2px;">あなた個人への観察が増えた</div>
+              <div style="font-size:0.72rem;color:var(--muted2);line-height:1.6;">「よく運べるね！」「筋肉ついた？」は作業でなく本人へのコメント。軽いいじりと観察が混じるフランクな関心として評価できる。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 慎重に見る点 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+          <span style="font-size:0.82rem;">⚠️</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);">慎重に見る点</span>
+        </div>
         <div style="display:flex;flex-direction:column;gap:6px;font-size:0.76rem;color:var(--text);line-height:1.7;">
-          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">①</span><span><b>終業時間を気にしている</b> — 「今日は早い日？」「私は20時までになりそう」と勤務終わりの共有が双方向化。</span></div>
-          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">②</span><span><b>ポジティブ反応が繰り返される</b> — 残業・来週の見込みに「よし」「よっしゃ」が複数回。時間が重なることへの軽い喜びが継続。</span></div>
-          <div style="display:flex;gap:6px;"><span style="color:#7A9E7E;flex-shrink:0;">③</span><span><b>あなた個人への観察が増えた</b> — 「筋肉ついた？」は作業でなく本人へのコメント。軽いいじりと観察が混じるフランクな関心。</span></div>
+          <div style="display:flex;gap:6px;padding:6px 8px;background:var(--surface2);border-radius:7px;">
+            <span style="color:var(--muted2);flex-shrink:0;">·</span>
+            <span>周囲に人がいる場面が多く、今週は軽いプライベート入口を十分に通せなかった。これは後退ではなく<b>場の条件が合わなかった</b>側面が大きい。</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:6px 8px;background:var(--surface2);border-radius:7px;">
+            <span style="color:var(--muted2);flex-shrink:0;">·</span>
+            <span>男性同僚と話しているときに目は合うが割って入ってこない点は、距離ではなく<b>場を読む配慮</b>と見るほうが自然。目線だけ送るのは「気づいている」サインとして十分。</span>
+          </div>
+          <div style="display:flex;gap:6px;padding:6px 8px;background:var(--surface2);border-radius:7px;">
+            <span style="color:var(--muted2);flex-shrink:0;">·</span>
+            <span>「どれくらい本気で残ってほしいの？」のような深掘り確認はまだ早い。今は温度感の証明より<b>自然な会話継続のほうが重要</b>。</span>
+          </div>
         </div>
       </div>
 
       <!-- 来週の焦点 -->
-      <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;margin-bottom:12px;">
-        <div style="font-size:0.68rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">🎯 来週の焦点（4/10〜4/16）</div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:0.82rem;">🎯</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:var(--accent);">来週の焦点</span>
+          <span style="font-size:0.6rem;color:var(--muted2);margin-left:auto;">4/10〜4/16</span>
+        </div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="display:flex;gap:8px;align-items:flex-start;">
-            <span style="font-size:0.65rem;background:#5B8DD9;color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">優先</span>
-            <div style="font-size:0.77rem;color:var(--text);line-height:1.6;"><b>苗字を1回自然に呼ぶ</b> ＋ <b>軽いプライベート話題を1つ</b>だけ入れる。休みの過ごし方・食べ物・シフトの大変さへの気づかいが候補。</div>
+          <div style="display:flex;gap:8px;padding:8px 10px;background:rgba(91,141,217,0.07);border-radius:8px;align-items:flex-start;">
+            <span style="font-size:0.62rem;background:#5B8DD9;color:white;border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;">優先</span>
+            <div style="font-size:0.78rem;color:var(--text);line-height:1.7;"><b>苗字を1回自然に呼ぶ</b> ＋ <b>軽いプライベート話題を1つ</b>。休みの過ごし方・食べ物・シフトへの気づかいが候補。</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--border);padding-top:6px;">
-            <span style="font-size:0.65rem;background:rgba(154,128,112,0.5);color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">軸</span>
-            <div style="font-size:0.76rem;color:var(--text);line-height:1.6;">決定報告ではなく<b>軽い共有</b>。「最近そのシフトきつそうですね」のように重くしない。</div>
+          <div style="display:flex;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:8px;align-items:flex-start;">
+            <span style="font-size:0.62rem;background:rgba(154,128,112,0.6);color:white;border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;">言い方の軸</span>
+            <div style="font-size:0.78rem;color:var(--text);line-height:1.7;">決定報告ではなく<b>軽い共有</b>。「最近そのシフトきつそうですね」のように重くしない。</div>
           </div>
-          <div style="display:flex;gap:8px;align-items:flex-start;border-top:1px solid var(--border);padding-top:6px;">
-            <span style="font-size:0.65rem;background:rgba(192,103,90,0.6);color:white;border-radius:4px;padding:1px 7px;white-space:nowrap;flex-shrink:0;">避ける</span>
-            <div style="font-size:0.76rem;color:var(--muted2);line-height:1.6;">残業制度を相手のために変えるような言い方 / 好意の深さを問い詰める聞き方 / 周囲が多い場での無理な私的会話</div>
+          <div style="display:flex;gap:8px;padding:8px 10px;background:rgba(192,103,90,0.05);border:1px solid rgba(192,103,90,0.15);border-radius:8px;align-items:flex-start;">
+            <span style="font-size:0.62rem;background:rgba(192,103,90,0.6);color:white;border-radius:4px;padding:2px 7px;white-space:nowrap;flex-shrink:0;margin-top:1px;">避ける</span>
+            <div style="font-size:0.76rem;color:var(--muted2);line-height:1.7;">残業制度を相手のために変えるような言い方 · 好意の深さを問い詰める聞き方 · 周囲が多い場での無理な私的会話</div>
           </div>
         </div>
       </div>
 
       <!-- 4/16 判定方針 -->
-      <div style="background:rgba(232,184,75,0.06);border:1px solid rgba(232,184,75,0.25);border-radius:10px;padding:10px 12px;">
-        <div style="font-size:0.68rem;color:#E8B84B;font-weight:700;margin-bottom:7px;">📌 4月16日 判定方針</div>
-        <div style="display:flex;flex-direction:column;gap:5px;font-size:0.75rem;">
-          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(122,158,126,0.08);border-radius:7px;align-items:flex-start;">
-            <span style="color:#7A9E7E;font-weight:700;flex-shrink:0;">S4挑戦</span>
-            <span style="color:var(--text);">反応が広がる・苗字呼び成功・プライベート話題が回る → 一段上げる方向で動く</span>
+      <div style="background:var(--surface);border:1px solid rgba(232,184,75,0.3);border-radius:12px;padding:12px 14px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px;">
+          <span style="font-size:0.82rem;">📌</span>
+          <span style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#E8B84B;">4月16日 判定方針</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:0.76rem;">
+          <div style="display:flex;gap:8px;padding:7px 10px;background:rgba(122,158,126,0.07);border-radius:8px;align-items:flex-start;">
+            <span style="font-weight:700;color:#7A9E7E;white-space:nowrap;flex-shrink:0;">S4挑戦</span>
+            <span style="color:var(--text);line-height:1.6;">反応が広がる・苗字呼び成功・プライベート話題が回る → 一段上げる方向で動く</span>
           </div>
-          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(91,141,217,0.06);border-radius:7px;align-items:flex-start;">
-            <span style="color:#5B8DD9;font-weight:700;flex-shrink:0;">S3維持</span>
-            <span style="color:var(--text);">現状の自然な接触が続く・入口が通せない場面多い → 崩さず維持。3未満には落とさない</span>
+          <div style="display:flex;gap:8px;padding:7px 10px;background:rgba(91,141,217,0.06);border-radius:8px;align-items:flex-start;">
+            <span style="font-weight:700;color:#5B8DD9;white-space:nowrap;flex-shrink:0;">S3維持</span>
+            <span style="color:var(--text);line-height:1.6;">現状の自然な接触が続く・入口が通せない場面多い → 崩さず維持。3未満には落とさない</span>
           </div>
-          <div style="display:flex;gap:6px;padding:5px 8px;background:rgba(154,128,112,0.06);border-radius:7px;align-items:flex-start;">
-            <span style="color:#9A8070;font-weight:700;flex-shrink:0;">保留延長</span>
-            <span style="color:var(--text);">判断が割れる・シグナルが混在 → 4/23まで観察期間を延長して再判定</span>
+          <div style="display:flex;gap:8px;padding:7px 10px;background:rgba(154,128,112,0.06);border-radius:8px;align-items:flex-start;">
+            <span style="font-weight:700;color:#9A8070;white-space:nowrap;flex-shrink:0;">保留延長</span>
+            <span style="color:var(--text);line-height:1.6;">判断が割れる・シグナルが混在 → 4/23まで観察期間を延長して再判定</span>
           </div>
         </div>
       </div>
 
       <!-- 週次結論 -->
-      <div style="margin-top:12px;padding:10px 12px;background:rgba(255,105,180,0.05);border-left:3px solid #ff69b4;border-radius:0 8px 8px 0;">
-        <div style="font-size:0.68rem;color:#ff69b4;font-weight:700;margin-bottom:4px;">💬 週次結論</div>
-        <div style="font-size:0.76rem;color:var(--text);line-height:1.8;font-style:italic;">関係が静かに、しかしかなり実感を伴って前へ進んだ週。プライベート入口の実行は限定的だったが、土台はむしろ強くなった。来週は「呼びかけ」と「軽い私的話題」を一段だけ通せるかが最大の焦点。</div>
-        <div style="margin-top:6px;font-size:0.65rem;color:var(--muted2);">Gradual Connection ／ Spring Bloom Link　2026年4月9日(木)締め</div>
+      <div style="background:linear-gradient(135deg,rgba(255,105,180,0.08),rgba(232,184,75,0.04));border:1px solid rgba(255,105,180,0.25);border-radius:12px;padding:12px 14px;margin-bottom:14px;">
+        <div style="font-size:0.68rem;color:#ff69b4;font-weight:700;margin-bottom:6px;">💬 週次結論</div>
+        <div style="font-size:0.78rem;color:var(--text);line-height:1.9;font-style:italic;">「関係が静かに、しかしかなり実感を伴って前へ進んだ週。プライベート入口の実行は限定的だったが、土台はむしろ強くなった。来週は『呼びかけ』と『軽い私的話題』を一段だけ通せるかが最大の焦点。」</div>
+        <div style="margin-top:8px;font-size:0.62rem;color:var(--muted2);">Gradual Connection ／ Spring Bloom Link　2026年4月9日(木)締め</div>
       </div>
-    </div>
 
-    <!-- 記録表からの最近の動き -->
-    <div class="card" style="margin-bottom:14px;background:rgba(255,105,180,0.03);border:1px solid rgba(255,105,180,0.15);" id="love-recent-diary-card">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#ff69b4;margin-bottom:8px;">📓 最近の記録（記録表より）</div>
-      <div id="love-recent-diary" style="font-size:0.8rem;color:var(--muted2);">記録表にデータがありません</div>
-    </div>
+      <!-- 過去レポートを見るリンク -->
+      <button onclick="switchProgressTab('log')" style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted2);font-size:0.78rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+        🗃️ 過去のレポート履歴を見る →
+      </button>
 
-    <!-- タイトル＋相手の名前 -->
-    <div class="card" style="margin-bottom:14px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:#ff69b4;">💌 恋愛発展記録</div>
-        <div style="font-size:0.65rem;color:var(--muted2);">Gradual Connection</div>
+    </div><!-- /psec-report -->
+
+    <!-- ═══ 発展記録タブ ═══ -->
+    <div id="psec-stage" style="padding:14px;display:none;">
+
+      <!-- お相手の名前 -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.9rem;color:#ff69b4;">💌 恋愛発展記録</div>
+          <div style="font-size:0.65rem;color:var(--muted2);">Gradual Connection</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div style="font-size:0.72rem;color:var(--muted2);white-space:nowrap;">お相手</div>
+          <input type="text" id="love-target-name" placeholder="名前またはニックネーム（任意）" maxlength="20"
+            style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:0.88rem;outline:none;"
+            oninput="loveProgressSaveMeta()">
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <div style="font-size:0.72rem;color:var(--muted2);white-space:nowrap;">お相手</div>
-        <input type="text" id="love-target-name" placeholder="名前またはニックネーム（任意）" maxlength="20"
-          style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:0.88rem;outline:none;"
-          oninput="loveProgressSaveMeta()">
+
+      <!-- 記録表からの最近の動き -->
+      <div class="card" style="margin-bottom:14px;background:rgba(255,105,180,0.03);border:1px solid rgba(255,105,180,0.15);" id="love-recent-diary-card">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.85rem;color:#ff69b4;margin-bottom:8px;">📓 最近の記録（記録表より）</div>
+        <div id="love-recent-diary" style="font-size:0.8rem;color:var(--muted2);">記録表にデータがありません</div>
       </div>
-    </div>
 
-    <!-- 成功確率ゲージ -->
-    <div class="card" style="margin-bottom:14px;" id="love-gauge-card">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:12px;">💖 実現確率シミュレーション</div>
-      <div id="love-gauge-wrap" style="text-align:center;padding:8px 0;">
-        <div style="font-size:0.8rem;color:var(--muted2);">ステージを入力すると確率が表示されます</div>
+      <!-- 成功確率ゲージ -->
+      <div class="card" style="margin-bottom:14px;" id="love-gauge-card">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:12px;">💖 実現確率シミュレーション</div>
+        <div id="love-gauge-wrap" style="text-align:center;padding:8px 0;">
+          <div style="font-size:0.8rem;color:var(--muted2);">ステージを入力すると確率が表示されます</div>
+        </div>
       </div>
-    </div>
 
-    <!-- ステージ進捗バー -->
-    <div class="card" style="margin-bottom:14px;">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">🗺️ 進捗ロードマップ</div>
-      <div id="love-roadmap" style="display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;"></div>
-    </div>
-
-    <!-- ステージ記録カード -->
-    <div class="sec-title" style="margin-bottom:10px;">📝 ステージ別記録</div>
-    <div id="love-stages-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
-
-    <!-- 評価グラフ -->
-    <div class="card" style="margin-bottom:14px;" id="love-chart-card">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:10px;">📊 項目別スコアグラフ</div>
-      <div id="love-chart-wrap"></div>
-    </div>
-
-    <!-- アドバイス -->
-    <div class="card" id="love-advice-card" style="display:none;margin-bottom:16px;background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.2);">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:8px;">💡 次のアクション提案</div>
-      <div id="love-advice-text" style="font-size:0.85rem;color:var(--text);line-height:1.7;"></div>
-    </div>
-
-    <!-- データリセット -->
-    <div class="card" style="margin-bottom:16px;background:rgba(192,96,96,0.04);border:1px solid rgba(192,96,96,0.18);">
-      <div style="font-family:'Shippori Mincho',serif;font-size:0.82rem;color:var(--red);margin-bottom:8px;">🔄 恋愛プロジェクトのリセット</div>
-      <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:12px;line-height:1.6;">
-        恋愛が終わった・次の相手に切り替えるときに使用。<br>
-        ステージ記録・相性評価・お相手の名前がリセットされます。<br>
-        <b style="color:var(--muted2);">※ 日々の記録表データは別途リセットできます。</b>
+      <!-- ステージ進捗バー -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">🗺️ 進捗ロードマップ</div>
+        <div id="love-roadmap" style="display:flex;align-items:center;gap:0;overflow-x:auto;padding:8px 0;"></div>
       </div>
-      <div style="display:flex;gap:8px;">
-        <button onclick="loveProgressReset()" style="flex:1;padding:10px;background:rgba(192,96,96,0.08);border:1px solid rgba(192,96,96,0.3);border-radius:10px;color:var(--red);font-size:0.82rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-          🔄 発展記録をリセット
-        </button>
-        <button onclick="loveDiaryReset()" style="flex:1;padding:10px;background:rgba(192,96,96,0.08);border:1px solid rgba(192,96,96,0.3);border-radius:10px;color:var(--red);font-size:0.82rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-          📓 記録表をリセット
-        </button>
-      </div>
-    </div>
 
-  </div>
+      <!-- ステージ記録カード -->
+      <div class="sec-title" style="margin-bottom:10px;">📝 ステージ別記録</div>
+      <div id="love-stages-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;"></div>
+
+      <!-- 評価グラフ -->
+      <div class="card" style="margin-bottom:14px;" id="love-chart-card">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:10px;">📊 項目別スコアグラフ</div>
+        <div id="love-chart-wrap"></div>
+      </div>
+
+      <!-- アドバイス -->
+      <div class="card" id="love-advice-card" style="display:none;margin-bottom:16px;background:rgba(255,105,180,0.05);border:1px solid rgba(255,105,180,0.2);">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#ff69b4;margin-bottom:8px;">💡 次のアクション提案</div>
+        <div id="love-advice-text" style="font-size:0.85rem;color:var(--text);line-height:1.7;"></div>
+      </div>
+
+      <!-- データリセット -->
+      <div class="card" style="margin-bottom:16px;background:rgba(192,96,96,0.04);border:1px solid rgba(192,96,96,0.18);">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.82rem;color:var(--red);margin-bottom:8px;">🔄 恋愛プロジェクトのリセット</div>
+        <div style="font-size:0.75rem;color:var(--muted2);margin-bottom:12px;line-height:1.6;">
+          恋愛が終わった・次の相手に切り替えるときに使用。<br>
+          ステージ記録・相性評価・お相手の名前がリセットされます。<br>
+          <b style="color:var(--muted2);">※ 日々の記録表データは別途リセットできます。</b>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="loveProgressReset()" style="flex:1;padding:10px;background:rgba(192,96,96,0.08);border:1px solid rgba(192,96,96,0.3);border-radius:10px;color:var(--red);font-size:0.82rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+            🔄 発展記録をリセット
+          </button>
+          <button onclick="loveDiaryReset()" style="flex:1;padding:10px;background:rgba(192,96,96,0.08);border:1px solid rgba(192,96,96,0.3);border-radius:10px;color:var(--red);font-size:0.82rem;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+            📓 記録表をリセット
+          </button>
+        </div>
+      </div>
+    </div><!-- /psec-stage -->
+
+    <!-- ═══ アクション管理タブ ═══ -->
+    <div id="psec-action" style="padding:14px;display:none;">
+
+      <!-- 来週の焦点（PDFより） -->
+      <div style="background:var(--surface);border:1px solid rgba(91,141,217,0.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#5B8DD9;">🎯 来週の焦点</div>
+          <span style="font-size:0.6rem;background:rgba(91,141,217,0.1);color:#5B8DD9;border:1px solid rgba(91,141,217,0.25);border-radius:8px;padding:1px 8px;">4/10〜4/16</span>
+        </div>
+        <!-- 優先テーマ -->
+        <div style="display:flex;gap:8px;padding:10px 12px;background:rgba(91,141,217,0.07);border-radius:10px;margin-bottom:8px;align-items:flex-start;">
+          <span style="font-size:0.62rem;background:#5B8DD9;color:white;border-radius:4px;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-top:2px;">優先</span>
+          <div style="font-size:0.8rem;color:var(--text);line-height:1.8;"><b>苗字を1回自然に呼ぶ</b> ＋ <b>軽いプライベート話題を1つ</b>だけ入れる。<br>候補：休みの過ごし方 / 食べ物 / シフトの大変さへの気づかい</div>
+        </div>
+        <!-- 言い方の軸 -->
+        <div style="display:flex;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:10px;margin-bottom:8px;align-items:flex-start;">
+          <span style="font-size:0.62rem;background:rgba(154,128,112,0.6);color:white;border-radius:4px;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-top:2px;">言い方の軸</span>
+          <div style="font-size:0.78rem;color:var(--text);line-height:1.8;">決定報告ではなく<b>軽い共有</b>。<br>例：「組合会議ある日は少し残れるかも」「最近そのシフトきつそうですね」</div>
+        </div>
+        <!-- 避ける -->
+        <div style="display:flex;gap:8px;padding:10px 12px;background:rgba(192,103,90,0.05);border:1px solid rgba(192,103,90,0.15);border-radius:10px;align-items:flex-start;">
+          <span style="font-size:0.62rem;background:rgba(192,103,90,0.6);color:white;border-radius:4px;padding:2px 8px;white-space:nowrap;flex-shrink:0;margin-top:2px;">避ける</span>
+          <div style="font-size:0.76rem;color:var(--muted2);line-height:1.8;">残業制度を相手のために変えるような言い方<br>好意の深さを問い詰める聞き方<br>周囲が多い場で無理に私的会話へ引き込むこと</div>
+        </div>
+      </div>
+
+      <!-- アクションチェックリスト（今週） -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);">✅ アクションチェック</div>
+          <span style="font-size:0.6rem;color:var(--muted2);">今週</span>
+        </div>
+        <div id="love-action-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
+        <!-- 完了率バー -->
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;font-size:0.65rem;color:var(--muted2);margin-bottom:4px;">
+            <span>進捗</span><span id="action-progress-text">0/0</span>
+          </div>
+          <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;">
+            <div id="action-progress-bar" style="height:100%;background:linear-gradient(90deg,#ff69b4,#E8B84B);border-radius:3px;width:0%;transition:width 0.4s;"></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <input id="action-input" type="text" placeholder="アクションを追加..." maxlength="60"
+            style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;"
+            onkeydown="if(event.key==='Enter')loveAddAction()">
+          <button onclick="loveAddAction()" style="padding:8px 12px;background:rgba(255,105,180,0.8);border:none;border-radius:8px;color:white;font-size:0.78rem;cursor:pointer;white-space:nowrap;">＋追加</button>
+        </div>
+      </div>
+
+      <!-- 4/16 判定方針 -->
+      <div style="background:var(--surface);border:1px solid rgba(232,184,75,0.35);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#E8B84B;margin-bottom:12px;">📌 4/16 判定方針</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:0.77rem;">
+          <div style="display:flex;gap:8px;padding:9px 12px;background:rgba(122,158,126,0.08);border-left:3px solid #7A9E7E;border-radius:0 8px 8px 0;align-items:flex-start;">
+            <div>
+              <div style="font-weight:700;color:#7A9E7E;margin-bottom:3px;">Stage 4 挑戦</div>
+              <div style="color:var(--muted2);line-height:1.6;">反応が広がる・苗字呼び成功・プライベート話題が回る<br>→ 一段上げる方向で動く</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;padding:9px 12px;background:rgba(91,141,217,0.06);border-left:3px solid #5B8DD9;border-radius:0 8px 8px 0;align-items:flex-start;">
+            <div>
+              <div style="font-weight:700;color:#5B8DD9;margin-bottom:3px;">Stage 3 維持</div>
+              <div style="color:var(--muted2);line-height:1.6;">現状の自然な接触が続く・入口が通せない場面多い<br>→ 崩さず維持。3未満には落とさない</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;padding:9px 12px;background:rgba(154,128,112,0.06);border-left:3px solid rgba(154,128,112,0.5);border-radius:0 8px 8px 0;align-items:flex-start;">
+            <div>
+              <div style="font-weight:700;color:#9A8070;margin-bottom:3px;">保留延長</div>
+              <div style="color:var(--muted2);line-height:1.6;">判断が割れる・シグナルが混在する<br>→ 4/23まで観察期間を延長して再判定</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- タイミング管理（クールダウン） -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:10px;">⏱️ タイミング管理</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+          <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:10px;padding:10px 12px;text-align:center;">
+            <div style="font-size:0.62rem;color:var(--muted2);margin-bottom:4px;">最後のアクション</div>
+            <div id="last-action-date" style="font-family:'DM Mono',monospace;font-size:0.85rem;color:#5B8DD9;font-weight:700;">未記録</div>
+          </div>
+          <div style="background:rgba(122,158,126,0.06);border:1px solid rgba(122,158,126,0.2);border-radius:10px;padding:10px 12px;text-align:center;">
+            <div style="font-size:0.62rem;color:var(--muted2);margin-bottom:4px;">クールダウン残り</div>
+            <div id="cooldown-days" style="font-family:'DM Mono',monospace;font-size:0.85rem;color:#7A9E7E;font-weight:700;">—</div>
+          </div>
+        </div>
+        <div style="font-size:0.72rem;color:var(--muted2);margin-bottom:6px;">アクション後は<b>3日のクールダウン期間</b>を守る</div>
+        <div style="display:flex;gap:6px;">
+          <input id="action-date-input" type="date"
+            style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+          <button onclick="loveSetActionDate()" style="padding:8px 12px;background:rgba(91,141,217,0.7);border:none;border-radius:8px;color:white;font-size:0.78rem;cursor:pointer;white-space:nowrap;">記録</button>
+        </div>
+      </div>
+
+      <!-- 週次接触カウント -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);">📊 週次接触カウント</div>
+          <span style="font-size:0.72rem;color:#ff69b4;font-weight:700;">合計 <span id="weekly-contact-total">0</span> 回</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;" id="weekly-contact-grid"></div>
+        <div style="font-size:0.62rem;color:var(--muted2);margin-top:6px;text-align:center;">先週実績：12回（4/7×2・4/8×4・4/9×6）</div>
+      </div>
+
+      <!-- 次のマイルストーン -->
+      <div style="background:var(--surface);border:1px solid rgba(232,184,75,0.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:#E8B84B;margin-bottom:10px;">🏁 次のマイルストーン</div>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;font-size:0.78rem;">
+          <div style="display:flex;gap:8px;padding:8px 10px;background:rgba(122,158,126,0.07);border-radius:8px;align-items:center;">
+            <span style="color:#7A9E7E;font-size:0.85rem;">①</span>
+            <span style="color:var(--text);flex:1;">苗字で自然に呼ぶ（1回）</span>
+            <span id="ms-name-check" style="font-size:0.7rem;color:var(--muted2);">未達成</span>
+          </div>
+          <div style="display:flex;gap:8px;padding:8px 10px;background:rgba(91,141,217,0.07);border-radius:8px;align-items:center;">
+            <span style="color:#5B8DD9;font-size:0.85rem;">②</span>
+            <span style="color:var(--text);flex:1;">プライベート話題を1テーマ通す</span>
+            <span id="ms-private-check" style="margin-left:auto;font-size:0.7rem;color:var(--muted2);">未達成</span>
+          </div>
+          <div style="display:flex;gap:8px;padding:8px 10px;background:rgba(255,105,180,0.07);border-radius:8px;align-items:center;">
+            <span style="color:#ff69b4;font-size:0.85rem;">③</span>
+            <span style="color:var(--text);flex:1;">連絡先交換</span>
+            <span id="ms-contact-check" style="margin-left:auto;font-size:0.7rem;color:var(--muted2);">未達成</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="loveMilestoneToggle('name')" style="flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:0.72rem;cursor:pointer;min-width:80px;">① 苗字呼び</button>
+          <button onclick="loveMilestoneToggle('private')" style="flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:0.72rem;cursor:pointer;min-width:80px;">② 私的話題</button>
+          <button onclick="loveMilestoneToggle('contact')" style="flex:1;padding:7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:0.72rem;cursor:pointer;min-width:80px;">③ 連絡先</button>
+        </div>
+      </div>
+
+    </div><!-- /psec-action -->
+
+    <!-- ═══ 過去ログタブ ═══ -->
+    <div id="psec-log" style="padding:14px;display:none;">
+
+      <div style="font-family:'Shippori Mincho',serif;font-size:0.88rem;color:var(--accent);margin-bottom:12px;">🗃️ 週次レポート保存履歴</div>
+
+      <!-- 新規レポート保存 -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="font-size:0.78rem;color:var(--accent);margin-bottom:10px;font-family:'Shippori Mincho',serif;">📋 今週のレポートを保存</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:3px;">締め日</div>
+            <input id="log-date" type="date" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:3px;">ステージ</div>
+            <select id="log-stage" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+              <option value="S3後半">S3後半〜S4手前</option>
+              <option value="S3">S3 特別会話</option>
+              <option value="S4">S4 私的入口</option>
+              <option value="S5">S5 連絡先交換</option>
+            </select>
+          </div>
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:3px;">接触回数</div>
+            <input id="log-contacts" type="number" placeholder="例：12" min="0" max="99"
+              style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+          </div>
+          <div>
+            <div style="font-size:0.65rem;color:var(--muted2);margin-bottom:3px;">週次総括・メモ</div>
+            <textarea id="log-memo" rows="3" placeholder="今週の総括・強いサイン・気づきなど..."
+              style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;resize:none;line-height:1.7;font-family:'Noto Sans JP',sans-serif;"></textarea>
+          </div>
+          <button onclick="loveSaveLog()" style="width:100%;padding:10px;background:rgba(255,105,180,0.8);border:none;border-radius:9px;color:white;font-family:'Shippori Mincho',serif;font-size:0.88rem;font-weight:700;cursor:pointer;">💾 レポートを保存</button>
+        </div>
+      </div>
+
+      <!-- 過去ログ一覧 -->
+      <div id="love-log-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+
+    </div><!-- /psec-log -->
+
+  </div><!-- /lsec-progress -->
 
   <!-- ═══ 記録表タブ ═══ -->
   <div id="lsec-diary" style="padding:16px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
@@ -10043,7 +10290,277 @@ function renderLoveAdvice() {
   text.innerHTML = adviceText;
 }
 
-// ════ 恋愛記録表（日記） ════
+// ════ 発展記録サブタブ ════
+const LOVE_ACTION_LS    = 'kouki_love_actions_v2';
+const LOVE_LOG_LS       = 'kouki_love_weekly_log_v1';
+const LOVE_MILESTONE_LS = 'kouki_love_milestones_v1';
+const LOVE_TIMING_LS    = 'kouki_love_timing_v1';
+const LOVE_CONTACT_LS   = 'kouki_love_contact_v1';
+
+window.switchProgressTab = function(tab) {
+  ['report','stage','action','log'].forEach(t => {
+    const s = document.getElementById('psec-' + t);
+    const b = document.getElementById('ptab-' + t);
+    if(s) s.style.display = t === tab ? 'block' : 'none';
+    if(b) b.classList.toggle('active', t === tab);
+  });
+  if(tab === 'stage')  { loveSwitchTab_load(); }
+  if(tab === 'action') { loveActionInit(); }
+  if(tab === 'log')    { loveLogInit(); }
+};
+
+// ── アクション管理 ──
+function loveActionInit() {
+  // 初回：PDFの「来週の焦点」からアクションを自動セット
+  const existing = _getActions();
+  if(!existing.length) {
+    const defaults = [
+      { id:'init_1', text:'苗字を1回自然に呼ぶ（軽い呼びかけ）', done: false, created: '2026-04-09T00:00:00.000Z' },
+      { id:'init_2', text:'プライベート話題を1つ入れる（休み・食べ物・シフトへの気づかい）', done: false, created: '2026-04-09T00:00:00.000Z' },
+      { id:'init_3', text:'「今日は早い日？」的な終業時間の共有を自然に返す', done: false, created: '2026-04-09T00:00:00.000Z' },
+      { id:'init_4', text:'周囲が多い場では無理に私的会話に引き込まない', done: false, created: '2026-04-09T00:00:00.000Z' },
+    ];
+    localStorage.setItem(LOVE_ACTION_LS, JSON.stringify(defaults));
+  }
+  _renderActionList();
+  _renderWeeklyContactGrid();
+  _renderTimingCard();
+  _renderMilestones();
+  const di = document.getElementById('action-date-input');
+  if(di && !di.value) di.value = new Date().toISOString().slice(0,10);
+}
+
+function _getActions() {
+  try { return JSON.parse(localStorage.getItem(LOVE_ACTION_LS)||'[]'); } catch { return []; }
+}
+
+window.loveAddAction = function() {
+  const inp = document.getElementById('action-input');
+  const text = inp?.value.trim();
+  if(!text) return;
+  const list = _getActions();
+  list.push({ id: Date.now().toString(), text, done: false, created: new Date().toISOString() });
+  localStorage.setItem(LOVE_ACTION_LS, JSON.stringify(list));
+  inp.value = '';
+  _renderActionList();
+};
+
+window.loveToggleAction = function(id) {
+  const list = _getActions();
+  const item = list.find(x => x.id === id);
+  if(item) { item.done = !item.done; localStorage.setItem(LOVE_ACTION_LS, JSON.stringify(list)); }
+  _renderActionList();
+};
+
+window.loveDeleteAction = function(id) {
+  const list = _getActions().filter(x => x.id !== id);
+  localStorage.setItem(LOVE_ACTION_LS, JSON.stringify(list));
+  _renderActionList();
+};
+
+function _renderActionList() {
+  const el = document.getElementById('love-action-list');
+  if(!el) return;
+  const list = _getActions();
+  const done = list.filter(x => x.done).length;
+  // 進捗バー
+  const pEl = document.getElementById('action-progress-text');
+  const bEl = document.getElementById('action-progress-bar');
+  if(pEl) pEl.textContent = `${done}/${list.length}`;
+  if(bEl) bEl.style.width = list.length ? `${(done/list.length*100).toFixed(0)}%` : '0%';
+
+  if(!list.length) {
+    el.innerHTML = `<div style="font-size:0.75rem;color:var(--muted2);text-align:center;padding:8px 0;">アクションを追加してください</div>`;
+    return;
+  }
+  el.innerHTML = list.map(item => `
+    <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;padding:5px 0;border-bottom:1px solid var(--border);">
+      <input type="checkbox" ${item.done?'checked':''} onchange="loveToggleAction('${item.id}')"
+        style="width:16px;height:16px;cursor:pointer;accent-color:#ff69b4;margin-top:2px;flex-shrink:0;">
+      <span style="font-size:0.8rem;color:${item.done?'var(--muted2)':'var(--text)'};text-decoration:${item.done?'line-through':'none'};flex:1;line-height:1.6;">${item.text}</span>
+      <button onclick="event.preventDefault();loveDeleteAction('${item.id}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.72rem;flex-shrink:0;">✕</button>
+    </label>
+  `).join('');
+}
+
+// ── タイミング管理（クールダウン）──
+window.loveSetActionDate = function() {
+  const d = document.getElementById('action-date-input')?.value;
+  if(!d) return;
+  localStorage.setItem(LOVE_TIMING_LS, JSON.stringify({ lastAction: d }));
+  _renderTimingCard();
+  showMToast && showMToast('アクション日を記録しました');
+};
+
+function _renderTimingCard() {
+  const data = (() => { try { return JSON.parse(localStorage.getItem(LOVE_TIMING_LS)||'{}'); } catch { return {}; } })();
+  const lastEl = document.getElementById('last-action-date');
+  const cdEl   = document.getElementById('cooldown-days');
+  if(!data.lastAction) { if(lastEl) lastEl.textContent='未記録'; if(cdEl) cdEl.textContent='—'; return; }
+  if(lastEl) lastEl.textContent = data.lastAction.slice(5).replace('-','/');
+  const diff = Math.ceil((new Date() - new Date(data.lastAction)) / 86400000);
+  const cd   = 3 - diff;
+  if(cdEl) {
+    if(cd > 0) { cdEl.textContent = `${cd}日残り`; cdEl.style.color='#E8B84B'; }
+    else { cdEl.textContent = 'OK'; cdEl.style.color='#7A9E7E'; }
+  }
+}
+
+// ── 週次接触カウント ──
+function _renderWeeklyContactGrid() {
+  const el = document.getElementById('weekly-contact-grid');
+  if(!el) return;
+  const today = new Date();
+  const dow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+
+  const DOW = ['月','火','水','木','金','土','日'];
+  let data = {};
+  try { data = JSON.parse(localStorage.getItem(LOVE_CONTACT_LS)||'{}'); } catch{}
+
+  let html = DOW.map((d, i) => {
+    const day = new Date(monday); day.setDate(monday.getDate() + i);
+    const key = day.toISOString().slice(0,10);
+    const count = data[key] || 0;
+    const isToday = key === today.toISOString().slice(0,10);
+    return `<div style="text-align:center;">
+      <div style="font-size:0.6rem;color:${isToday?'var(--accent)':'var(--muted2)'};margin-bottom:3px;">${d}</div>
+      <div style="font-size:0.65rem;color:var(--muted2);">${day.getDate()}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px;margin-top:3px;">
+        <button onclick="loveContactInc('${key}')" style="width:22px;height:18px;background:rgba(255,105,180,0.15);border:none;border-radius:4px;color:#ff69b4;font-size:0.7rem;cursor:pointer;line-height:1;">＋</button>
+        <span style="font-family:'DM Mono',monospace;font-size:0.82rem;font-weight:700;color:${count>0?'#ff69b4':'var(--muted2)'};">${count}</span>
+        <button onclick="loveContactDec('${key}')" style="width:22px;height:18px;background:var(--surface2);border:none;border-radius:4px;color:var(--muted2);font-size:0.7rem;cursor:pointer;line-height:1;">−</button>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML = html;
+  const total = Object.values(data).filter((v,i) => {
+    const keys = Object.keys(data);
+    const day = new Date(keys[i]);
+    const diff = Math.ceil((today - day) / 86400000);
+    return diff >= 0 && diff < 7;
+  }).reduce((a, b) => a + b, 0);
+  const tEl = document.getElementById('weekly-contact-total');
+  if(tEl) tEl.textContent = Object.entries(data).filter(([k]) => {
+    const d = new Date(k);
+    return d >= monday && d <= today;
+  }).reduce((a,[,v]) => a+v, 0);
+}
+
+window.loveContactInc = function(key) {
+  let data = {}; try { data = JSON.parse(localStorage.getItem(LOVE_CONTACT_LS)||'{}'); } catch{}
+  data[key] = (data[key]||0) + 1;
+  localStorage.setItem(LOVE_CONTACT_LS, JSON.stringify(data));
+  _renderWeeklyContactGrid();
+};
+window.loveContactDec = function(key) {
+  let data = {}; try { data = JSON.parse(localStorage.getItem(LOVE_CONTACT_LS)||'{}'); } catch{}
+  data[key] = Math.max(0, (data[key]||0) - 1);
+  localStorage.setItem(LOVE_CONTACT_LS, JSON.stringify(data));
+  _renderWeeklyContactGrid();
+};
+
+// ── マイルストーン ──
+function _getMilestones() {
+  try { return JSON.parse(localStorage.getItem(LOVE_MILESTONE_LS)||'{}'); } catch { return {}; }
+}
+window.loveMilestoneToggle = function(key) {
+  const ms = _getMilestones();
+  ms[key] = ms[key] ? null : new Date().toISOString().slice(0,10);
+  localStorage.setItem(LOVE_MILESTONE_LS, JSON.stringify(ms));
+  _renderMilestones();
+};
+function _renderMilestones() {
+  const ms = _getMilestones();
+  const items = [
+    { key:'name',    elId:'ms-name-check',    label:'苗字呼び' },
+    { key:'private', elId:'ms-private-check', label:'私的話題' },
+    { key:'contact', elId:'ms-contact-check', label:'連絡先交換' },
+  ];
+  items.forEach(({ key, elId }) => {
+    const el = document.getElementById(elId);
+    if(!el) return;
+    if(ms[key]) {
+      el.textContent = `✅ ${ms[key].slice(5).replace('-','/')}`;
+      el.style.color = '#7A9E7E';
+    } else {
+      el.textContent = '未達成';
+      el.style.color = 'var(--muted2)';
+    }
+  });
+}
+
+// ── 過去ログ ──
+function loveLogInit() {
+  const di = document.getElementById('log-date');
+  if(di && !di.value) di.value = new Date().toISOString().slice(0,10);
+  _renderLoveLog();
+}
+
+function _getLoveLog() {
+  try { return JSON.parse(localStorage.getItem(LOVE_LOG_LS)||'[]'); } catch { return []; }
+}
+
+window.loveSaveLog = function() {
+  const date     = document.getElementById('log-date')?.value;
+  const stage    = document.getElementById('log-stage')?.value;
+  const contacts = parseInt(document.getElementById('log-contacts')?.value) || 0;
+  const memo     = document.getElementById('log-memo')?.value.trim() || '';
+  if(!date) { alert('締め日を選択してください'); return; }
+  const list = _getLoveLog();
+  list.unshift({ id: Date.now().toString(), date, stage, contacts, memo, saved: new Date().toISOString() });
+  localStorage.setItem(LOVE_LOG_LS, JSON.stringify(list));
+  ['log-contacts','log-memo'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  _renderLoveLog();
+  showMToast && showMToast('レポートを保存しました');
+};
+
+window.loveDeleteLog = function(id) {
+  if(!confirm('このレポートを削除しますか？')) return;
+  const list = _getLoveLog().filter(x => x.id !== id);
+  localStorage.setItem(LOVE_LOG_LS, JSON.stringify(list));
+  _renderLoveLog();
+};
+
+function _renderLoveLog() {
+  const el = document.getElementById('love-log-list');
+  if(!el) return;
+  const list = _getLoveLog();
+  if(!list.length) {
+    el.innerHTML = `<div style="text-align:center;padding:24px;color:var(--muted2);font-size:0.82rem;">まだレポートが保存されていません</div>`;
+    return;
+  }
+  const STAGE_COLORS = { 'S3後半':'#7A9E7E','S3':'#5B8DD9','S4':'#E8B84B','S5':'#ff69b4' };
+  el.innerHTML = list.map(r => {
+    const col = STAGE_COLORS[r.stage] || '#9A8070';
+    return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--accent);">${r.date.slice(5).replace('-','/')}</span>
+        <span style="font-size:0.65rem;padding:1px 8px;background:${col}18;border:1px solid ${col}44;border-radius:8px;color:${col};">${r.stage}</span>
+        ${r.contacts ? `<span style="font-size:0.7rem;color:#ff69b4;margin-left:auto;">接触${r.contacts}回</span>` : ''}
+        <button onclick="loveDeleteLog('${r.id}')" style="background:none;border:none;color:var(--muted2);cursor:pointer;font-size:0.72rem;margin-left:${r.contacts?'4px':'auto'};">✕</button>
+      </div>
+      ${r.memo ? `<div style="font-size:0.76rem;color:var(--text);line-height:1.7;">${r.memo}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// 初回：4/9レポートを自動保存（空なら）
+(function() {
+  const existing = (() => { try { return JSON.parse(localStorage.getItem(LOVE_LOG_LS)||'[]'); } catch { return []; } })();
+  if(!existing.length) {
+    const init = [{
+      id: '20260409',
+      date: '2026-04-09',
+      stage: 'S3後半',
+      contacts: 12,
+      memo: '今週は「自然に会う頻度」と「会えた時の空気感」がともに強かった週。4/7：相手発信の健康診断会話。4/8：「帰っちゃだめ」「19時まで残って」→ 週内最大の前進日。4/9：「びっくりした！」「筋肉ついた？」→ 個人への観察増加。来週焦点：苗字呼び＋プライベート話題1テーマ。4/16判定：S4挑戦 or S3維持 or 保留延長。',
+      saved: '2026-04-09T00:00:00.000Z',
+    }];
+    localStorage.setItem(LOVE_LOG_LS, JSON.stringify(init));
+  }
+})();
 const LOVE_DIARY_KEY    = 'kouki-app/love_diary';
 const LOVE_DIARY_LS     = 'kouki_love_diary';
 let _diaryRecords  = [];
@@ -16687,8 +17204,8 @@ function _updateKakeiboLiveActual(){
 
   // ── 余剰／赤字（bsum-balance）再計算 ──
   const balEl = document.getElementById('bsum-balance');
-  if(balEl && income){
-    const bal=income-totalActual;
+  if(balEl && budgetIncome){
+    const bal = budgetIncome - totalSpendBudgetMonth;
     balEl.textContent=(bal>=0?'+':'')+`¥${bal.toLocaleString()}`;
     balEl.style.color=bal>=0?'#7A9E7E':'#C0675A';
   }
