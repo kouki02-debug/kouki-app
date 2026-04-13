@@ -888,6 +888,8 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
   </div><!-- /予定パネル内タブコンテンツ -->
 
+</div><!-- /calendar-panel -->
+
 <!-- 恋愛パネル -->
 <div class="panel" id="love-panel" style="padding:0;">
 
@@ -8541,12 +8543,29 @@ const LOVE_CAL_EMBEDDED = [
 ];
 let loveCal = { year: new Date().getFullYear(), month: new Date().getMonth() };
 
+// 古いlocalStorageデータをクリア（埋め込みデータが正となるため）
+try {
+  const _lsLoveVer = localStorage.getItem('kouki_love_cal_ver');
+  if (_lsLoveVer !== '2026-04-13') {
+    localStorage.removeItem(LOVE_CAL_KEY);
+    localStorage.setItem('kouki_love_cal_ver', '2026-04-13');
+  }
+} catch(e) {}
+
 function getLoveEvents() {
   try {
     const stored = JSON.parse(localStorage.getItem(LOVE_CAL_KEY)) || [];
-    // 埋め込みとマージ（id重複除去）
+    // LOVE_CAL_EMBEDDEDを正とし、重複しないものだけsteredから追加
     const all = [...LOVE_CAL_EMBEDDED];
-    stored.forEach(ev => { if (!all.find(e => e.date === ev.date && e.summary === ev.summary)) all.push(ev); });
+    // 埋め込み済みのdate+summaryセットを記録
+    const embeddedKeys = new Set(LOVE_CAL_EMBEDDED.map(e => e.date + '|' + e.summary));
+    stored.forEach(ev => {
+      const k = ev.date + '|' + ev.summary;
+      // 埋め込みにない かつ まだallにない場合のみ追加
+      if (!embeddedKeys.has(k) && !all.find(e => e.date === ev.date && e.summary === ev.summary)) {
+        all.push(ev);
+      }
+    });
     return all.sort((a, b) => a.date.localeCompare(b.date));
   } catch { return LOVE_CAL_EMBEDDED; }
 }
@@ -8821,7 +8840,7 @@ window.GCAL_EVENTS_DATA = {
   "2026-03-28":[{s:"【朝番】中種専属＋教育9時～",t:"06:00〜16:30"},{s:"5味テスト",t:""}],
   "2026-03-29":[{s:"休日",t:""},{s:"5味テスト",t:""}],
   "2026-03-30":[{s:"休日",t:""},{s:"5味テスト",t:""}],
-  // 4月
+  // ─── 4月（フジパン(株)カレンダー 最終取得: 2026-04-13）───
   "2026-04-01":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
   "2026-04-02":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
   "2026-04-03":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"会社健康診断（実施日）",t:""}],
@@ -8833,31 +8852,30 @@ window.GCAL_EVENTS_DATA = {
   "2026-04-09":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"11:00〜12:00"},{s:"＋残業",t:"15:00〜16:00"}],
   "2026-04-10":[{s:"【中番】中種専属",t:"10:00〜19:00"}],
   "2026-04-11":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
-  "2026-04-12":[{s:"休日",t:""},{s:"③中泉約束",t:"10:00〜18:00"}],
-  "2026-04-13":[{s:"休日",t:""},{s:"Doom or Zenith（アーカイブ）",t:"06:00〜18:00"}],
-  "2026-04-14":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"Doom or Zenith（アーカイブ）",t:"06:00〜18:00"}],
-  "2026-04-15":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"11:00〜12:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
-  "2026-04-16":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"10:00〜11:00"},{s:"+残業固定（蓋交換）",t:"15:00〜16:30"},{s:"Doom or Zenith（リアタイ）",t:"16:30〜18:00"}],
-  "2026-04-17":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
-  "2026-04-18":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
-  "2026-04-19":[{s:"休日",t:""},{s:"Doom or Zenith（リプライ）",t:"08:00〜17:00"}],
-  "2026-04-20":[{s:"休日",t:""},{s:"Doom or Zenith（リプライ）",t:"08:00〜15:00"}],
-  "2026-04-21":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-12":[{s:"休日",t:""}],
+  "2026-04-13":[{s:"休日",t:""}],
+  "2026-04-14":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-04-15":[{s:"中種配合",t:"06:00〜15:00",lunch:"11:00〜12:00"},{s:"11時休憩固定",t:"11:00〜12:00"}],
+  "2026-04-16":[{s:"中種配合",t:"06:00〜15:00",lunch:"10:00〜11:00"},{s:"＋残業固定（蓋交換）",t:"15:00〜16:30"}],
+  "2026-04-17":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-04-18":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-04-19":[{s:"休日",t:""}],
+  "2026-04-20":[{s:"休日",t:""}],
+  "2026-04-21":[{s:"中種配合",t:"06:00〜15:00"}],
   "2026-04-22":[{s:"フリー（新ポジ教育）",t:"06:00〜15:00"}],
-  "2026-04-23":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
-  "2026-04-24":[{s:"【中番】中種専属",t:"10:00〜19:00"}],
-  "2026-04-25":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
-  "2026-04-26":[{s:"休日",t:""},{s:"4月期最終決算",t:"21:00〜22:00"}],
-  "2026-04-27":[{s:"休日",t:""},{s:"＜調整中＞",t:"09:00〜17:00"}],
-  "2026-04-29":[{s:"出勤",t:"06:00〜15:00"},{s:"移動",t:"15:00〜17:00"},{s:"holxLIVE「First MISSION」",t:"18:00〜 ぴあアリーナMM"}],
-  // 5月
-  "2026-05-02":[{s:"３連休",t:""},{s:"2026河津家族旅行",t:""},{s:"河津家族旅行2026",t:"09:00〜"}],
-  "2026-05-03":[{s:"３連休",t:""},{s:"河津家族旅行2026",t:"〜22:00"}],
+  "2026-04-23":[{s:"中種配合",t:"06:00〜15:00"}],
+  "2026-04-24":[{s:"中種専属",t:"10:00〜19:00"}],
+  "2026-04-25":[{s:"中種専属",t:"09:00〜18:00"}],
+  "2026-04-26":[{s:"休日",t:""}],
+  "2026-04-27":[{s:"休日",t:""}],
+  "2026-04-29":[{s:"出勤",t:"06:00〜15:00"}],
+  // ─── 5月（フジパン(株)）───
+  "2026-05-02":[{s:"３連休",t:""}],
+  "2026-05-03":[{s:"３連休",t:""}],
   "2026-05-04":[{s:"３連休",t:""}],
-  "2026-05-11":[{s:"＜調整中＞",t:"09:00〜18:00"}],
-  // 7月
+  // ─── 7月 ───
   "2026-07-22":[{s:"陽子生誕 誕生日",t:""}],
-  // 9月
+  // ─── 9月 ───
   "2026-09-02":[{s:"陽子母生誕 誕生日",t:""}],
   "2026-09-14":[{s:"大裕生誕 誕生日",t:""}],
 };
@@ -12092,12 +12110,21 @@ const CAL_PRIORITY = {
 // イベント名から優先度を自動判定
 function _detectPriority(summary) {
   if (!summary) return 0;
-  if (summary.startsWith('①') || summary.includes('家族') || summary.includes('家') || summary.includes('帰省') || summary.includes('パパ') || summary.includes('ママ') || summary.includes('誕生日')) return 1;
+  // 仕事系はすべて0（フジパン(株)カレンダー由来）
+  if (
+    summary.includes('番') || summary.includes('出勤') || summary.includes('健康診断') ||
+    summary.includes('OFF') || summary.includes('休暇') || summary.includes('中種') ||
+    summary.includes('専属') || summary.includes('配合') || summary.includes('残業') ||
+    summary.includes('蓋交換') || summary.includes('休憩') || summary.includes('フリー') ||
+    summary.includes('教育') || summary.includes('帰宅移動') || summary.includes('移動') ||
+    summary.includes('休日') || summary.includes('連休')
+  ) return 0;
+  // 恋人系
   if (summary.startsWith('②') || summary.includes('恋人') || summary.includes('デート')) return 2;
-  if (summary.startsWith('③') || summary.includes('友') || summary.includes('中泉') || summary.includes('仲間')) return 3;
-  if (summary.includes('終業後は③')) return 3;
-  // シフト系は0（仕事）
-  if (summary.includes('番') || summary.includes('出勤') || summary.includes('健康診断') || summary.includes('OFF') || summary.includes('休暇')) return 0;
+  // 友人系
+  if (summary.startsWith('③') || summary.includes('友') || summary.includes('中泉') || summary.includes('仲間') || summary.includes('終業後は③')) return 3;
+  // 個人系（①・家族・誕生日など）
+  if (summary.startsWith('①') || summary.includes('家族') || summary.includes('家') || summary.includes('帰省') || summary.includes('パパ') || summary.includes('ママ') || summary.includes('誕生日') || summary.includes('旅行') || summary.includes('河津') || summary.includes('調整中') || summary.includes('決算') || summary.includes('holxLIVE') || summary.includes('Doom') || summary.includes('LIVE') || summary.includes('ボーリング') || summary.includes('ぴあアリーナ')) return 1;
   return 1; // デフォルトは個人
 }
 
@@ -12318,6 +12345,16 @@ window.calListChangeMonth = function(dir) {
 // Googleカレンダーイベントをローカルにキャッシュ
 const CAL_GCAL_LS = 'kouki_cal_gcal_cache';
 
+// 古いキャッシュを強制クリア（データ刷新時にバージョンを更新）
+try {
+  const _cacheVer = localStorage.getItem('kouki_cal_gcal_cache_ver');
+  if (_cacheVer !== '2026-04-13') {
+    localStorage.removeItem(CAL_GCAL_LS);
+    localStorage.removeItem('kouki_shifts');
+    localStorage.setItem('kouki_cal_gcal_cache_ver', '2026-04-13');
+  }
+} catch(e) {}
+
 // 埋め込みGcalデータを読み込む（GCAL_EVENTS_DATA + primary + 恋愛2510）
 const FUJIPAN_CAL_SYNC_ID = 'a531b4940fa67c2b341cd0c62cdf765f7a2c10c844b00289b6fde019bcae32af@group.calendar.google.com';
 const LOVE2510_CAL_SYNC_ID = '54a94f9a433779030f85b7e42bfcd7aedeeed9b08cc8e16a761af36258113fea@group.calendar.google.com';
@@ -12344,56 +12381,73 @@ window.calListSync = async function() {
     }
   });
 
-  // ② primaryカレンダーのデータを埋め込み（MCP取得済みデータ）
+  // ② primaryカレンダー＋YouTubeカレンダーのデータを埋め込み（MCP取得: 2026-04-13）
   const PRIMARY_EVENTS = [
-    // ── 4月 primaryカレンダー ──
-    { date:'2026-04-05', title:'♦4月休暇期間(週)', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-06', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-07', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-08', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-09', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-10', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-11', title:'♦4月休暇期間(週)・リフレッシュ期間', priority:1, cal:'個人', isRefresh:true },
-    { date:'2026-04-05', title:'○終日OFF', priority:1, cal:'個人' },
-    { date:'2026-04-06', title:'○終日OFF', priority:1, cal:'個人' },
+    // ── 有馬功稀カレンダー（primary）4月 ──
+    { date:'2026-04-05', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-06', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-07', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-08', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-09', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-10', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-11', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-12', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-13', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-14', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-15', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-16', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-17', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-18', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-19', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
+    { date:'2026-04-20', title:'♦4月リフレッシュ休暇期間', priority:1, cal:'個人', isRefresh:true },
     { date:'2026-04-08', title:'パパのお母さん誕生日', priority:1, cal:'個人', isBirthday:true, mmdd:'04-08' },
-    { date:'2026-04-11', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
     { date:'2026-04-12', title:'③中泉約束', time:'10:00〜18:00', priority:3, cal:'個人' },
-    { date:'2026-04-14', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
-    { date:'2026-04-15', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
-    { date:'2026-04-16', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
-    { date:'2026-04-17', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
-    { date:'2026-04-18', title:'終業後は③予定無し', priority:3, cal:'個人', noThird:true },
-    { date:'2026-04-29', title:'OFF', priority:1, cal:'個人', isOff:true },
-    // ── 7月 primaryカレンダー ──
-    { date:'2026-07-22', title:'陽子生誕 さんの誕生日', priority:1, cal:'個人', isBirthday:true, mmdd:'07-22' },
-    // ── フジパン(株)カレンダー（4月全シフト・MCP取得済み） ──
-    // 早番（06:00〜15:00）
-    { date:'2026-04-02', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    { date:'2026-04-03', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    { date:'2026-04-04', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    { date:'2026-04-05', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
-    { date:'2026-04-06', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
-    { date:'2026-04-07', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    { date:'2026-04-08', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    { date:'2026-04-09', title:'【早番】中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
-    // 中番
-    { date:'2026-04-10', title:'【中番】中種専属', time:'10:00〜19:00', priority:0, cal:'フジパン(株)', shiftType:'中番', shiftEnd:19 },
-    { date:'2026-04-11', title:'【中番】中種専属', time:'09:00〜18:00', priority:0, cal:'フジパン(株)', shiftType:'中番', shiftEnd:18 },
-    // 休日
+    { date:'2026-04-26', title:'4月期最終決算', time:'21:00〜22:00', priority:1, cal:'個人' },
+    { date:'2026-04-27', title:'＜調整中＞', time:'09:00〜17:00', priority:1, cal:'個人' },
+    { date:'2026-04-29', title:'移動', time:'15:00〜17:00', priority:1, cal:'個人' },
+    // primary 5月
+    { date:'2026-05-02', title:'2026河津家族旅行', priority:1, cal:'個人' },
+    { date:'2026-05-02', title:'河津家族旅行2026', time:'09:00〜', priority:1, cal:'個人' },
+    { date:'2026-05-03', title:'河津家族旅行2026', time:'〜22:00', priority:1, cal:'個人' },
+    { date:'2026-05-11', title:'＜調整中＞', time:'09:00〜18:00', priority:1, cal:'個人' },
+    // primary 誕生日
+    { date:'2026-07-22', title:'陽子生誕 誕生日', priority:1, cal:'個人', isBirthday:true, mmdd:'07-22' },
+    // ── フジパン(株)カレンダー（4月全シフト・MCP取得: 2026-04-13）──
     { date:'2026-04-12', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
     { date:'2026-04-13', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
-    // 早番再開（4/14〜4/18、名称なし「中種配合」）
     { date:'2026-04-14', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
     { date:'2026-04-15', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-04-15', title:'11時休憩固定', time:'11:00〜12:00', priority:0, cal:'フジパン(株)' },
     { date:'2026-04-16', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-04-16', title:'＋残業固定（蓋交換）', time:'15:00〜16:30', priority:0, cal:'フジパン(株)', source:'fujipan' },
     { date:'2026-04-17', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
     { date:'2026-04-18', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
     { date:'2026-04-19', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
     { date:'2026-04-20', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
-    // 4/21〜4/25：シフト未登録（大型連休候補）
+    { date:'2026-04-21', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-04-22', title:'フリー（新ポジ教育）', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-04-23', title:'中種配合', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-04-24', title:'中種専属', time:'10:00〜19:00', priority:0, cal:'フジパン(株)', shiftType:'中番', shiftEnd:19 },
+    { date:'2026-04-25', title:'中種専属', time:'09:00〜18:00', priority:0, cal:'フジパン(株)', shiftType:'中番', shiftEnd:18 },
     { date:'2026-04-26', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
     { date:'2026-04-27', title:'休日', priority:0, cal:'フジパン(株)', isOff:true },
+    { date:'2026-04-29', title:'出勤', time:'06:00〜15:00', priority:0, cal:'フジパン(株)', shiftType:'早番', shiftEnd:15 },
+    { date:'2026-05-02', title:'３連休', priority:0, cal:'フジパン(株)', isOff:true },
+    { date:'2026-05-03', title:'３連休', priority:0, cal:'フジパン(株)', isOff:true },
+    { date:'2026-05-04', title:'３連休', priority:0, cal:'フジパン(株)', isOff:true },
+    // ── YouTube／イベント／ライブカレンダー（MCP取得: 2026-04-13）──
+    // Doom or Zenith: 毎日18:00〜翌02:00（4/12夜〜4/19夜）
+    { date:'2026-04-12', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-13', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-14', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-15', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-16', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-17', title:'Doom or Zenith', time:'18:00〜翌02:00', priority:1, cal:'YT/イベント', source:'yt' },
+    { date:'2026-04-18', title:'Doom or Zenith', time:'18:00〜翌01:00', priority:1, cal:'YT/イベント', source:'yt' },
+    // SSLIVE（終日）
+    { date:'2026-04-29', title:'SSLIVE', priority:1, cal:'YT/イベント', source:'yt' },
+    // 秘密結社holoX Live 2026「First MISSION」
+    { date:'2026-04-29', title:'秘密結社holoX Live 2026「First MISSION」', time:'18:00〜19:30', priority:1, cal:'YT/イベント', source:'yt' },
   ];
   PRIMARY_EVENTS.forEach(e => {
     if (e.date >= tMin.slice(0,10) && e.date <= tMax.slice(0,10)) {
@@ -14290,17 +14344,25 @@ function _weeklyLoadExtraData() {
   // YouTube/イベント/ライブカレンダー（MCP取得済み 2026/4/1〜4/30）
   // ══════════════════════════════════════════════════
   const YOUTUBE_EVENTS = [
-    // Doom or Zenith（4/13〜4/20 アーカイブ・リアタイ・リプライ）
-    { date:'2026-04-13', title:'Doom or Zenith（アーカイブ）', time:'06:00〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-14', title:'Doom or Zenith（アーカイブ）', time:'06:00〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-15', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-16', title:'Doom or Zenith（リアタイ）',   time:'16:30〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-17', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-18', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
-    { date:'2026-04-19', title:'Doom or Zenith（リプライ）',   time:'08:00〜17:00', calType:'yt', priority:1 },
-    { date:'2026-04-20', title:'Doom or Zenith（リプライ）',   time:'08:00〜15:00', calType:'yt', priority:1 },
-    // 4/29：holxLIVE「First MISSION」
-    { date:'2026-04-29', title:'holxLIVE「First MISSION」', time:'18:00〜 ぴあアリーナMM', calType:'yt', priority:1 },
+    // ── Doom or Zenith（YouTube／イベント／ライブカレンダー）──
+    // 毎日 18:00〜翌02:00（日跨ぎ）。4/12夜〜4/18夜まで
+    { date:'2026-04-12', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-13', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-14', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-15', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-16', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-17', title:'Doom or Zenith', time:'18:00〜翌02:00', source:'yt', priority:1 },
+    { date:'2026-04-18', title:'Doom or Zenith', time:'18:00〜翌01:00', source:'yt', priority:1 },
+    // ── primary由来（有馬功稀カレンダー）──
+    { date:'2026-04-26', title:'4月期最終決算', time:'21:00〜22:00', source:'primary', priority:1 },
+    { date:'2026-04-27', title:'＜調整中＞', time:'09:00〜17:00', source:'primary', priority:1 },
+    { date:'2026-04-29', title:'移動', time:'15:00〜17:00', source:'primary', priority:1 },
+    // ── 4/29：SSLIVE（終日）+ 秘密結社holoX Live 2026「First MISSION」──
+    { date:'2026-04-29', title:'SSLIVE', source:'yt', priority:1 },
+    { date:'2026-04-29', title:'秘密結社holoX Live 2026「First MISSION」', time:'18:00〜19:30', source:'yt', priority:1 },
+    // ── 5月 primary ──
+    { date:'2026-05-02', title:'2026河津家族旅行', source:'primary', priority:1 },
+    { date:'2026-05-11', title:'＜調整中＞', time:'09:00〜18:00', source:'primary', priority:1 },
   ];
 
   return [...SLEEP_EVENTS, ...YOUTUBE_EVENTS];
