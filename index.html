@@ -418,13 +418,10 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
     <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
       <button class="wtab active" id="ctab-today" onclick="switchCalTab('today')">📋 今日</button>
       <button class="wtab" id="ctab-list" onclick="switchCalTab('list')">📅 カレンダー</button>
-      <button class="wtab" id="ctab-adjust" onclick="switchCalTab('adjust')">🔀 調整</button>
+      <button class="wtab" id="ctab-shift" onclick="switchCalTab('shift')">🏭 シフト</button>
       <button class="wtab" id="ctab-weekly" onclick="switchCalTab('weekly')">📓 週報</button>
       <button class="wtab" id="ctab-birthday" onclick="switchCalTab('birthday')">🎂 誕生日</button>
-      <button class="wtab" id="ctab-graph" onclick="switchCalTab('graph')">📊 グラフ</button>
       <button class="wtab" id="ctab-4week" onclick="switchCalTab('4week')">📆 4週間</button>
-      <button class="wtab" id="ctab-heatmap" onclick="switchCalTab('heatmap')">🌡 空き時間</button>
-      <button class="wtab" id="ctab-tv" onclick="switchCalTab('tv')">📺 テレビ</button>
     </div>
 
     <!-- ═══ 今日・今週ダイジェストタブ ═══ -->
@@ -821,7 +818,73 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
       <!-- リスト -->
       <div id="tv-list" style="display:flex;flex-direction:column;gap:8px;"></div>
 
-    </div><!-- /csec-tv -->
+    <!-- 削除済み：csec-adjust / csec-heatmap / csec-graph / csec-tv は非表示 -->
+    <div id="csec-adjust"  style="display:none;"></div>
+    <div id="csec-heatmap" style="display:none;"></div>
+    <div id="csec-graph"   style="display:none;"></div>
+    <div id="csec-tv"      style="display:none;"></div>
+
+    <!-- ═══ シフトタブ（仕事タブより移動） ═══ -->
+    <div id="csec-shift" style="padding:14px;display:none;overflow-y:auto;max-height:calc(100vh - 110px);">
+
+      <!-- ヘッダー：月ナビ＋一括GCal更新ボタン -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <button onclick="changeShiftMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">‹</button>
+        <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--accent);"></span>
+        <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">›</button>
+      </div>
+
+      <!-- Googleカレンダー一括更新ボタン -->
+      <div style="background:rgba(91,141,217,0.06);border:1px solid rgba(91,141,217,0.2);border-radius:12px;padding:12px 14px;margin-bottom:12px;">
+        <div style="font-size:0.72rem;color:#5B8DD9;font-weight:700;margin-bottom:8px;">📡 Googleカレンダー一括更新</div>
+        <div style="font-size:0.68rem;color:var(--muted2);margin-bottom:8px;line-height:1.6;">フジパン(株)カレンダーのシフトデータを同期します。有馬功稀カレンダーの予定は含まれません。</div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="manualSyncGcal()" id="gcal-sync-btn"
+            style="flex:1;padding:9px;background:rgba(91,141,217,0.15);border:1px solid rgba(91,141,217,0.4);border-radius:8px;color:#5B8DD9;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">
+            🔄 カレンダー同期（フジパン専用）
+          </button>
+          <button onclick="printShiftList()"
+            style="padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.78rem;cursor:pointer;">
+            🖨️ リスト
+          </button>
+          <button onclick="printShiftCal()"
+            style="padding:9px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.78rem;cursor:pointer;">
+            🖨️ 月間
+          </button>
+        </div>
+        <div id="gcal-sync-status" style="font-size:0.68rem;text-align:center;margin-top:6px;min-height:14px;color:var(--muted2);"></div>
+      </div>
+
+      <!-- シフトリスト・カレンダー・サマリー -->
+      <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
+      <div id="shift-cal-wrap" style="margin-bottom:16px;"></div>
+      <div class="card" id="shift-summary"></div>
+
+      <!-- 手動追加フォーム -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:12px;">
+        <div style="font-size:0.75rem;color:var(--accent);font-family:'Shippori Mincho',serif;margin-bottom:8px;">＋ シフトを手動追加</div>
+        <div style="display:flex;flex-direction:column;gap:7px;">
+          <input type="date" id="shift-date-input"
+            style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+          <select id="shift-type-input"
+            style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+            <option value="early">早番</option>
+            <option value="day">日勤</option>
+            <option value="late">遅番</option>
+            <option value="off">公休</option>
+            <option value="paid">有給</option>
+            <option value="custom">カスタム</option>
+          </select>
+          <input type="text" id="shift-note-input" placeholder="メモ（任意）"
+            style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:var(--surface2);color:var(--text);font-size:0.82rem;outline:none;">
+          <button onclick="addShift()"
+            style="width:100%;padding:9px;background:var(--accent);border:none;border-radius:8px;color:#0f0f0f;font-size:0.85rem;font-weight:700;cursor:pointer;font-family:'Shippori Mincho',serif;">
+            保存
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /csec-shift -->
 
   </div><!-- /予定パネル内タブコンテンツ -->
 
@@ -1584,36 +1647,15 @@ header { position: sticky; top: 0; z-index: 100; background: rgba(15,15,15,0.92)
 
 <!-- 仕事パネル -->
 <div class="panel" id="work-panel" style="padding:0;">
-  <!-- サブタブ -->
+  <!-- サブタブ（シフトは予定タブに移動済み） -->
   <div style="display:flex;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;">
-    <button class="wtab active" id="wtab-shift" onclick="switchWorkTab('shift')">📅 シフト</button>
-    <button class="wtab" id="wtab-union" onclick="switchWorkTab('union')">🤝 労組</button>
+    <button class="wtab active" id="wtab-union" onclick="switchWorkTab('union')">🤝 労組</button>
     <button class="wtab" id="wtab-adjust" onclick="switchWorkTab('adjust')">🔄 シフト調整</button>
     <button class="wtab" id="wtab-calc" onclick="switchWorkTab('calc')">🧮 油脂計算</button>
   </div>
 
-  <!-- シフトスケジュール -->
-  <div id="wsec-shift" style="padding:16px;display:block;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <button onclick="changeShiftMonth(-1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">‹</button>
-      <span id="shift-month-label" style="font-family:'Shippori Mincho',serif;font-size:1.05rem;color:var(--accent);"></span>
-      <button onclick="changeShiftMonth(1)" style="background:none;border:1px solid var(--border2);color:var(--muted2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:1.1rem;">›</button>
-    </div>
-    <!-- 印刷・同期ボタン -->
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <button onclick="printShiftList()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ リスト印刷</button>
-      <button onclick="printShiftCal()" style="flex:1;padding:9px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;color:var(--muted2);font-size:0.82rem;cursor:pointer;">🖨️ カレンダー印刷</button>
-      <button onclick="manualSyncGcal()" id="gcal-sync-btn" style="flex:1;padding:9px;background:rgba(159,198,231,0.12);border:1px solid rgba(159,198,231,0.4);border-radius:8px;color:#9fc6e7;font-size:0.82rem;cursor:pointer;transition:all 0.2s;">🔄 カレンダー同期</button>
-    </div>
-    <!-- 同期ステータス -->
-    <div id="gcal-sync-status" style="font-size:0.72rem;text-align:center;margin-bottom:10px;min-height:14px;color:var(--muted2);"></div>
-    <!-- シフトリスト -->
-    <div id="shift-table-wrap" style="overflow-x:auto;margin-bottom:16px;"></div>
-    <!-- 月間カレンダー -->
-    <div id="shift-cal-wrap" style="margin-bottom:16px;"></div>
-    <!-- 月間サマリー -->
-    <div class="card" id="shift-summary"></div>
-  </div>
+  <!-- シフトは予定タブに移動済み（wsec-shiftは互換性のため残す） -->
+  <div id="wsec-shift" style="display:none;"></div>
 
   <!-- 労組カレンダー -->
   <div id="wsec-union" style="padding:16px;display:none;">
@@ -5302,7 +5344,7 @@ window.fsDelShared = async (col, id) => {
 <script>
 
 // ════ シフトデータ事前適用（モジュール外・ページ読み込み直後に実行） ════
-// Googleカレンダー（フジパン(株)）から取得済みデータ 最終取得: 2026-04-08
+// Googleカレンダー（フジパン(株)）から取得済みデータ 最終取得: 2026-04-13
 window.GCAL_SHIFT_DATA = {
   "2026-03-03":{"type":"early","note":"【朝番】配合＆仕込み"},
   "2026-03-04":{"type":"early","note":"【朝番】配合＆仕込み"},
@@ -5351,13 +5393,13 @@ window.GCAL_SHIFT_DATA = {
   "2026-04-19":{"type":"off","note":"休日"},
   "2026-04-20":{"type":"off","note":"休日"},
   "2026-04-21":{"type":"early","note":"【早番】中種配合"},
-  "2026-04-22":{"type":"early","note":"【早番】中種配合"},
+  "2026-04-22":{"type":"custom","note":"フリー（新ポジ教育）"},
   "2026-04-23":{"type":"early","note":"【早番】中種配合"},
   "2026-04-24":{"type":"day","note":"【中番】中種専属"},
   "2026-04-25":{"type":"day","note":"【中番】中種専属"},
   "2026-04-26":{"type":"off","note":"休日"},
   "2026-04-27":{"type":"off","note":"休日"},
-  "2026-04-29":{"type":"off","note":"OFF / holxLIVE「First MISSION」"},
+  "2026-04-29":{"type":"early","note":"出勤（06:00〜15:00）/ holxLIVE「First MISSION」"},
   "2026-05-02":{"type":"off","note":"３連休（河津家族旅行）"},
   "2026-05-03":{"type":"off","note":"３連休（河津家族旅行）"},
   "2026-05-04":{"type":"off","note":"３連休"}
@@ -5504,7 +5546,7 @@ window.switchTab = function(n) {
   }
 
   // 仕事タブ：シフトを初期表示
-  if (n === 'work') { switchWorkTab('shift'); }
+  if (n === 'work') { switchWorkTab('union'); }
 
   // アルコール記録タブ
   if (n === 'alcohol') { initAlcoholTab(); }
@@ -8695,22 +8737,14 @@ window.deleteLovePdf = async function(id, path) {
 
 // ════ 仕事タブ ════
 window.switchWorkTab = function(tab) {
+  // shiftは予定タブに移動済み → 誤って呼ばれた場合は予定タブのcsec-shiftを開く
+  if (tab === 'shift') { switchCalTab('shift'); return; }
   ['shift','union','adjust','calc'].forEach(t => {
     const sec = document.getElementById('wsec-'+t);
     const btn = document.getElementById('wtab-'+t);
     if (sec) sec.style.display = t===tab?'block':'none';
     if (btn) btn.classList.toggle('active', t===tab);
   });
-  if (tab==='shift') {
-    // シフトタブを開くたびにGCALデータを強制適用して再描画
-    if (window.GCAL_SHIFT_DATA) {
-      const existing = JSON.parse(localStorage.getItem('kouki_shifts') || '{}');
-      const merged = Object.assign({}, window.GCAL_SHIFT_DATA);
-      Object.keys(existing).forEach(d => { if (!window.GCAL_SHIFT_DATA[d]) merged[d] = existing[d]; });
-      localStorage.setItem('kouki_shifts', JSON.stringify(merged));
-    }
-    renderShiftTable();
-  }
   if (tab==='union') {
     const us = document.getElementById('union-sync-status');
     if (us) us.textContent = `✅ フジパン(株)労働組合 自動同期済み（3〜4月イベントなし・最終取得: 2026-03-19）`;
@@ -8801,25 +8835,26 @@ window.GCAL_EVENTS_DATA = {
   "2026-04-11":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
   "2026-04-12":[{s:"休日",t:""},{s:"③中泉約束",t:"10:00〜18:00"}],
   "2026-04-13":[{s:"休日",t:""},{s:"Doom or Zenith（アーカイブ）",t:"06:00〜18:00"}],
-  "2026-04-14":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
+  "2026-04-14":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"Doom or Zenith（アーカイブ）",t:"06:00〜18:00"}],
   "2026-04-15":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"11:00〜12:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
-  "2026-04-16":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"10:00〜11:00"},{s:"＋残業固定（蓋交換）",t:"15:00〜16:30"},{s:"Doom or Zenith（リアタイ）",t:"16:30〜18:00"}],
+  "2026-04-16":[{s:"【早番】中種配合",t:"06:00〜15:00",lunch:"10:00〜11:00"},{s:"+残業固定（蓋交換）",t:"15:00〜16:30"},{s:"Doom or Zenith（リアタイ）",t:"16:30〜18:00"}],
   "2026-04-17":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
   "2026-04-18":[{s:"【早番】中種配合",t:"06:00〜15:00"},{s:"帰宅移動（寄り道なし）",t:"15:00〜16:00"},{s:"Doom or Zenith（リアタイ）",t:"16:00〜18:00"}],
   "2026-04-19":[{s:"休日",t:""},{s:"Doom or Zenith（リプライ）",t:"08:00〜17:00"}],
-  "2026-04-20":[{s:"休日",t:""},{s:"Doom or Zenith（リプライ）",t:"08:00〜17:00"}],
+  "2026-04-20":[{s:"休日",t:""},{s:"Doom or Zenith（リプライ）",t:"08:00〜15:00"}],
   "2026-04-21":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
-  "2026-04-22":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
+  "2026-04-22":[{s:"フリー（新ポジ教育）",t:"06:00〜15:00"}],
   "2026-04-23":[{s:"【早番】中種配合",t:"06:00〜15:00"}],
   "2026-04-24":[{s:"【中番】中種専属",t:"10:00〜19:00"}],
   "2026-04-25":[{s:"【中番】中種専属",t:"09:00〜18:00"}],
-  "2026-04-26":[{s:"休日",t:""},{s:"4月期最終決算",t:"22:00〜23:00"}],
-  "2026-04-27":[{s:"休日",t:""}],
-  "2026-04-29":[{s:"OFF",t:""},{s:"holxLIVE「First MISSION」",t:"18:00〜 ぴあアリーナMM"}],
+  "2026-04-26":[{s:"休日",t:""},{s:"4月期最終決算",t:"21:00〜22:00"}],
+  "2026-04-27":[{s:"休日",t:""},{s:"＜調整中＞",t:"09:00〜17:00"}],
+  "2026-04-29":[{s:"出勤",t:"06:00〜15:00"},{s:"移動",t:"15:00〜17:00"},{s:"holxLIVE「First MISSION」",t:"18:00〜 ぴあアリーナMM"}],
   // 5月
-  "2026-05-02":[{s:"３連休",t:""},{s:"2026河津家族旅行",t:""}],
-  "2026-05-03":[{s:"３連休",t:""},{s:"2026河津家族旅行",t:""}],
+  "2026-05-02":[{s:"３連休",t:""},{s:"2026河津家族旅行",t:""},{s:"河津家族旅行2026",t:"09:00〜"}],
+  "2026-05-03":[{s:"３連休",t:""},{s:"河津家族旅行2026",t:"〜22:00"}],
   "2026-05-04":[{s:"３連休",t:""}],
+  "2026-05-11":[{s:"＜調整中＞",t:"09:00〜18:00"}],
   // 7月
   "2026-07-22":[{s:"陽子生誕 誕生日",t:""}],
   // 9月
@@ -8904,7 +8939,7 @@ function renderShiftTable() {
     if (shiftCount) parts.push(`シフト${shiftCount}件`);
     if (evtCount) parts.push(`概要${evtCount}日分`);
     status.textContent = parts.length
-      ? `✅ フジパン(株)カレンダーのみ同期 — ${parts.join('・')}（最終取得: 2026-04-08）`
+      ? `✅ フジパン(株)カレンダーのみ同期 — ${parts.join('・')}（最終取得: 2026-04-13）`
       : '';
   }
   label.textContent = `${shiftYear}年${shiftMonth+1}月`;
@@ -12068,7 +12103,7 @@ function _detectPriority(summary) {
 
 // ── タブ切替 ──
 window.switchCalTab = function(tab) {
-  ['today','list','adjust','weekly','birthday','graph','4week','heatmap','tv'].forEach(t => {
+  ['today','list','adjust','weekly','birthday','graph','4week','heatmap','tv','shift'].forEach(t => {
     const sec = document.getElementById('csec-' + t);
     const btn = document.getElementById('ctab-' + t);
     if (sec) sec.style.display = t === tab ? 'block' : 'none';
@@ -12076,12 +12111,10 @@ window.switchCalTab = function(tab) {
   });
   if (tab === 'today')    calTodayInit();
   if (tab === 'list')     calListInit();
-  if (tab === 'adjust')   calAdjInit();
   if (tab === 'weekly')   calWeeklyInit();
   if (tab === 'birthday') calBirthdayInit();
-  if (tab === 'graph')    calGraphInit();
   if (tab === '4week')    cal4WeekRender();
-  if (tab === 'heatmap')  calHeatmapInit();
+  if (tab === 'shift')    { renderShiftTable(); }
   if (tab === 'tv')       tvInit();
 };
 
@@ -14257,19 +14290,17 @@ function _weeklyLoadExtraData() {
   // YouTube/イベント/ライブカレンダー（MCP取得済み 2026/4/1〜4/30）
   // ══════════════════════════════════════════════════
   const YOUTUBE_EVENTS = [
-    // 4/11〜4/18：ドズル社？？？（終日・複数日）
-    { date:'2026-04-11', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-12', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-13', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-14', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-15', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-16', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-17', title:'ドズル社？？？', calType:'yt', priority:1 },
-    { date:'2026-04-18', title:'ドズル社？？？', calType:'yt', priority:1 },
-    // 4/11 18:00〜19:00：？？？
-    { date:'2026-04-11', title:'？？？', time:'18:00〜19:00', calType:'yt', priority:1 },
-    // 4/29：SSLIVE（終日）
-    { date:'2026-04-29', title:'SSLIVE', calType:'yt', priority:1 },
+    // Doom or Zenith（4/13〜4/20 アーカイブ・リアタイ・リプライ）
+    { date:'2026-04-13', title:'Doom or Zenith（アーカイブ）', time:'06:00〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-14', title:'Doom or Zenith（アーカイブ）', time:'06:00〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-15', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-16', title:'Doom or Zenith（リアタイ）',   time:'16:30〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-17', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-18', title:'Doom or Zenith（リアタイ）',   time:'16:00〜18:00', calType:'yt', priority:1 },
+    { date:'2026-04-19', title:'Doom or Zenith（リプライ）',   time:'08:00〜17:00', calType:'yt', priority:1 },
+    { date:'2026-04-20', title:'Doom or Zenith（リプライ）',   time:'08:00〜15:00', calType:'yt', priority:1 },
+    // 4/29：holxLIVE「First MISSION」
+    { date:'2026-04-29', title:'holxLIVE「First MISSION」', time:'18:00〜 ぴあアリーナMM', calType:'yt', priority:1 },
   ];
 
   return [...SLEEP_EVENTS, ...YOUTUBE_EVENTS];
